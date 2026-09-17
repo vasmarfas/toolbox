@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Surface
@@ -199,6 +201,7 @@ private fun AppShell(
                 }
                 Scaffold(
                     modifier = Modifier.weight(1f).fillMaxSize(),
+                    contentWindowInsets = if (chrome.immersive) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
                     bottomBar = {
                         if (compact && !chrome.immersive && topDestination != null) {
                             ShortNavigationBar {

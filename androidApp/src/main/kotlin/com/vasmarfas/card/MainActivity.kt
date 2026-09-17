@@ -1,6 +1,8 @@
 package com.vasmarfas.card
 
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +20,13 @@ class MainActivity : ComponentActivity() {
         AppContextHolder.init(this)
         ActivityHolder.activity = this
         enableEdgeToEdge()
+        // immersive mode hides the status bar, and DEFAULT cutout mode letterboxes the window as soon
+        // as the cutout stops being covered by it — the ruler would lose the top of the screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes = window.attributes.apply {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
         super.onCreate(savedInstanceState)
         PermissionBridge.attach { permissions -> permissionLauncher.launch(permissions) }
 

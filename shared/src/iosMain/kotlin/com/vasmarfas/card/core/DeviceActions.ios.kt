@@ -26,5 +26,13 @@ actual fun timeZoneOffsetSeconds(zoneId: String, epochSeconds: Long): Int? {
 
 actual fun systemTimeZoneId(): String = NSTimeZone.localTimeZone.name
 
-actual fun setSystemBarsHidden(hidden: Boolean) = Unit
+// the status bar and the home indicator belong to the hosting SwiftUI scene, so the flag travels
+// back to iOSApp rather than being applied here
+object SystemBarsBridge {
+    var onChange: ((Boolean) -> Unit)? = null
+}
+
+actual fun setSystemBarsHidden(hidden: Boolean) {
+    SystemBarsBridge.onChange?.invoke(hidden)
+}
 

@@ -217,7 +217,14 @@ actual fun setTorch(on: Boolean): Boolean = runCatching {
 actual fun displayExtras(): List<Pair<String, String>> {
     val context = AppContextHolder.context
     val metrics: DisplayMetrics = context.resources.displayMetrics
-    val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) context.display else @Suppress("DEPRECATION") (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+    // the display belongs to the visual context: asked through the application one, getDisplay
+    // throws from API 30 on
+    val activity = ActivityHolder.activity
+    val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        activity?.display
+    } else {
+        @Suppress("DEPRECATION") activity?.windowManager?.defaultDisplay
+    }
     val widthIn = metrics.widthPixels / metrics.xdpi
     val heightIn = metrics.heightPixels / metrics.ydpi
     val diagonal = sqrt((widthIn * widthIn + heightIn * heightIn).toDouble())

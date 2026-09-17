@@ -11,8 +11,17 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
+    @State private var barsHidden = false
+
     var body: some View {
         ComposeView()
             .ignoresSafeArea()
+            .statusBarHidden(barsHidden)
+            .persistentSystemOverlays(barsHidden ? .hidden : .automatic)
+            .onAppear {
+                SystemBarsBridge.shared.onChange = { hidden in
+                    barsHidden = hidden.boolValue
+                }
+            }
     }
 }
