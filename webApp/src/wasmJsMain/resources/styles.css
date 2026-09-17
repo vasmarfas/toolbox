@@ -1,0 +1,147 @@
+:root {
+    color-scheme: light dark;
+    --bg: #f6fafa;
+    --fg: #1a1c1c;
+    --muted: #4a6363;
+    --accent: #00696d;
+    --accent-soft: #9cf1f4;
+    --card: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0f1415;
+        --fg: #e0e3e3;
+        --muted: #b1cccd;
+        --accent: #4dd9dd;
+        --accent-soft: #004f52;
+        --card: #1b2122;
+    }
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+canvas {
+    outline: none;
+}
+
+#splash {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0;
+    overflow-y: auto;
+    background: var(--bg);
+    z-index: 10;
+    transition: opacity 0.35s ease;
+}
+
+#splash.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.splash-card {
+    max-width: 520px;
+    width: calc(100% - 48px);
+    margin: auto;
+    padding: 32px 28px;
+    border-radius: 28px;
+    background: var(--card);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.splash-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 16px;
+}
+
+.splash-name {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 6px;
+}
+
+.splash-title {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.splash-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.splash-links a {
+    text-decoration: none;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.splash-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent-soft);
+    overflow: hidden;
+}
+
+.splash-bar {
+    height: 100%;
+    width: 40%;
+    border-radius: 2px;
+    background: var(--accent);
+    animation: splash-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes splash-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+}
+
+.splash-note {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.splash-note a {
+    color: var(--accent);
+}
+
+.splash-about,
+.splash-cats {
+    margin: 14px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted);
+    text-align: left;
+}
+
+.splash-cats {
+    margin-top: 8px;
+}

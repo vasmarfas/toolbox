@@ -1,0 +1,197 @@
+name: Release
+run-name: Release ${{ inputs.version_name || github.ref_name }}
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version without the v prefix (required when there is no v* tag)'
+        required: false
+        default: ''
+      version_code:
+        description: 'Android versionCode and iOS build number (empty = github.run_number)'
+        required: false
+        default: ''
+      play_track:
+        description: 'Google Play track'
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      publish_stores:
+        description: 'Publish to the stores (off = build artifacts and the GitHub release only)'
+        type: boolean
+        default: true
+      draft:
+        description: 'Create the GitHub release as a draft'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    name: Release parameters
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.resolve.outputs.version_name }}
+      version_code: ${{ steps.resolve.outputs.version_code }}
+      publish: ${{ steps.resolve.outputs.publish }}
+      draft: ${{ steps.resolve.outputs.draft }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve
+        id: resolve
+        env:
+          INPUT_VERSION: ${{ inputs.version_name }}
+          INPUT_CODE: ${{ inputs.version_code }}
+          INPUT_PUBLISH: ${{ inputs.publish_stores }}
+          INPUT_DRAFT: ${{ inputs.draft }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -eu
+          name="$INPUT_VERSION"
+          if [ -z "$name" ]; then
+            case "$GITHUB_REF" in
+              refs/tags/v*)
+                name="${GITHUB_REF#refs/tags/v}"
+                ;;
+              *)
+                echo '::error::version_name is required when the workflow is not started from a v* tag'
+                exit 1
+                ;;
+            esac
+          fi
+          publish=true
+          draft=false
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ]; then
+            publish="$INPUT_PUBLISH"
+            draft="$INPUT_DRAFT"
+          fi
+          {
+            echo "version_name=$name"
+            echo "version_code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "publish=$publish"
+            echo "draft=$draft"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes
+        env:
+          VERSION: ${{ steps.resolve.outputs.version_name }}
+        run: |
+          set -eu
+          if [ -f CHANGELOG.md ]; then
+            awk -v version="$VERSION" '
+              $0 ~ "^## " version "([^0-9.]|$)" { found = 1; next }
+              found && /^## / { exit }
+              found { print }
+            ' CHANGELOG.md | sed '/./,$!d' > notes.md
+          else
+            printf 'vasmarfas Toolbox %s\n' "$VERSION" > notes.md
+          fi
+          cat notes.md
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-notes
+          path: notes.md
+          if-no-files-found: ignore
+
+  web:
+    name: Web
+    needs: meta
+    uses: ./.github/workflows/deploy_web.yml
+    with:
+      version_name: ${{ needs.meta.outputs.version_name }}
+      deploy_pages: true
+      deploy_s3: true
+    secrets: inherit
+
+  android:
+    name: Android
+    needs: meta
+    uses: ./.github/workflows/deploy_android.yml
+    with:
+      version_name: ${{ needs.meta.outputs.version_name }}
+      version_code: ${{ needs.meta.outputs.version_code }}
+      publish_google_play: ${{ needs.meta.outputs.publish == 'true' }}
+      play_track: ${{ inputs.play_track || 'internal' }}
+      play_status: completed
+      publish_rustore: ${{ needs.meta.outputs.publish == 'true' }}
+      rustore_artifact: apk
+      rustore_submit: ${{ needs.meta.outputs.publish == 'true' }}
+    secrets: inherit
+
+  desktop:
+    name: Desktop
+    needs: meta
+    uses: ./.github/workflows/deploy_desktop.yml
+    with:
+      version_name: ${{ needs.meta.outputs.version_name }}
+      version_code: ${{ needs.meta.outputs.version_code }}
+    secrets: inherit
+
+  ios:
+    name: iOS
+    needs: meta
+    uses: ./.github/workflows/deploy_ios.yml
+    with:
+      version_name: ${{ needs.meta.outputs.version_name }}
+      version_code: ${{ needs.meta.outputs.version_code }}
+      upload_app_store: ${{ needs.meta.outputs.publish == 'true' }}
+    secrets: inherit
+
+  github_release:
+    name: GitHub release
+    needs: [meta, web, android, desktop, ios]
+    if: ${{ !cancelled() && needs.meta.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lh artifacts
+
+      - name: Publish
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ needs.meta.outputs.version_name }}
+          name: v${{ needs.meta.outputs.version_name }}
+          body_path: artifacts/notes.md
+          generate_release_notes: true
+          draft: ${{ needs.meta.outputs.draft == 'true' }}
+          fail_on_unmatched_files: false
+          files: |
+            artifacts/*.apk
+            artifacts/*.aab
+            artifacts/*.msi
+            artifacts/*.exe
+            artifacts/*.deb
+            artifacts/*.rpm
+            artifacts/*.dmg
+            artifacts/*.zip
+
+  microsoft_store:
+    name: Microsoft Store
+    needs: [meta, github_release]
+    if: ${{ !cancelled() && needs.github_release.result == 'success' && needs.meta.outputs.publish == 'true' && needs.meta.outputs.draft != 'true' }}
+    uses: ./.github/workflows/publish_microsoft_store.yml
+    with:
+      version_name: ${{ needs.meta.outputs.version_name }}
+      submit: true
+    secrets: inherit

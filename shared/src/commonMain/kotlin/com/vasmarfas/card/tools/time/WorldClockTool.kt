@@ -1,0 +1,229 @@
+package com.vasmarfas.card.tools.time
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Prefs
+import com.vasmarfas.card.core.currentEpochMillis
+import com.vasmarfas.card.core.str
+import com.vasmarfas.card.core.systemTimeZoneId
+import com.vasmarfas.card.core.timeZoneIds
+import com.vasmarfas.card.core.timeZoneOffsetSeconds
+import com.vasmarfas.card.resources.*
+import com.vasmarfas.card.tools.Tool
+import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.ChoiceChips
+import com.vasmarfas.card.ui.components.DropdownChoice
+import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.ToolSection
+import kotlinx.coroutines.delay
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.number
+
+val worldClockTool = Tool(
+    id = "world-clock",
+    category = ToolCategory.TIME,
+    title = Res.string.world_clock,
+    description = Res.string.current_time_in_several_zones_with_offsets_a,
+    icon = Icons.Filled.Public,
+    keywords = listOf("time zone", "utc", "clock", "converter", "часовой пояс", "часы", "время", "конвертер"),
+) { WorldClockScreen() }
+
+@Composable
+private fun WorldClockScreen() {
+    val systemZone = remember { systemTimeZoneId() }
+    val zones = remember {
+        mutableStateListOf<String>().apply {
+            addAll(WorldClock.decode(Prefs.store.get(WorldClock.PREF_KEY)) ?: (listOf(systemZone) + WorldClock.defaultZones).distinct())
+        }
+    }
+    fun save() = Prefs.store.put(WorldClock.PREF_KEY, WorldClock.encode(zones))
+    var now by remember { mutableStateOf(currentEpochMillis() / 1000) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500)
+            now = currentEpochMillis() / 1000
+        }
+    }
+    val localOffset = timeZoneOffsetSeconds(systemZone, now) ?: 0
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        zones.forEach { zone ->
+            ZoneRow(
+                zone = zone,
+                now = now,
+                localOffset = localOffset,
+                isLocal = zone == systemZone,
+                onRemove = {
+                    zones.remove(zone)
+                    save()
+                },
+            )
+        }
+    }
+
+    ToolSection(Res.string.add_a_zone.str()) {
+        var query by rememberSaveable { mutableStateOf("") }
+        val allIds = remember { timeZoneIds() }
+        ToolInputField(
+            value = query,
+            onValueChange = { query = it },
+            label = Res.string.search.str(),
+            placeholder = "Berlin · Asia/… · America/…",
+        )
+        val q = query.trim()
+        val matches = remember(q, zones.size) {
+            if (q.length < 2) emptyList() else allIds.filter { it.contains(q, ignoreCase = true) && it !in zones }.take(24)
+        }
+        if (matches.isNotEmpty()) {
+            ChoiceChips(
+                options = matches,
+                selected = null,
+                onSelect = {
+                    zones.add(it)
+                    save()
+                    query = ""
+                },
+                label = { it },
+            )
+        } else if (q.length >= 2) {
+            Text(Res.string.nothing_found_2.str(), style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+
+    ToolSection(Res.string.converter.str()) {
+        var fromZone by rememberSaveable { mutableStateOf(zones.firstOrNull() ?: "UTC") }
+        var dateText by rememberSaveable { mutableStateOf(today().iso()) }
+        var timeText by rememberSaveable { mutableStateOf("12:00") }
+        DropdownChoice(
+            options = zones.toList(),
+            selected = fromZone,
+            onSelect = { fromZone = it },
+            label = Res.string.zone.str(),
+            text = { it },
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            ToolInputField(
+                value = dateText,
+                onValueChange = { dateText = it },
+                label = Res.string.date.str(),
+                modifier = Modifier.weight(1f),
+                placeholder = "YYYY-MM-DD",
+                isError = parseDate(dateText) == null,
+                monospace = true,
+            )
+            ToolInputField(
+                value = timeText,
+                onValueChange = { timeText = it },
+                label = Res.string.time.str(),
+                modifier = Modifier.weight(1f),
+                placeholder = "HH:MM",
+                isError = parseHhMm(timeText) == null,
+                monospace = true,
+            )
+        }
+        val date = parseDate(dateText)
+        val minutes = parseHhMm(timeText)
+        if (date == null || minutes == null) {
+            ErrorText(Res.string.enter_a_date_as_yyyy_mm_dd_and_a_time_as_hh.str())
+        } else {
+            val epoch = Timestamps.epochSecondsOf(LocalDateTime(date, LocalTime(minutes / 60, minutes % 60))) {
+                timeZoneOffsetSeconds(fromZone, it) ?: 0
+            }
+            ResultCard {
+                zones.forEach { zone ->
+                    val offset = timeZoneOffsetSeconds(zone, epoch)
+                    val text = if (offset == null) "—" else {
+                        val t = WorldClock.wallTime(epoch, offset)
+                        "${t.date.iso()} ${t.hour.pad2()}:${t.minute.pad2()} (${t.date.dayOfWeek.shortTitle().str()})"
+                    }
+                    KeyValueRow(zone, text)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean, onRemove: () -> Unit) {
+    val offset = timeZoneOffsetSeconds(zone, now)
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = WorldClock.shortName(zone) + if (isLocal) " · " + Res.string.local_2.str() else "",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(zone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (offset != null) {
+                    Text(
+                        text = "UTC${Timestamps.formatOffset(offset)} · ${WorldClock.formatRelative(offset - localOffset)} ${Res.string.h.str()}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (offset == null) {
+                ErrorText(Res.string.unknown_zone.str())
+            } else {
+                val t = WorldClock.wallTime(now, offset)
+                Icon(
+                    imageVector = if (WorldClock.isDaytime(t.hour)) Icons.Filled.WbSunny else Icons.Filled.Bedtime,
+                    contentDescription = null,
+                    tint = if (WorldClock.isDaytime(t.hour)) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${t.hour.pad2()}:${t.minute.pad2()}:${t.second.pad2()}",
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        text = "${t.date.dayOfWeek.shortTitle().str()}, ${t.date.day} ${monthNames[t.date.month.number - 1].str()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Filled.Close, contentDescription = Res.string.remove.str())
+            }
+        }
+    }
+}

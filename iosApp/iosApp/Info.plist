@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>The GPS tool shows your coordinates and speed on screen. Nothing is stored or sent anywhere.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>The compass, level and pedometer tools read the motion sensors and show the values on screen.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The sound meter computes a loudness level from the microphone in real time. No audio is recorded.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Network tools such as ping, port scanner and device discovery talk to devices on your local network.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_services._dns-sd._udp</string>
+		<string>_http._tcp</string>
+		<string>_ssh._tcp</string>
+		<string>_printer._tcp</string>
+	</array>
+</dict>
+</plist>

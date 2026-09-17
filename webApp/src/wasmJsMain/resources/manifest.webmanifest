@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "vasmarfas Toolbox",
+  "short_name": "Toolbox",
+  "description": "Личный сайт и бесплатный мультитул: 143 инструмента для сети, конвертации, расчётов, текста, разработки и датчиков. Без рекламы и без регистрации.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6fafa",
+  "theme_color": "#00696d",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity", "security"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Инструменты",
+      "short_name": "Инструменты",
+      "description": "Каталог из 143 инструментов",
+      "url": "./#tools",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Скачать приложение",
+      "short_name": "Скачать",
+      "description": "Магазины приложений и файлы установки",
+      "url": "./download.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

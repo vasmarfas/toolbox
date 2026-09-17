@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "updated": "2026-09-16",
+  "summary": {
+    "en": "Android and Kotlin Multiplatform developer with a systems and network background. I take a product from the first commit to a signed build in every store, and I run the infrastructure it talks to.",
+    "ru": "Android и Kotlin Multiplatform разработчик с фоном системного и сетевого инженера. Веду продукт от первого коммита до подписанной сборки во всех магазинах и сам держу инфраструктуру, с которой он работает."
+  },
+  "skills": [
+    {
+      "title": { "en": "Mobile", "ru": "Мобильная разработка" },
+      "items": ["Kotlin", "Android SDK", "Jetpack Compose", "Compose Multiplatform", "Kotlin Multiplatform", "Coroutines / Flow", "Room", "Ktor", "Retrofit", "Koin", "Hilt", "Firebase", "Material 3", "Google Play Console", "App Store Connect", "RuStore", "Microsoft Store"]
+    },
+    {
+      "title": { "en": "Backend and scripting", "ru": "Бэкенд и скрипты" },
+      "items": ["Python", "asyncio", "FastAPI", "aiogram", "SQLAlchemy", "PostgreSQL", "Java", "Spring", "REST / JSON", "Docker", "nginx", "Telegram Bot API"]
+    },
+    {
+      "title": { "en": "Infrastructure", "ru": "Инфраструктура" },
+      "items": ["MikroTik RouterOS", "CAPsMAN", "WireGuard / VPN", "Firewall and routing", "Linux servers", "Proxmox VE", "Windows Server", "Home Assistant", "FreePBX / Asterisk", "GSM gateways (GoIP)", "Zabbix", "Graylog"]
+    },
+    {
+      "title": { "en": "Tooling and hardware", "ru": "Инструменты и железо" },
+      "items": ["Git", "GitHub Actions", "GitLab CI", "Gradle", "Fastlane", "Xcode", "Arduino / ESP8266", "3D printing", "Modbus", "BLE"]
+    }
+  ],
+  "experience": [
+    {
+      "company": { "en": "Temporarily unavailable", "ru": "Временно недоступно" },
+      "role": { "en": "Middle Android developer", "ru": "Middle Android-разработчик" },
+      "from": "2025-04",
+      "to": null,
+            "location": { "en": "Remote", "ru": "Удалённо" },
+      "summary": {
+        "en": "Evolving the SDK base of the company's mobile application and building new apps for internal business tasks.",
+        "ru": "Доработка SDK-базы мобильного приложения компании и разработка новых приложений под задачи бизнеса."
+      },
+      "tags": ["Kotlin", "Android", "Jetpack Compose", "SDK"]
+    },
+    {
+      "company": { "en": "Dota Diviner", "ru": "Dota Diviner" },
+      "role": { "en": "Kotlin / Compose Multiplatform developer", "ru": "Kotlin / Compose Multiplatform разработчик" },
+      "from": "2025-01",
+      "to": "2025-02",
+      "url": "https://dotadiviner.com",
+      "summary": {
+        "en": "Rewrote the Dota Diviner client as a Kotlin Multiplatform app for Android, iOS, Windows, macOS, Linux and Web, published it to App Store, Google Play and Microsoft Store and set up CI/CD that builds and signs every platform.",
+        "ru": "Переписал клиент Dota Diviner на Kotlin Multiplatform под Android, iOS, Windows, macOS, Linux и Web, опубликовал в App Store, Google Play и Microsoft Store и настроил CI/CD, который собирает и подписывает все платформы."
+      },
+      "bullets": [
+        { "en": "Android: Jetpack Compose, Room, Koin, Firebase Analytics / Crashlytics / Cloud Messaging", "ru": "Android: Jetpack Compose, Room, Koin, Firebase Analytics / Crashlytics / Cloud Messaging" },
+        { "en": "iOS: Ktor client, Room, CrashKiOS; desktop: Compose Desktop, SQLite; web: Compose for Web (Wasm)", "ru": "iOS: Ktor client, Room, CrashKiOS; десктоп: Compose Desktop, SQLite; веб: Compose for Web (Wasm)" },
+        { "en": "Packaging and signing: AAB/APK, IPA, MSI/EXE/MSIX, DMG/PKG, DEB; GitLab CI runners on Windows and macOS", "ru": "Сборка и подпись: AAB/APK, IPA, MSI/EXE/MSIX, DMG/PKG, DEB; раннеры GitLab CI на Windows и macOS" }
+      ],
+      "tags": ["Kotlin Multiplatform", "Compose Multiplatform", "Ktor", "Koin", "Room", "CI/CD"]
+    },
+    {
+      "company": { "en": "Freelance", "ru": "Фриланс" },
+      "role": { "en": "Android developer", "ru": "Android-разработчик" },
+      "from": "2023-08",
+      "to": "2025-04",
+      "summary": {
+        "en": "Bug fixing, optimization and new features across a number of Android projects, from UI work to release automation.",
+        "ru": "Исправление ошибок, оптимизация и новые функции в ряде Android-проектов: от интерфейса до автоматизации релизов."
+      },
+      "tags": ["Kotlin", "MVVM", "Retrofit", "Room", "Hilt", "Firebase"]
+    },
+    {
+      "company": { "en": "Dota Diviner", "ru": "Dota Diviner" },
+      "role": { "en": "Android developer", "ru": "Android-разработчик" },
+      "from": "2024-01",
+      "to": "2024-03",
+      "url": "https://dotadiviner.com",
+      "summary": {
+        "en": "Client-server Android companion app: Jetpack (ViewModel, LiveData, Navigation, Room), Retrofit/Moshi, charts, push notifications, Crashlytics and Analytics, In-App Review.",
+        "ru": "Клиент-серверное Android-приложение-компаньон: Jetpack (ViewModel, LiveData, Navigation, Room), Retrofit/Moshi, графики, push-уведомления, Crashlytics и Analytics, In-App Review."
+      },
+      "tags": ["Android", "Jetpack", "Retrofit", "FCM", "Crashlytics"]
+    },
+    {
+      "company": { "en": "Dota Diviner", "ru": "Dota Diviner" },
+      "role": { "en": "Python developer", "ru": "Python-разработчик" },
+      "from": "2023-07",
+      "to": "2023-10",
+      "url": "https://dotadiviner.com",
+      "summary": {
+        "en": "Telegram bot from scratch: aiogram, web parsing, payments, i18n, PostgreSQL with SQLAlchemy, matplotlib charts, and a FastAPI backend behind nginx for the mobile app.",
+        "ru": "Telegram-бот с нуля: aiogram, парсинг, платежи, i18n, PostgreSQL с SQLAlchemy, графики matplotlib и API на FastAPI за nginx для мобильного приложения."
+      },
+      "tags": ["Python", "aiogram", "FastAPI", "PostgreSQL", "SQLAlchemy"]
+    },
+    {
+      "company": { "en": "Development company", "ru": "Девелоперская компания" },
+      "role": { "en": "Systems administrator, network engineer", "ru": "Системный администратор, сетевой инженер" },
+      "from": "2024-01",
+      "to": "2024-06",
+      "summary": {
+        "en": "1C:Enterprise administration, Windows and macOS workstations, remote access for distributed offices, MikroTik routers and Wi-Fi, digital signatures and banking clients, shared resources and access rights, hardware diagnostics and upgrades.",
+        "ru": "Администрирование 1С:Предприятие, рабочие станции на Windows и macOS, удалённый доступ для распределённых офисов, маршрутизаторы MikroTik и Wi-Fi, ЭЦП и банк-клиенты, сетевые ресурсы и права доступа, диагностика и модернизация оборудования."
+      },
+      "tags": ["MikroTik", "Windows", "1C", "Support"]
+    },
+    {
+      "company": { "en": "Freelance", "ru": "Фриланс" },
+      "role": { "en": "Systems administrator, network engineer", "ru": "Системный администратор, сетевой инженер" },
+      "from": "2018-01",
+      "to": null,
+      "summary": {
+        "en": "MikroTik for every kind of task: CAPsMAN, seamless roaming, VPN, firewall, routing, tree and star topologies. Consumer and enterprise network gear, Windows/Linux/macOS installs and tuning, a Proxmox virtualization server with dozens of VMs, hardware selection, cellular signal boosters, Arduino (ESP8266) projects.",
+        "ru": "MikroTik под любые задачи: CAPsMAN, бесшовный роуминг, VPN, firewall, маршрутизация, топологии «дерево» и «звезда». Потребительское и профессиональное сетевое оборудование, установка и настройка Windows/Linux/macOS, сервер виртуализации Proxmox с десятками ВМ, подбор оборудования, усилители сотовой связи, проекты на Arduino (ESP8266)."
+      },
+      "tags": ["MikroTik", "Proxmox", "Linux", "Networks"]
+    }
+  ],
+  "education": [
+    {
+      "institution": { "en": "National Research Nuclear University MEPhI", "ru": "НИЯУ МИФИ" },
+      "degree": { "en": "MSc, Software Engineering", "ru": "Магистр, Программная инженерия" },
+      "year": "2026",
+      "url": "https://mephi.ru",
+      "note": { "en": "Faculty of Cybernetics and Information Security", "ru": "Факультет кибернетики и информационной безопасности" }
+    },
+    {
+      "institution": { "en": "Russian State University of Justice", "ru": "Российский государственный университет правосудия" },
+      "degree": { "en": "Law", "ru": "Юриспруденция" },
+      "year": "2024"
+    }
+  ],
+  "courses": [
+    {
+      "institution": { "en": "MEPhI Mobile Development Lab & HEX.TEAM", "ru": "Лаборатория мобильной разработки НИЯУ МИФИ & HEX.TEAM" },
+      "degree": { "en": "Fundamentals of system-level Android development", "ru": "Основы системной Android-разработки" },
+      "year": "2025"
+    },
+    {
+      "institution": { "en": "Skillbox", "ru": "Skillbox" },
+      "degree": { "en": "Android developer", "ru": "Профессия Android-разработчик" },
+      "year": "2024"
+    },
+    {
+      "institution": { "en": "Certificate", "ru": "Сертификат" },
+      "degree": { "en": "Kotlin", "ru": "Kotlin" },
+      "year": "2023"
+    }
+  ],
+  "languages": [
+    { "name": { "en": "Russian", "ru": "Русский" }, "level": { "en": "native", "ru": "родной" } },
+    { "name": { "en": "English", "ru": "Английский" }, "level": { "en": "B2, upper-intermediate", "ru": "B2, средне-продвинутый" } }
+  ]
+}

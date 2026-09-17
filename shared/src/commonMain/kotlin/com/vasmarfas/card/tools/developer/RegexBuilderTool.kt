@@ -1,0 +1,251 @@
+package com.vasmarfas.card.tools.developer
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CallSplit
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.str
+import com.vasmarfas.card.resources.*
+import com.vasmarfas.card.tools.Tool
+import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.ChoiceChips
+import com.vasmarfas.card.ui.components.CopyIconButton
+import com.vasmarfas.card.ui.components.DropdownChoice
+import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.MonoTable
+import com.vasmarfas.card.ui.components.MonoText
+import com.vasmarfas.card.ui.components.NumberField
+import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.components.SwitchRow
+import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.ToolSection
+
+private const val SHOWN_MATCHES = 10
+
+val regexBuilderTool = Tool(
+    id = "regex-builder",
+    category = ToolCategory.DEVELOPER,
+    title = Res.string.regex_builder,
+    description = Res.string.compose_a_pattern_from_blocks_with_quantifie,
+    icon = Icons.AutoMirrored.Filled.CallSplit,
+    keywords = listOf("regex", "regexp", "builder", "pattern", "generator", "library", "регулярка", "конструктор", "шаблон", "генератор", "библиотека"),
+) { RegexBuilderScreen() }
+
+@Composable
+private fun RegexBuilderScreen() {
+    val blocks = remember {
+        mutableStateListOf(RegexBlock(RegexBlockKind.CHARACTERS, set = RegexCharSet.DIGIT, quantifier = RegexQuantifier.ONE_OR_MORE))
+    }
+    var sample by rememberSaveable { mutableStateOf("ivan@example.com, +7 (999) 123-45-67, 2024-02-29") }
+    var ignoreCase by rememberSaveable { mutableStateOf(false) }
+    var multiline by rememberSaveable { mutableStateOf(false) }
+    var presetIndex by rememberSaveable { mutableStateOf(0) }
+    val pattern = RegexBuilder.pattern(blocks)
+    ToolSection(Res.string.add_a_block.str()) {
+        ChoiceChips(
+            options = RegexBlockKind.entries,
+            selected = null,
+            onSelect = { blocks.add(RegexBlock(it)) },
+            label = { it.title.str() },
+        )
+    }
+    blocks.forEachIndexed { index, block ->
+        BlockCard(
+            block = block,
+            index = index,
+            count = blocks.size,
+            onChange = { blocks[index] = it },
+            onMove = { step ->
+                val target = index + step
+                val moved = blocks.removeAt(index)
+                blocks.add(target, moved)
+            },
+            onRemove = { blocks.removeAt(index) },
+        )
+    }
+    SwitchRow(Res.string.ignore_case_i.str(), ignoreCase, { ignoreCase = it })
+    SwitchRow(Res.string.multiline_and_per_line_m.str(), multiline, { multiline = it })
+    ResultCard(Res.string.pattern.str()) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            MonoText(pattern.ifEmpty { "—" }, Modifier.weight(1f))
+            CopyIconButton(pattern)
+        }
+        KeyValueRow(Res.string.with_flags.str(), RegexBuilder.literal(pattern, ignoreCase, multiline))
+    }
+    ToolInputField(
+        value = sample,
+        onValueChange = { sample = it },
+        label = Res.string.sample_text_2.str(),
+        singleLine = false,
+        minLines = 3,
+    )
+    if (pattern.isNotEmpty()) {
+        val test = remember(pattern, sample, ignoreCase, multiline) {
+            RegexTester.run(pattern, sample, ignoreCase, multiline, dotAll = false, replacement = null)
+        }
+        ResultCard(Res.string.test.str()) {
+            if (test.error != null) {
+                ErrorText(test.error)
+            } else {
+                KeyValueRow(
+                    Res.string.matches.str(),
+                    if (test.matches.size >= RegexTester.MAX_MATCHES) "${test.matches.size}+" else test.matches.size.toString(),
+                    copyable = false,
+                )
+                if (test.matches.isNotEmpty()) {
+                    MonoTable(
+                        listOf("#    Range        Match") +
+                            test.matches.take(SHOWN_MATCHES).map { match ->
+                                "${(match.index + 1).toString().padEnd(5)}${"[${match.start}, ${match.end})".padEnd(13)}${match.value}"
+                            },
+                    )
+                }
+            }
+        }
+    }
+    ToolSection(Res.string.pattern_library.str()) {
+        DropdownChoice(
+            options = RegexBuilder.presets.indices.toList(),
+            selected = presetIndex,
+            onSelect = { presetIndex = it },
+            label = Res.string.ready_pattern.str(),
+            text = { RegexBuilder.presets[it].title.str() },
+        )
+        val preset = RegexBuilder.presets[presetIndex]
+        ResultCard {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                MonoText(preset.pattern, Modifier.weight(1f))
+                CopyIconButton(preset.pattern)
+            }
+            Text(preset.description.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            KeyValueRow(Res.string.sample.str(), preset.sample)
+            ActionButton(
+                text = Res.string.insert_as_a_block.str(),
+                onClick = { blocks.add(RegexBlock(RegexBlockKind.GROUP, text = preset.pattern, capture = false)) },
+                icon = Icons.Filled.Add,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BlockCard(
+    block: RegexBlock,
+    index: Int,
+    count: Int,
+    onChange: (RegexBlock) -> Unit,
+    onMove: (Int) -> Unit,
+    onRemove: () -> Unit,
+) {
+    ResultCard {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("${index + 1}. ${block.kind.title.str()}", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            IconButton(onClick = { onMove(-1) }, enabled = index > 0) {
+                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Res.string.up.str())
+            }
+            IconButton(onClick = { onMove(1) }, enabled = index < count - 1) {
+                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = Res.string.down.str())
+            }
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Filled.Close, contentDescription = Res.string.remove.str())
+            }
+        }
+        when (block.kind) {
+            RegexBlockKind.LITERAL -> ToolInputField(
+                value = block.text,
+                onValueChange = { onChange(block.copy(text = it)) },
+                label = Res.string.text_to_match.str(),
+                placeholder = "id=",
+            )
+
+            RegexBlockKind.CHARACTERS -> {
+                DropdownChoice(
+                    options = RegexCharSet.entries,
+                    selected = block.set,
+                    onSelect = { onChange(block.copy(set = it)) },
+                    label = Res.string.character_class.str(),
+                    text = { it.title.str() },
+                )
+                if (block.set == RegexCharSet.CUSTOM) {
+                    ToolInputField(
+                        value = block.text,
+                        onValueChange = { onChange(block.copy(text = it)) },
+                        label = Res.string.characters_of_the_set.str(),
+                        placeholder = "a-fA-F0-9",
+                        monospace = true,
+                    )
+                }
+            }
+
+            RegexBlockKind.GROUP -> {
+                ToolInputField(
+                    value = block.text,
+                    onValueChange = { onChange(block.copy(text = it)) },
+                    label = Res.string.group_content_regex.str(),
+                    placeholder = "\\d{2}-\\d{2}",
+                    monospace = true,
+                )
+                SwitchRow(Res.string.capturing_group.str(), block.capture, { onChange(block.copy(capture = it)) })
+            }
+
+            RegexBlockKind.ALTERNATION -> ToolInputField(
+                value = block.text,
+                onValueChange = { onChange(block.copy(text = it)) },
+                label = Res.string.options_separated_by.str(),
+                placeholder = "GET|POST|PUT",
+                monospace = true,
+            )
+
+            else -> Unit
+        }
+        if (block.kind in RegexBuilder.quantifiableKinds) {
+            DropdownChoice(
+                options = RegexQuantifier.entries,
+                selected = block.quantifier,
+                onSelect = { onChange(block.copy(quantifier = it)) },
+                label = Res.string.repeat.str(),
+                text = { it.title.str() },
+            )
+            if (block.quantifier == RegexQuantifier.EXACTLY || block.quantifier == RegexQuantifier.RANGE) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumberField(
+                        value = block.min,
+                        onValueChange = { onChange(block.copy(min = it)) },
+                        label = "n",
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (block.quantifier == RegexQuantifier.RANGE) {
+                        NumberField(
+                            value = block.max,
+                            onValueChange = { onChange(block.copy(max = it)) },
+                            label = "m",
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+        MonoText(RegexBuilder.render(block).ifEmpty { "—" })
+    }
+}

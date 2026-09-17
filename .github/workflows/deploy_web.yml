@@ -1,0 +1,234 @@
+name: Deploy Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shared/**'
+      - 'webApp/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/deploy_web.yml'
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version without the v prefix (empty = taken from the tag or 0.0.0-dev)'
+        required: false
+        default: ''
+      deploy_pages:
+        description: 'Deploy to GitHub Pages (vasmarfas.com)'
+        type: boolean
+        default: true
+      deploy_s3:
+        description: 'Deploy to Yandex Object Storage (vasmarfas.ru)'
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      version_name:
+        type: string
+        required: false
+        default: ''
+      deploy_pages:
+        type: boolean
+        required: false
+        default: true
+      deploy_s3:
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DIST: webApp/build/dist/wasmJs/productionExecutable
+
+jobs:
+  build:
+    name: Build Wasm distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version_name }}
+        run: |
+          set -eu
+          name="$INPUT_VERSION"
+          if [ -z "$name" ]; then
+            case "$GITHUB_REF" in
+              refs/tags/v*) name="${GITHUB_REF#refs/tags/v}" ;;
+              *) name="0.0.0-dev" ;;
+            esac
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        env:
+          APP_VERSION_NAME: ${{ steps.version.outputs.name }}
+          APP_VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew :webApp:wasmJsBrowserDistribution
+
+      - name: Publish the editable content next to the site
+        run: |
+          set -eu
+          mkdir -p "$DIST/content"
+          cp -r shared/src/commonMain/composeResources/files/. "$DIST/content/"
+
+      - name: Pack distribution for the release
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          set -eu
+          mkdir -p out
+          (cd "$DIST" && zip -qr "$GITHUB_WORKSPACE/out/vasmarfas-$VERSION-web.zip" .)
+
+      - name: Add GitHub Pages files
+        run: |
+          set -eu
+          echo "vasmarfas.com" > "$DIST/CNAME"
+          touch "$DIST/.nojekyll"
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-dist
+          path: ${{ env.DIST }}
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-web
+          path: out/*.zip
+
+  pages:
+    name: GitHub Pages
+    needs: build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_pages }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Download distribution
+        uses: actions/download-artifact@v8
+        with:
+          name: web-dist
+          path: dist
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+          include-hidden-files: true
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  s3:
+    name: Yandex Object Storage
+    needs: build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_s3 }}
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.YC_S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_S3_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ru-central1
+      AWS_EC2_METADATA_DISABLED: 'true'
+      BUCKET: ${{ secrets.YC_S3_BUCKET }}
+      ENDPOINT: https://storage.yandexcloud.net
+      IMMUTABLE: 'public, max-age=31536000, immutable'
+      HASHED: '*[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*'
+    steps:
+      - name: Check credentials
+        id: guard
+        run: |
+          set -eu
+          if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ] || [ -z "${BUCKET:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::YC_S3_ACCESS_KEY_ID / YC_S3_SECRET_ACCESS_KEY / YC_S3_BUCKET are not set, skipping vasmarfas.ru"
+            echo 'Yandex Object Storage: skipped, secrets are not set.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download distribution
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: web-dist
+          path: dist
+
+      - name: Drop GitHub-only files
+        if: steps.guard.outputs.ready == 'true'
+        run: rm -f dist/CNAME dist/.nojekyll
+
+      - name: Point the metadata at this domain
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          set -eu
+          sed -i 's|<loc>https://vasmarfas.com/|<loc>https://vasmarfas.ru/|g' dist/sitemap.xml
+          sed -i 's|Sitemap: https://vasmarfas.com/|Sitemap: https://vasmarfas.ru/|g' dist/robots.txt
+          sed -i 's|content="https://vasmarfas.com/|content="https://vasmarfas.ru/|g' dist/index.html
+
+      - name: Upload hashed assets
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          set -eu
+          aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
+            --exclude '*' --include "$HASHED" --exclude '*.html' --exclude '*.wasm' \
+            --cache-control "$IMMUTABLE"
+          aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
+            --exclude '*' --include "$HASHED.wasm" \
+            --content-type application/wasm --cache-control "$IMMUTABLE"
+
+      - name: Upload entry point and unhashed assets
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          set -eu
+          aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
+            --exclude "$HASHED" --exclude '*.wasm' --include '*.html' \
+            --cache-control no-cache
+          aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
+            --exclude '*' --include '*.wasm' --exclude "$HASHED.wasm" \
+            --content-type application/wasm --cache-control no-cache
+          if [ -f dist/manifest.webmanifest ]; then
+            aws s3 cp dist/manifest.webmanifest "s3://$BUCKET/manifest.webmanifest" --endpoint-url "$ENDPOINT" \
+              --content-type application/manifest+json --cache-control no-cache
+          fi
+
+      - name: Delete stale objects
+        if: steps.guard.outputs.ready == 'true'
+        run: aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" --delete --size-only

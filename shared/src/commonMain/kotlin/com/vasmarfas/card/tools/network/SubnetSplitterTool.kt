@@ -1,0 +1,175 @@
+package com.vasmarfas.card.tools.network
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CallSplit
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
+import com.vasmarfas.card.core.fmtGrouped
+import com.vasmarfas.card.core.str
+import com.vasmarfas.card.resources.*
+import com.vasmarfas.card.tools.Tool
+import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.NumberField
+import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.components.SegmentedChoice
+import com.vasmarfas.card.ui.components.ToolInputField
+import org.jetbrains.compose.resources.StringResource
+
+val subnetSplitterTool = Tool(
+    id = "subnet-splitter",
+    category = ToolCategory.NETWORK,
+    title = Res.string.subnet_splitter_and_vlsm,
+    description = Res.string.split_a_network_into_equal_subnets_allocate,
+    icon = Icons.AutoMirrored.Filled.CallSplit,
+    keywords = listOf("vlsm", "cidr", "supernet", "aggregate", "range", "разбить", "суммаризация"),
+) { SubnetSplitterScreen() }
+
+private enum class SplitMode(val title: StringResource) {
+    EQUAL(Res.string.equal_split),
+    VLSM(Res.string.vlsm_by_hosts),
+    SUMMARIZE(Res.string.summarize),
+    RANGE(Res.string.range_to_cidr),
+}
+
+object SubnetMath {
+    fun split(network: Ipv4Subnet, count: Int): List<Ipv4Subnet> {
+        var bits = 0
+        while ((1 shl bits) < count) bits++
+        val prefix = network.prefix + bits
+        if (prefix > 32) return emptyList()
+        val size = 1L shl (32 - prefix)
+        return (0 until (1 shl bits)).map { i -> Ipv4Subnet(network.network + i * size, prefix) }
+    }
+
+    fun vlsm(network: Ipv4Subnet, hosts: List<Int>): List<Pair<Int, Ipv4Subnet>>? {
+        var cursor = network.network
+        val end = network.broadcast + 1
+        val result = mutableListOf<Pair<Int, Ipv4Subnet>>()
+        for (need in hosts.sortedDescending()) {
+            var hostBits = 0
+            while ((1L shl hostBits) - 2 < need) hostBits++
+            if (hostBits < 2) hostBits = 2
+            val prefix = 32 - hostBits
+            val size = 1L shl hostBits
+            if (cursor + size > end) return null
+            result += need to Ipv4Subnet(cursor, prefix)
+            cursor += size
+        }
+        return result
+    }
+
+    fun rangeToCidrs(start: Long, end: Long): List<Ipv4Subnet> {
+        val out = mutableListOf<Ipv4Subnet>()
+        var cur = start
+        while (cur <= end) {
+            var prefix = 32
+            while (prefix > 0) {
+                val size = 1L shl (32 - (prefix - 1))
+                if (cur % size != 0L || cur + size - 1 > end) break
+                prefix--
+            }
+            out += Ipv4Subnet(cur, prefix)
+            cur += 1L shl (32 - prefix)
+        }
+        return out
+    }
+
+    fun summarize(subnets: List<Ipv4Subnet>): List<Ipv4Subnet> {
+        if (subnets.isEmpty()) return emptyList()
+        val ranges = subnets.map { it.network to it.broadcast }.sortedBy { it.first }
+        val merged = mutableListOf(ranges.first())
+        for ((s, e) in ranges.drop(1)) {
+            val last = merged.last()
+            if (s <= last.second + 1) merged[merged.lastIndex] = last.first to maxOf(last.second, e)
+            else merged += s to e
+        }
+        return merged.flatMap { (s, e) -> rangeToCidrs(s, e) }
+    }
+}
+
+@Composable
+private fun SubnetSplitterScreen() {
+    var mode by rememberSaveable { mutableStateOf(SplitMode.EQUAL) }
+    var network by rememberSaveable { mutableStateOf("192.168.0.0/24") }
+    var count by rememberSaveable { mutableStateOf("4") }
+    var hosts by rememberSaveable { mutableStateOf("100, 50, 20, 2") }
+    var list by rememberSaveable { mutableStateOf("10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/23") }
+    var rangeStart by rememberSaveable { mutableStateOf("192.168.1.10") }
+    var rangeEnd by rememberSaveable { mutableStateOf("192.168.1.250") }
+
+    SegmentedChoice(options = SplitMode.entries, selected = mode, onSelect = { mode = it }, label = { it.title.str() })
+    when (mode) {
+        SplitMode.EQUAL -> {
+            ToolInputField(value = network, onValueChange = { network = it }, label = Res.string.network.str(), keyboardType = KeyboardType.Uri, monospace = true)
+            NumberField(value = count, onValueChange = { count = it }, label = Res.string.number_of_subnets.str())
+            val net = remember(network) { Ipv4.parseSubnet(network) }
+            val n = count.toIntOrNull()
+            if (net == null || n == null || n < 1) ErrorText(Res.string.enter_a_network_and_a_count.str())
+            else {
+                val parts = SubnetMath.split(net, n)
+                if (parts.isEmpty()) ErrorText(Res.string.too_many_subnets_for_this_prefix.str())
+                else ResultCard(title = "${parts.size} × /${parts.first().prefix} · ${parts.first().usableHosts.fmtGrouped()} " + Res.string.hosts_each.str()) {
+                    SimpleTable(
+                        header = listOf("#", "Network", "Hosts", "Broadcast"),
+                        rows = parts.mapIndexed { i, s -> listOf((i + 1).toString(), "${Ipv4.format(s.network)}/${s.prefix}", "${Ipv4.format(s.firstHost)} – ${Ipv4.format(s.lastHost)}", Ipv4.format(s.broadcast)) },
+                        weights = listOf(0.4f, 1.5f, 2.6f, 1.4f),
+                    )
+                }
+            }
+        }
+
+        SplitMode.VLSM -> {
+            ToolInputField(value = network, onValueChange = { network = it }, label = Res.string.network.str(), keyboardType = KeyboardType.Uri, monospace = true)
+            ToolInputField(value = hosts, onValueChange = { hosts = it }, label = Res.string.hosts_per_subnet_comma_separated.str())
+            val net = remember(network) { Ipv4.parseSubnet(network) }
+            val needs = hosts.split(Regex("[,;\\s]+")).mapNotNull { it.toIntOrNull() }.filter { it > 0 }
+            if (net == null || needs.isEmpty()) ErrorText(Res.string.enter_a_network_and_host_counts.str())
+            else {
+                val plan = SubnetMath.vlsm(net, needs)
+                if (plan == null) ErrorText(Res.string.the_network_is_too_small_for_these_hosts.str())
+                else ResultCard {
+                    SimpleTable(
+                        header = listOf("Need", "Network", "Usable", "Range"),
+                        rows = plan.map { (need, s) -> listOf(need.toString(), "${Ipv4.format(s.network)}/${s.prefix}", s.usableHosts.toString(), "${Ipv4.format(s.firstHost)} – ${Ipv4.format(s.lastHost)}") },
+                        weights = listOf(0.6f, 1.6f, 0.8f, 2.6f),
+                    )
+                    val used = plan.sumOf { it.second.totalAddresses }
+                    KeyValueRow(Res.string.used_total_addresses.str(), "${used.fmtGrouped()} / ${net.totalAddresses.fmtGrouped()}", copyable = false)
+                }
+            }
+        }
+
+        SplitMode.SUMMARIZE -> {
+            ToolInputField(value = list, onValueChange = { list = it }, label = Res.string.networks_one_per_line.str(), singleLine = false, minLines = 3, monospace = true)
+            val subnets = list.lines().mapNotNull { Ipv4.parseSubnet(it.trim()) }
+            if (subnets.isEmpty()) ErrorText(Res.string.enter_at_least_one_network.str())
+            else {
+                val result = SubnetMath.summarize(subnets)
+                ResultCard(title = "${subnets.size} → ${result.size}") {
+                    result.forEach { s -> KeyValueRow("${Ipv4.format(s.network)}/${s.prefix}", "${Ipv4.format(s.network)} – ${Ipv4.format(s.broadcast)} · ${s.totalAddresses.fmtGrouped()}") }
+                }
+            }
+        }
+
+        SplitMode.RANGE -> {
+            ToolInputField(value = rangeStart, onValueChange = { rangeStart = it }, label = Res.string.first_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
+            ToolInputField(value = rangeEnd, onValueChange = { rangeEnd = it }, label = Res.string.last_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
+            val s = Ipv4.parse(rangeStart)
+            val e = Ipv4.parse(rangeEnd)
+            if (s == null || e == null || e < s) ErrorText(Res.string.enter_a_valid_range.str())
+            else {
+                val cidrs = SubnetMath.rangeToCidrs(s, e)
+                ResultCard(title = "${(e - s + 1).fmtGrouped()} " + Res.string.addresses_2.str() + " · ${cidrs.size} CIDR") {
+                    cidrs.forEach { c -> KeyValueRow("${Ipv4.format(c.network)}/${c.prefix}", "${Ipv4.format(c.network)} – ${Ipv4.format(c.broadcast)}") }
+                }
+            }
+        }
+    }
+}
