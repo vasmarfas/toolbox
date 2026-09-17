@@ -565,7 +565,7 @@
     <string name="pressure">Давление</string>
     <string name="bar">Бар</string>
     <string name="pound_per_square_inch">Фунт на кв. дюйм</string>
-    <string name="pascal">Паскаль</string>
+    <string name="pascal_unit">Паскаль</string>
     <string name="kilopascal">Килопаскаль</string>
     <string name="megapascal">Мегапаскаль</string>
     <string name="millibar">Миллибар</string>

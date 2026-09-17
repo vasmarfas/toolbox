@@ -118,7 +118,7 @@ enum class UnitCategory(val title: StringResource, val units: List<ConvUnit>) {
         listOf(
             ConvUnit("bar", Res.string.bar, "bar", 1e5),
             ConvUnit("psi", Res.string.pound_per_square_inch, "psi", 6894.757293168),
-            ConvUnit("pa", Res.string.pascal, "Pa", 1.0),
+            ConvUnit("pa", Res.string.pascal_unit, "Pa", 1.0),
             ConvUnit("kpa", Res.string.kilopascal, "kPa", 1e3),
             ConvUnit("mpa", Res.string.megapascal, "MPa", 1e6),
             ConvUnit("mbar", Res.string.millibar, "mbar", 100.0),

@@ -16,7 +16,7 @@ class CaseConvertTest {
     @Test
     fun convertsLatin() {
         assertEquals("helloWorld", CaseConvert.convert("hello world", TextCase.CAMEL))
-        assertEquals("HelloWorld", CaseConvert.convert("hello world", TextCase.PASCAL))
+        assertEquals("HelloWorld", CaseConvert.convert("hello world", TextCase.PASCAL_CASE))
         assertEquals("hello_world", CaseConvert.convert("helloWorld", TextCase.SNAKE))
         assertEquals("HELLO_WORLD", CaseConvert.convert("hello world", TextCase.SCREAMING_SNAKE))
         assertEquals("hello-world", CaseConvert.convert("Hello World", TextCase.KEBAB))

@@ -29,24 +29,35 @@ import platform.darwin.ifaddrs
 import platform.posix.AF_INET
 import platform.posix.AF_INET6
 import platform.posix.AF_UNSPEC
+import platform.posix.EINPROGRESS
+import platform.posix.F_GETFL
+import platform.posix.F_SETFL
 import platform.posix.IPPROTO_ICMP
 import platform.posix.IPPROTO_IP
 import platform.posix.IP_TTL
 import platform.posix.NI_MAXHOST
 import platform.posix.NI_NAMEREQD
 import platform.posix.NI_NUMERICHOST
+import platform.posix.O_NONBLOCK
+import platform.posix.POLLOUT
 import platform.posix.SOCK_DGRAM
 import platform.posix.SOCK_STREAM
 import platform.posix.SOL_SOCKET
 import platform.posix.SO_BROADCAST
+import platform.posix.SO_ERROR
 import platform.posix.SO_RCVTIMEO
 import platform.posix.addrinfo
 import platform.posix.close
 import platform.posix.connect
+import platform.posix.errno
+import platform.posix.fcntl
 import platform.posix.freeaddrinfo
 import platform.posix.getaddrinfo
 import platform.posix.getnameinfo
 import platform.posix.getpid
+import platform.posix.getsockopt
+import platform.posix.poll
+import platform.posix.pollfd
 import platform.posix.recv
 import platform.posix.recvfrom
 import platform.posix.send
@@ -56,6 +67,7 @@ import platform.posix.sockaddr
 import platform.posix.sockaddr_in
 import platform.posix.sockaddr_storage
 import platform.posix.socket
+import platform.posix.socklen_t
 import platform.posix.socklen_tVar
 import platform.posix.timeval
 
@@ -92,6 +104,32 @@ private fun setTimeout(descriptor: Int, timeoutMs: Int) {
         tv.tv_usec = ((timeoutMs % 1000) * 1000).convert()
         setsockopt(descriptor, SOL_SOCKET, SO_RCVTIMEO, tv.ptr, sizeOf<timeval>().convert())
     }
+}
+
+// SO_RCVTIMEO only governs recv, so a blocking connect() ignores timeoutMs and runs to the
+// kernel's own TCP timeout; O_NONBLOCK plus poll() makes the deadline real, and the original
+// flags go back so the caller's later recv() still honours SO_RCVTIMEO
+@OptIn(ExperimentalForeignApi::class)
+private fun connectWithin(descriptor: Int, address: CPointer<sockaddr>?, length: socklen_t, timeoutMs: Int): Boolean {
+    val flags = fcntl(descriptor, F_GETFL, 0)
+    if (flags < 0 || fcntl(descriptor, F_SETFL, flags or O_NONBLOCK) < 0) return false
+    val connected = when {
+        connect(descriptor, address, length) == 0 -> true
+        errno != EINPROGRESS -> false
+        else -> memScoped {
+            val fds = alloc<pollfd>()
+            fds.fd = descriptor
+            fds.events = POLLOUT.convert()
+            fds.revents = 0
+            if (poll(fds.ptr, 1.convert(), timeoutMs) <= 0) return@memScoped false
+            val error = alloc<IntVar>()
+            val size = alloc<socklen_tVar>()
+            size.value = sizeOf<IntVar>().convert()
+            getsockopt(descriptor, SOL_SOCKET, SO_ERROR, error.ptr, size.ptr) == 0 && error.value == 0
+        }
+    }
+    fcntl(descriptor, F_SETFL, flags)
+    return connected
 }
 
 private const val ICMP_ECHO_REPLY = 0
@@ -231,8 +269,9 @@ actual suspend fun tcpConnect(host: String, port: Int, timeoutMs: Int): Long? = 
         val descriptor = socket(info.pointed.ai_family, info.pointed.ai_socktype, info.pointed.ai_protocol)
         if (descriptor >= 0) {
             setTimeout(descriptor, timeoutMs)
-            val connected = connect(descriptor, info.pointed.ai_addr, info.pointed.ai_addrlen)
-            if (connected == 0) result = currentEpochMillis() - started
+            if (connectWithin(descriptor, info.pointed.ai_addr, info.pointed.ai_addrlen, timeoutMs)) {
+                result = currentEpochMillis() - started
+            }
             close(descriptor)
         }
     }
@@ -353,7 +392,7 @@ actual suspend fun whoisQuery(server: String, query: String, timeoutMs: Int): St
         val descriptor = socket(info.pointed.ai_family, info.pointed.ai_socktype, info.pointed.ai_protocol)
         if (descriptor >= 0) {
             setTimeout(descriptor, timeoutMs)
-            if (connect(descriptor, info.pointed.ai_addr, info.pointed.ai_addrlen) == 0) {
+            if (connectWithin(descriptor, info.pointed.ai_addr, info.pointed.ai_addrlen, timeoutMs)) {
                 val request = (query + "\r\n").encodeToByteArray()
                 send(descriptor, request.refTo(0), request.size.convert(), 0)
                 val builder = StringBuilder()

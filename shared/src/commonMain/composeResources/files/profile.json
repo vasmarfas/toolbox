@@ -15,12 +15,12 @@
     },
     "about": [
       {
-        "en": "Mobile is the main track: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, publishing and CI/CD for every store. The multiplatform part is not theoretical: Dota Diviner and SMSNode run on Android, iOS, Windows, macOS, Linux and in the browser from the same code, and this site is built the same way.",
-        "ru": "Основное направление — мобильная разработка: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, публикация и CI/CD под все магазины. Мультиплатформа не на словах: Dota Diviner и SMSNode работают на Android, iOS, Windows, macOS, Linux и в браузере из одного кода, и этот сайт собран так же."
+        "en": "Mobile is the main track: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, publishing and CI/CD for the stores. Dota Diviner and SMSNode build from one codebase for Android, iOS, Windows, macOS, Linux and the browser — this site works the same way.",
+        "ru": "Основное направление — мобильная разработка: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, публикация и CI/CD под магазины. Dota Diviner и SMSNode собираются из одного кода под Android, iOS, Windows, macOS, Linux и браузер — этот сайт устроен так же."
       },
       {
-        "en": "Before and alongside development: systems and network administration. MikroTik (CAPsMAN, roaming, VPN, firewall, routing), Proxmox virtualization, Windows/Linux/macOS workstations and servers, cellular signal boosters, Arduino and ESP8266 projects. This is why the tools section of this app exists: they are the utilities I keep reaching for.",
-        "ru": "До разработки и параллельно с ней — системное и сетевое администрирование. MikroTik (CAPsMAN, бесшовный роуминг, VPN, firewall, маршрутизация), виртуализация на Proxmox, рабочие станции и серверы на Windows/Linux/macOS, усилители сотовой связи, проекты на Arduino и ESP8266. Отсюда и раздел инструментов в этом приложении — это то, чем я сам постоянно пользуюсь."
+        "en": "Before and alongside development: systems and network administration. MikroTik (CAPsMAN, roaming, VPN, firewall, routing), Proxmox virtualization, Windows/Linux/macOS workstations and servers, cellular signal boosters, Arduino and ESP8266 projects. Раздел инструментов вырос отсюда: это то, чем я пользуюсь сам.",
+        "ru": "До разработки и параллельно с ней — системное и сетевое администрирование. MikroTik (CAPsMAN, бесшовный роуминг, VPN, firewall, маршрутизация), виртуализация на Proxmox, рабочие станции и серверы на Windows/Linux/macOS, усилители сотовой связи, проекты на Arduino и ESP8266. Раздел инструментов вырос отсюда — я собрал то, чем пользуюсь сам."
       },
       {
         "en": "I write about what I build on Habr: self-hosted telephony, Home Assistant panels from old tablets, UPS protocols, ambient lighting, even liquid cooling for a laptop.",
@@ -86,8 +86,8 @@
       "name": "Dota Diviner",
       "tagline": { "en": "Draft analytics for Dota 2: KMP app, Telegram bot and backend.", "ru": "Аналитика драфтов Dota 2: KMP-приложение, Telegram-бот и бэкенд." },
       "description": {
-        "en": "A service that grew from a Telegram bot into a full product: Python backend (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
-        "ru": "Сервис, выросший из Telegram-бота в полноценный продукт: бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
+        "en": "Начиналось с Telegram-бота, сейчас это Python-бэкенд (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
+        "ru": "Начиналось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
       },
       "tech": ["Kotlin Multiplatform", "Compose Multiplatform", "Ktor", "Koin", "Room", "Python", "FastAPI", "PostgreSQL"],
       "platforms": ["Android", "iOS", "Windows", "macOS", "Linux", "Web"],
@@ -142,8 +142,8 @@
       "source": "github",
       "tagline": { "en": "Camera auto-brightness and wake-on-approach for tablets with no light sensor.", "ru": "Автояркость по камере и пробуждение при приближении для планшетов без датчика света." },
       "description": {
-        "en": "Turns an old tablet into a proper wall panel for Home Assistant: the front camera measures ambient light and detects a person approaching, the app adjusts brightness and wakes the screen. Written up on Habr with 70K+ views.",
-        "ru": "Превращает старый планшет в нормальную настенную панель для Home Assistant: фронтальная камера измеряет освещённость и замечает приближение человека, приложение подстраивает яркость и будит экран. Статья на Хабре набрала 70K+ просмотров."
+        "en": "Turns an old tablet into a proper wall panel for Home Assistant: the front camera measures ambient light and detects a person approaching, the app adjusts brightness and wakes the screen. I wrote it up on Habr.",
+        "ru": "Превращает старый планшет в нормальную настенную панель для Home Assistant: фронтальная камера измеряет освещённость и замечает приближение человека, приложение подстраивает яркость и будит экран. Про него писал на Хабре."
       },
       "tech": ["Kotlin", "Android", "CameraX", "Jetpack Compose"],
       "platforms": ["Android"],
