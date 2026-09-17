@@ -7,22 +7,34 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: 'Version without the v prefix (required when there is no v* tag)'
-        required: false
-        default: ''
+        description: 'App versionName (e.g. 1.0.0)'
+        required: true
+        default: '0.1.0'
       version_code:
         description: 'Android versionCode and iOS build number (empty = github.run_number)'
         required: false
         default: ''
+      publish_google_play:
+        description: 'Publish the AAB to Google Play'
+        type: boolean
+        default: false
       play_track:
         description: 'Google Play track'
         type: choice
         options: [internal, alpha, beta, production]
         default: internal
-      publish_stores:
-        description: 'Publish to the stores (off = build artifacts and the GitHub release only)'
+      publish_rustore:
+        description: 'Upload the build to a RuStore draft version'
         type: boolean
-        default: true
+        default: false
+      publish_ios_app_store:
+        description: 'Upload the IPA to App Store Connect (TestFlight)'
+        type: boolean
+        default: false
+      publish_microsoft_store:
+        description: 'Send the MSI to Microsoft Store'
+        type: boolean
+        default: false
       draft:
         description: 'Create the GitHub release as a draft'
         type: boolean
@@ -44,7 +56,10 @@ jobs:
     outputs:
       version_name: ${{ steps.resolve.outputs.version_name }}
       version_code: ${{ steps.resolve.outputs.version_code }}
-      publish: ${{ steps.resolve.outputs.publish }}
+      publish_google_play: ${{ steps.resolve.outputs.publish_google_play }}
+      publish_rustore: ${{ steps.resolve.outputs.publish_rustore }}
+      publish_ios_app_store: ${{ steps.resolve.outputs.publish_ios_app_store }}
+      publish_microsoft_store: ${{ steps.resolve.outputs.publish_microsoft_store }}
       draft: ${{ steps.resolve.outputs.draft }}
     steps:
       - uses: actions/checkout@v7
@@ -54,7 +69,10 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version_name }}
           INPUT_CODE: ${{ inputs.version_code }}
-          INPUT_PUBLISH: ${{ inputs.publish_stores }}
+          INPUT_PLAY: ${{ inputs.publish_google_play }}
+          INPUT_RUSTORE: ${{ inputs.publish_rustore }}
+          INPUT_IOS: ${{ inputs.publish_ios_app_store }}
+          INPUT_MS: ${{ inputs.publish_microsoft_store }}
           INPUT_DRAFT: ${{ inputs.draft }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
@@ -71,16 +89,26 @@ jobs:
                 ;;
             esac
           fi
-          publish=true
+          # a v* tag is the full release, a manual run publishes only what was ticked
+          play=true
+          rustore=true
+          ios=true
+          microsoft=true
           draft=false
           if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ]; then
-            publish="$INPUT_PUBLISH"
+            play="$INPUT_PLAY"
+            rustore="$INPUT_RUSTORE"
+            ios="$INPUT_IOS"
+            microsoft="$INPUT_MS"
             draft="$INPUT_DRAFT"
           fi
           {
             echo "version_name=$name"
             echo "version_code=${INPUT_CODE:-$RUN_NUMBER}"
-            echo "publish=$publish"
+            echo "publish_google_play=$play"
+            echo "publish_rustore=$rustore"
+            echo "publish_ios_app_store=$ios"
+            echo "publish_microsoft_store=$microsoft"
             echo "draft=$draft"
           } >> "$GITHUB_OUTPUT"
 
@@ -124,12 +152,12 @@ jobs:
     with:
       version_name: ${{ needs.meta.outputs.version_name }}
       version_code: ${{ needs.meta.outputs.version_code }}
-      publish_google_play: ${{ needs.meta.outputs.publish == 'true' }}
+      publish_google_play: ${{ needs.meta.outputs.publish_google_play == 'true' }}
       play_track: ${{ inputs.play_track || 'internal' }}
       play_status: completed
-      publish_rustore: ${{ needs.meta.outputs.publish == 'true' }}
+      publish_rustore: ${{ needs.meta.outputs.publish_rustore == 'true' }}
       rustore_artifact: apk
-      rustore_submit: ${{ needs.meta.outputs.publish == 'true' }}
+      rustore_submit: ${{ needs.meta.outputs.publish_rustore == 'true' }}
     secrets: inherit
 
   desktop:
@@ -148,7 +176,7 @@ jobs:
     with:
       version_name: ${{ needs.meta.outputs.version_name }}
       version_code: ${{ needs.meta.outputs.version_code }}
-      upload_app_store: ${{ needs.meta.outputs.publish == 'true' }}
+      upload_app_store: ${{ needs.meta.outputs.publish_ios_app_store == 'true' }}
     secrets: inherit
 
   github_release:
@@ -189,7 +217,7 @@ jobs:
   microsoft_store:
     name: Microsoft Store
     needs: [meta, github_release]
-    if: ${{ !cancelled() && needs.github_release.result == 'success' && needs.meta.outputs.publish == 'true' && needs.meta.outputs.draft != 'true' }}
+    if: ${{ !cancelled() && needs.github_release.result == 'success' && needs.meta.outputs.publish_microsoft_store == 'true' && needs.meta.outputs.draft != 'true' }}
     uses: ./.github/workflows/publish_microsoft_store.yml
     with:
       version_name: ${{ needs.meta.outputs.version_name }}

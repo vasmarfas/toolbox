@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.APP_VERSION
 import com.vasmarfas.card.core.Analytics
 import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.Lang
@@ -165,15 +166,15 @@ fun SettingsScreen() {
         }
 
         SettingsCard(Res.string.about.str()) {
-            KeyValueRow(Res.string.version.str(), AppConfig.VERSION, mono = false, copyable = false)
+            KeyValueRow(Res.string.version.str(), APP_VERSION, mono = false, copyable = false)
             KeyValueRow(Res.string.platform.str(), "${info.kind.title.str()} · ${info.osName} ${info.osVersion} · ${info.deviceModel}", mono = false, copyable = false)
             Text(Res.string.built_with.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(onClick = { openUrl(AppConfig.REPO_URL) }) { Text(Res.string.source_code.str()) }
                 TextButton(onClick = { openUrl(AppConfig.SITE_COM) }) { Text("vasmarfas.com") }
                 TextButton(onClick = { openUrl(AppConfig.SITE_RU) }) { Text("vasmarfas.ru") }
-                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/main/privacy-policy.md") }) { Text(Res.string.privacy_policy.str()) }
-                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/main/terms.md") }) { Text(Res.string.terms.str()) }
+                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/master/privacy-policy.md") }) { Text(Res.string.privacy_policy.str()) }
+                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/master/terms.md") }) { Text(Res.string.terms.str()) }
             }
         }
     }

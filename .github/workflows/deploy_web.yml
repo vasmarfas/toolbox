@@ -1,4 +1,5 @@
 name: Deploy Web
+run-name: Deploy Web ${{ inputs.version_name }}
 
 on:
   push:
@@ -14,9 +15,9 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: 'Version without the v prefix (empty = taken from the tag or 0.0.0-dev)'
-        required: false
-        default: ''
+        description: 'App versionName (e.g. 1.0.0)'
+        required: true
+        default: '0.1.0'
       deploy_pages:
         description: 'Deploy to GitHub Pages (vasmarfas.com)'
         type: boolean

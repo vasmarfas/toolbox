@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: 'Version without the v prefix (empty = taken from the tag, otherwise 1.0.0)'
-        required: false
-        default: ''
+        description: 'App versionName (e.g. 1.0.0)'
+        required: true
+        default: '0.1.0'
       version_code:
         description: 'CURRENT_PROJECT_VERSION (empty = github.run_number)'
         required: false

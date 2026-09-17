@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.AppConfig
+import com.vasmarfas.card.core.APP_VERSION
 import com.vasmarfas.card.core.BatteryInfo
 import com.vasmarfas.card.core.NetCapabilities
 import com.vasmarfas.card.core.availableSensors
@@ -64,7 +64,7 @@ private fun DeviceInfoScreen() {
         KeyValueRow(Res.string.locale.str(), info.locale)
         KeyValueRow(Res.string.time_zone.str(), systemTimeZoneId())
         info.extra.forEach { (k, v) -> KeyValueRow(k, v, mono = false) }
-        KeyValueRow(Res.string.app_version.str(), AppConfig.VERSION, copyable = false)
+        KeyValueRow(Res.string.app_version.str(), APP_VERSION, copyable = false)
     }
     ResultCard(title = Res.string.sensors.str()) {
         if (sensors.isEmpty()) Text(Res.string.no_sensors_are_exposed_on_this_platform.str(), style = MaterialTheme.typography.bodyMedium)

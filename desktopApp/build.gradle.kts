@@ -30,7 +30,7 @@ compose.desktop {
                 TargetFormat.Rpm,
             )
             packageName = "Toolbox"
-            packageVersion = System.getenv("APP_VERSION_NAME") ?: "0.1.0"
+            packageVersion = (rootProject.extra["appVersionName"] as String).substringBefore('-')
             vendor = "vasmarfas"
             description = "vasmarfas Toolbox: business card, portfolio and a multitool"
             modules("jdk.unsupported", "java.naming", "java.net.http")
@@ -45,10 +45,7 @@ compose.desktop {
             macOS {
                 bundleID = "com.vasmarfas.toolbox"
                 iconFile.set(project.file("icons/logo.icns"))
-                val buildVersion = System.getenv("APP_VERSION_CODE")
-                if (!buildVersion.isNullOrBlank()) {
-                    packageBuildVersion = buildVersion
-                }
+                packageBuildVersion = rootProject.extra["appVersionCode"].toString()
                 val identity = System.getenv("APPLE_DEVELOPER_ID_IDENTITY")
                 if (!identity.isNullOrBlank()) {
                     signing {
