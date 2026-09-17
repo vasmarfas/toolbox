@@ -12,7 +12,7 @@ plugins {
 }
 
 // Single source of truth for the version; the pipeline overrides it through the environment.
-val appVersionName: String = System.getenv("APP_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.1.0"
+val appVersionName: String = System.getenv("APP_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
 
 // Play and App Store Connect take only a growing integer, so 1.4.12 packs into 10412
 val appVersionCode: Int = System.getenv("APP_VERSION_CODE")?.toIntOrNull()

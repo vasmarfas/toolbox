@@ -565,7 +565,7 @@
     <string name="pressure">Pressure</string>
     <string name="bar">Bar</string>
     <string name="pound_per_square_inch">Pound per square inch</string>
-    <string name="pascal">Pascal</string>
+    <string name="pascal_unit">Pascal</string>
     <string name="kilopascal">Kilopascal</string>
     <string name="megapascal">Megapascal</string>
     <string name="millibar">Millibar</string>

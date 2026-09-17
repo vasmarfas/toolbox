@@ -9,7 +9,8 @@ enum class TextCase(val title: StringResource) {
     TITLE(Res.string.title_case),
     SENTENCE(Res.string.sentence_case),
     CAMEL(Res.string.camelcase),
-    PASCAL(Res.string.pascalcase),
+    // not PASCAL: the Objective-C export would be `pascal`, a clang calling-convention keyword
+    PASCAL_CASE(Res.string.pascalcase),
     SNAKE(Res.string.snake_case),
     SCREAMING_SNAKE(Res.string.screaming_snake_case),
     KEBAB(Res.string.kebab_case),
@@ -52,7 +53,7 @@ object CaseConvert {
         TextCase.TITLE -> title(text)
         TextCase.SENTENCE -> sentence(text)
         TextCase.CAMEL -> words(text).mapIndexed { i, w -> if (i == 0) w.lowercase() else capitalize(w) }.joinToString("")
-        TextCase.PASCAL -> words(text).joinToString("") { capitalize(it) }
+        TextCase.PASCAL_CASE -> words(text).joinToString("") { capitalize(it) }
         TextCase.SNAKE -> words(text).joinToString("_") { it.lowercase() }
         TextCase.SCREAMING_SNAKE -> words(text).joinToString("_") { it.uppercase() }
         TextCase.KEBAB -> words(text).joinToString("-") { it.lowercase() }

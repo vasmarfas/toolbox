@@ -2,8 +2,8 @@
   "version": 1,
   "updated": "2026-09-16",
   "summary": {
-    "en": "Android and Kotlin Multiplatform developer with a systems and network background. I take a product from the first commit to a signed build in every store, and I run the infrastructure it talks to.",
-    "ru": "Android и Kotlin Multiplatform разработчик с фоном системного и сетевого инженера. Веду продукт от первого коммита до подписанной сборки во всех магазинах и сам держу инфраструктуру, с которой он работает."
+    "en": "Android and Kotlin Multiplatform developer with a systems and network background. I take a project from the first commit to a signed store build, and I run the infrastructure it talks to.",
+    "ru": "Android и Kotlin Multiplatform разработчик с фоном системного и сетевого инженера. Веду проект от первого коммита до подписанной сборки в магазине и сам поддерживаю инфраструктуру, с которой он работает."
   },
   "skills": [
     {

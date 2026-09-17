@@ -7,7 +7,7 @@ on:
       version_name:
         description: 'App versionName (e.g. 1.0.0)'
         required: true
-        default: '0.1.0'
+        default: '1.0.0'
       version_code:
         description: 'Build number (empty = github.run_number)'
         required: false
