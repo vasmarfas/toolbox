@@ -2432,9 +2432,6 @@
     <string name="about_me">Обо мне</string>
     <string name="experience_education_skills">Опыт, образование, навыки</string>
     <string name="right_here_no_pdf_and_no_external_link">Прямо здесь, без PDF и внешних ссылок</string>
-    <string name="analytics">Аналитика</string>
-    <string name="send_usage_statistics">Отправлять статистику использования</string>
-    <string name="opening_screens_and_tools_language_and_theme">Открытые экраны и инструменты, язык и тема. Уходит в Firebase и Яндекс, по умолчанию выключено.</string>
     <string name="profile_data">Данные профиля</string>
     <string name="privacy_policy">Политика конфиденциальности</string>
     <string name="terms">Условия использования</string>

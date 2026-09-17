@@ -23,29 +23,14 @@ object AnalyticsParam {
     const val VALUE = "value"
 }
 
-expect fun initAnalytics(enabled: Boolean)
-
-expect fun setAnalyticsEnabled(enabled: Boolean)
+expect fun initAnalytics()
 
 expect fun logEvent(name: String, params: Map<String, String> = emptyMap())
 
 object Analytics {
-    private const val KEY_ENABLED = "analytics.enabled"
     private const val MAX_VALUE_LENGTH = 40
 
-    fun isEnabled(store: KeyValueStore = Prefs.store): Boolean = store.get(KEY_ENABLED) == "true"
-
-    fun setEnabled(value: Boolean, store: KeyValueStore = Prefs.store) {
-        store.put(KEY_ENABLED, value.toString())
-        setAnalyticsEnabled(value)
-    }
-
-    fun start() {
-        initAnalytics(isEnabled())
-    }
-
     fun log(event: AnalyticsEvent, params: Map<String, String> = emptyMap()) {
-        if (!isEnabled()) return
         logEvent(event.eventName, safeParams(params))
     }
 

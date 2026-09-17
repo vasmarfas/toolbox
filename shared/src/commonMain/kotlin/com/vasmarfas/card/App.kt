@@ -50,6 +50,7 @@ import com.vasmarfas.card.core.AnalyticsEvent
 import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.currentPlatform
+import com.vasmarfas.card.core.initAnalytics
 import com.vasmarfas.card.core.setWindowTitle
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.AppSettings
@@ -87,7 +88,7 @@ fun App(onNavHostReady: suspend (NavController) -> Unit = {}) {
     val settings = remember { AppSettings() }
     val chrome = remember { ChromeState() }
     LaunchedEffect(Unit) {
-        Analytics.start()
+        initAnalytics()
         Analytics.log(AnalyticsEvent.APP_OPEN)
         withContext(Dispatchers.Default) { ToolRegistry.all.size }
     }

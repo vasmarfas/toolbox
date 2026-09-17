@@ -33,7 +33,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.APP_VERSION
-import com.vasmarfas.card.core.Analytics
 import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.Lang
 import com.vasmarfas.card.core.PlatformKind
@@ -131,19 +130,6 @@ fun SettingsScreen() {
                     description = Res.string.start_on_tools_hint.str(),
                 )
             }
-        }
-
-        SettingsCard(Res.string.analytics.str()) {
-            var analytics by remember { mutableStateOf(Analytics.isEnabled()) }
-            SwitchRow(
-                Res.string.send_usage_statistics.str(),
-                analytics,
-                {
-                    analytics = it
-                    Analytics.setEnabled(it)
-                },
-                description = Res.string.opening_screens_and_tools_language_and_theme.str(),
-            )
         }
 
         SettingsCard(Res.string.profile_data.str()) {

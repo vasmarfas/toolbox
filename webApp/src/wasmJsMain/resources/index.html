@@ -117,7 +117,6 @@
             var sdk = "https://www.gstatic.com/firebasejs/12.19.0/";
             var metricaId = "";
             var loaded = false;
-            var allowed = false;
             var firebase = null;
 
             function loadMetrica(id) {
@@ -148,23 +147,14 @@
             }
 
             return {
-                enable: function (metrica) {
+                start: function (metrica) {
                     metricaId = metrica || "";
-                    allowed = true;
-                    if (metricaId) window["disableYaCounter" + metricaId] = false;
-                    window["ga-disable-" + firebaseConfig.measurementId] = false;
                     if (loaded) return;
                     loaded = true;
                     if (metricaId) loadMetrica(metricaId);
                     loadFirebase();
                 },
-                disable: function () {
-                    allowed = false;
-                    if (metricaId) window["disableYaCounter" + metricaId] = true;
-                    window["ga-disable-" + firebaseConfig.measurementId] = true;
-                },
                 event: function (name, paramsJson) {
-                    if (!allowed) return;
                     var params = {};
                     try { params = JSON.parse(paramsJson); } catch (e) {}
                     if (metricaId && window.ym) window.ym(metricaId, "reachGoal", name, params);
