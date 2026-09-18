@@ -1,7 +1,7 @@
 package com.vasmarfas.card.tools.developer
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Abc
+import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -26,13 +25,14 @@ import com.vasmarfas.card.ui.components.MonoTable
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.theme.LocalStatusColors
 
 val regexTesterTool = Tool(
     id = "regex-tester",
     category = ToolCategory.DEVELOPER,
     title = Res.string.regex_tester,
     description = Res.string.matches_with_positions_and_groups_highlighte,
-    icon = Icons.Filled.Abc,
+    icon = Icons.Filled.FindInPage,
     keywords = listOf("regex", "regexp", "regular expression", "pattern", "match", "groups", "регулярное выражение", "регулярка", "шаблон"),
 ) { RegexTesterScreen() }
 
@@ -83,7 +83,8 @@ private fun RegexTesterScreen() {
     val matches = result.matches
     KeyValueRow(Res.string.matches.str(), if (matches.size >= RegexTester.MAX_MATCHES) "${matches.size}+" else matches.size.toString(), copyable = false)
     if (matches.isEmpty()) return
-    val colors = listOf(Color(0xFF1E88E5).copy(alpha = 0.3f), Color(0xFFF9A825).copy(alpha = 0.35f))
+    val status = LocalStatusColors.current
+    val colors = listOf(status.series[2].copy(alpha = 0.3f), status.warn.copy(alpha = 0.35f))
     val highlighted = remember(text, matches) {
         buildAnnotatedString {
             var pos = 0

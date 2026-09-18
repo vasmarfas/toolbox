@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -184,16 +185,21 @@ private fun AppShell(
             val compact = layout == LayoutSize.COMPACT
             Row(Modifier.fillMaxSize()) {
                 if (!compact && !chrome.immersive) {
+                    // Expanded, the rail costs about 200 dp. That is a third of a 640 dp window,
+                    // so it only unfolds once the window is wide enough not to notice.
+                    val expandedRail = layout == LayoutSize.EXPANDED
                     WideNavigationRail(
-                        state = rememberWideNavigationRailState(WideNavigationRailValue.Expanded),
+                        state = rememberWideNavigationRailState(
+                            if (expandedRail) WideNavigationRailValue.Expanded else WideNavigationRailValue.Collapsed,
+                        ),
                     ) {
                         TopDestination.visible.forEach { tab ->
                             WideNavigationRailItem(
                                 selected = tab == topDestination,
                                 onClick = { navigateTop(tab) },
                                 icon = { Icon(if (tab == topDestination) tab.selectedIcon else tab.icon, contentDescription = null) },
-                                label = { Text(tab.label.str()) },
-                                railExpanded = true,
+                                label = { Text(tab.label.str(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                railExpanded = expandedRail,
                                 modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
                             )
                         }
@@ -210,7 +216,8 @@ private fun AppShell(
                                         selected = tab == topDestination,
                                         onClick = { navigateTop(tab) },
                                         icon = { Icon(if (tab == topDestination) tab.selectedIcon else tab.icon, contentDescription = null) },
-                                        label = { Text(tab.label.str()) },
+                                        // At a 2.0 font scale a wrapped label spills out of the bar.
+                                        label = { Text(tab.label.str(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     )
                                 }
                             }

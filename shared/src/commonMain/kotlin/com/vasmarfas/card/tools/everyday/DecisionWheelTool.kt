@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +36,7 @@ val decisionWheelTool = Tool(
     category = ToolCategory.EVERYDAY,
     title = Res.string.decision_wheel,
     description = Res.string.random_pick_from_your_own_list_of_options_wi,
-    icon = Icons.Filled.Casino,
+    icon = Icons.Filled.RotateRight,
     keywords = listOf("random", "pick", "wheel", "choice", "lottery", "случайный выбор", "колесо", "жребий", "рандом"),
 ) { DecisionWheelScreen() }
 
@@ -88,7 +88,7 @@ private fun DecisionWheelScreen() {
         text = Res.string.spin.str(),
         onClick = { spinSeq++ },
         enabled = options.size >= 2 && !spinning,
-        icon = Icons.Filled.Casino,
+        icon = Icons.Filled.RotateRight,
         modifier = Modifier.fillMaxWidth(),
     )
     ResultCard {

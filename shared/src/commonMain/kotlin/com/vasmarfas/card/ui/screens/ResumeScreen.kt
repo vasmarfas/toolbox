@@ -1,22 +1,19 @@
 package com.vasmarfas.card.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,11 +33,12 @@ import com.vasmarfas.card.data.Experience
 import com.vasmarfas.card.data.ResumeRepository
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ContentColumn
+import com.vasmarfas.card.ui.components.EmptyState
+import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SectionTitle
 import com.vasmarfas.card.ui.components.SelectableText
 import com.vasmarfas.card.ui.components.TagChips
 
-@OptIn(ExperimentalLayoutApi::class)
 // newest start first; when two jobs start the same month the one still running goes above
 private val byRecency = compareByDescending<Experience> { it.from }.thenByDescending { it.to ?: "9999-99" }
 
@@ -48,11 +46,15 @@ private val byRecency = compareByDescending<Experience> { it.from }.thenByDescen
 fun ResumeScreen() {
     val state by ResumeRepository.state.collectAsState()
     val resume = state.value
-    ContentColumn(verticalSpacing = 20.dp) {
-        Text(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineMedium)
+    ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 20.dp) {
+        Text(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineSmall)
         if (resume == null) return@ContentColumn
         if (resume.isEmpty) {
-            Text(Res.string.resume_empty.str(), style = MaterialTheme.typography.bodyLarge)
+            EmptyState(
+                icon = Icons.Filled.Description,
+                title = Res.string.resume_page.str(),
+                description = Res.string.resume_empty.str(),
+            )
             return@ContentColumn
         }
         resume.summary?.let { SelectableText(it.str(), style = MaterialTheme.typography.bodyLarge) }
@@ -86,11 +88,7 @@ fun ResumeScreen() {
         if (resume.languages.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SectionTitle(Res.string.languages.str())
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    resume.languages.forEach { language ->
-                        AssistChip(onClick = {}, label = { Text("${language.name.str()} — ${language.level.str()}") })
-                    }
-                }
+                TagChips(resume.languages.map { "${it.name.str()} — ${it.level.str()}" })
             }
         }
     }
@@ -119,13 +117,14 @@ private fun ExperienceCard(item: Experience) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(item.company.str(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 item.url?.let { url ->
-                    Spacer(Modifier.width(6.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.OpenInNew,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp).clickable { openUrl(url) }.pointerHoverIcon(PointerIcon.Hand),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
+                    IconButton(onClick = { openUrl(url) }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = Res.string.open.str(),
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
             val period = "${formatMonth(item.from, lang)} — ${item.to?.let { formatMonth(it, lang) } ?: Res.string.present.str()}" +
@@ -147,7 +146,7 @@ private fun ExperienceCard(item: Experience) {
 private fun EducationCard(item: Education) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(item.degree.str(), style = MaterialTheme.typography.titleMedium)

@@ -1,14 +1,20 @@
 {
   "version": 2,
-  "updated": "2026-09-16",
+  "updated": "2026-09-18",
   "person": {
-    "name": { "en": "Vasilii", "ru": "Василий" },
+    "name": {
+      "en": "Vasilii",
+      "ru": "Василий"
+    },
     "nickname": "vasmarfas",
     "title": {
       "en": "Android / Kotlin Multiplatform developer · systems and network engineer",
       "ru": "Android / Kotlin Multiplatform разработчик · системный и сетевой инженер"
     },
-    "location": { "en": "Remote", "ru": "Удалённо" },
+    "location": {
+      "en": "Remote",
+      "ru": "Удалённо"
+    },
     "bio": {
       "en": "I build Android and Kotlin Multiplatform apps that ship to Google Play, App Store, Microsoft Store and the web from one codebase, and I keep my own infrastructure running: MikroTik networks, Proxmox, Home Assistant, FreePBX and GSM gateways. MSc in Software Engineering (NRNU MEPhI).",
       "ru": "Делаю Android- и Kotlin Multiplatform-приложения, которые из одной кодовой базы выходят в Google Play, App Store, Microsoft Store и в браузер, и держу собственную инфраструктуру: сети на MikroTik, Proxmox, Home Assistant, FreePBX и GSM-шлюзы. Магистр программной инженерии (НИЯУ МИФИ)."
@@ -32,30 +38,94 @@
     "androidSince": 2022,
     "sysadminSince": 2018
   },
-  "avatar": { "url": "images/avatar.png", "active": false },
+  "avatar": {
+    "url": "images/avatar.png",
+    "active": false
+  },
   "links": [
-    { "type": "telegram", "url": "https://t.me/vasmarfas", "label": { "en": "Telegram", "ru": "Telegram" } },
-    { "type": "github", "url": "https://github.com/vasmarfas", "label": { "en": "GitHub", "ru": "GitHub" } },
-    { "type": "habr", "url": "https://habr.com/ru/users/vasmarfas/", "label": { "en": "Habr", "ru": "Хабр" } },
-    { "type": "email", "url": "mailto:admin@vasmarfas.com", "label": { "en": "Email", "ru": "Почта" } },
-    { "type": "googleplay", "url": "https://play.google.com/store/apps/dev?id=vasmarfas", "label": { "en": "Google Play", "ru": "Google Play" } },
-    { "type": "support", "url": "https://boosty.to/vasmarfas/donate", "label": { "en": "Support", "ru": "Поддержать" } }
+    {
+      "type": "telegram",
+      "url": "https://t.me/vasmarfas",
+      "label": {
+        "en": "Telegram",
+        "ru": "Telegram"
+      }
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/vasmarfas",
+      "label": {
+        "en": "GitHub",
+        "ru": "GitHub"
+      }
+    },
+    {
+      "type": "habr",
+      "url": "https://habr.com/ru/users/vasmarfas/",
+      "label": {
+        "en": "Habr",
+        "ru": "Хабр"
+      }
+    },
+    {
+      "type": "email",
+      "url": "mailto:admin@vasmarfas.com",
+      "label": {
+        "en": "Email",
+        "ru": "Почта"
+      }
+    },
+    {
+      "type": "googleplay",
+      "url": "https://play.google.com/store/apps/dev?id=vasmarfas",
+      "label": {
+        "en": "Google Play",
+        "ru": "Google Play"
+      }
+    },
+    {
+      "type": "support",
+      "url": "https://boosty.to/vasmarfas/donate",
+      "label": {
+        "en": "Support",
+        "ru": "Поддержать"
+      }
+    }
   ],
   "projects": [
     {
       "id": "notivisor",
       "name": "Notivisor",
       "source": "github",
-      "tagline": { "en": "Phone notifications inside a VR headset. Direct, private, no cloud.", "ru": "Уведомления телефона внутри VR-шлема. Напрямую, приватно, без облака." },
+      "tagline": {
+        "en": "Phone notifications inside a VR headset. Direct, private, no cloud.",
+        "ru": "Уведомления телефона внутри VR-шлема. Напрямую, приватно, без облака."
+      },
       "description": {
         "en": "One app installed on the phone and on the Quest 3: the phone reads its notifications and hands them over Bluetooth LE or Wi-Fi to the headset, which re-posts them over any running game. Replies, notification actions, calls, one-time codes, screen mirroring, typing with the phone keyboard, AES-256-GCM encryption keyed by a pairing code.",
         "ru": "Одно приложение на телефоне и на Quest 3: телефон читает свои уведомления и передаёт их по Bluetooth LE или Wi-Fi в шлем, который показывает их поверх любой запущенной игры. Ответы, кнопки уведомлений, звонки, одноразовые коды, трансляция экрана, набор текста с клавиатуры телефона, шифрование AES-256-GCM по коду сопряжения."
       },
-      "tech": ["Kotlin", "Android", "BLE", "Wi-Fi", "AES-GCM", "Jetpack Compose"],
-      "platforms": ["Android", "Meta Quest"],
+      "tech": [
+        "Kotlin",
+        "Android",
+        "BLE",
+        "Wi-Fi",
+        "AES-GCM",
+        "Jetpack Compose"
+      ],
+      "platforms": [
+        "Android",
+        "Meta Quest"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/Notivisor" },
-        { "type": "googleplay", "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.notivisor" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/Notivisor"
+        },
+        {
+          "type": "googleplay",
+          "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.notivisor"
+        }
       ],
       "year": "2026",
       "featured": true,
@@ -65,54 +135,90 @@
       "id": "universal-ambient-light",
       "name": "Universal Ambient Light",
       "source": "github",
-      "tagline": { "en": "Ambilight for Android TV and phones: Hyperion, WLED, Adalight.", "ru": "Ambilight для Android TV и телефонов: Hyperion, WLED, Adalight." },
+      "tagline": {
+        "en": "Ambilight for Android TV and phones: Hyperion, WLED, Adalight.",
+        "ru": "Ambilight для Android TV и телефонов: Hyperion, WLED, Adalight."
+      },
       "description": {
         "en": "Captures the screen of an Android TV box or phone and drives LED strips through Hyperion, WLED or an Adalight (Arduino) controller. Runs as a foreground service with a quick-settings tile, has a screen-capture pipeline tuned for TV boxes and an accompanying Arduino sketch.",
         "ru": "Захватывает экран Android TV-приставки или телефона и управляет светодиодной лентой через Hyperion, WLED или контроллер Adalight (Arduino). Работает как foreground-сервис с плиткой быстрых настроек, конвейер захвата экрана оптимизирован под приставки, в комплекте скетч для Arduino."
       },
-      "tech": ["Kotlin", "Android", "MediaProjection", "FlatBuffers", "UDP", "Arduino"],
-      "platforms": ["Android", "Android TV"],
+      "tech": [
+        "Kotlin",
+        "Android",
+        "MediaProjection",
+        "FlatBuffers",
+        "UDP",
+        "Arduino"
+      ],
+      "platforms": [
+        "Android",
+        "Android TV"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/universal-ambient-light" },
-        { "type": "googleplay", "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.UniversalAmbientLight" },
-        { "type": "habr", "url": "https://habr.com/ru/articles/991210/" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/universal-ambient-light"
+        },
+        {
+          "type": "googleplay",
+          "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.UniversalAmbientLight"
+        },
+        {
+          "type": "habr",
+          "url": "https://habr.com/ru/articles/991210/"
+        }
       ],
       "year": "2024–2026",
       "featured": true,
       "stars": 90
     },
     {
-      "id": "dotadiviner",
-      "name": "Dota Diviner",
-      "tagline": { "en": "Draft analytics for Dota 2: KMP app, Telegram bot and backend.", "ru": "Аналитика драфтов Dota 2: KMP-приложение, Telegram-бот и бэкенд." },
-      "description": {
-        "en": "Начиналось с Telegram-бота, сейчас это Python-бэкенд (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
-        "ru": "Начиналось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
-      },
-      "tech": ["Kotlin Multiplatform", "Compose Multiplatform", "Ktor", "Koin", "Room", "Python", "FastAPI", "PostgreSQL"],
-      "platforms": ["Android", "iOS", "Windows", "macOS", "Linux", "Web"],
-      "links": [
-        { "type": "website", "url": "https://dotadiviner.com" },
-        { "type": "telegram", "url": "https://t.me/DotaDivinerBot", "label": { "en": "Telegram bot", "ru": "Telegram-бот" } }
-      ],
-      "year": "2023–2026",
-      "featured": true
-    },
-    {
       "id": "smsnode",
       "name": "SMSNode",
       "source": "github",
-      "tagline": { "en": "Self-hosted SMS through GSM gateways: Python server and a KMP client.", "ru": "Свои SMS через GSM-шлюзы: сервер на Python и KMP-клиент." },
+      "tagline": {
+        "en": "Self-hosted SMS through GSM gateways: Python server and a KMP client.",
+        "ru": "Свои SMS через GSM-шлюзы: сервер на Python и KMP-клиент."
+      },
       "description": {
         "en": "A server for GoIP and Skyline GSM gateways (UDP, HTTP and even SMTP inbound paths, a queue with throttling and retries, REST API, Telegram bot, roles per SIM) plus a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser. Started as a master's thesis, now in daily use.",
         "ru": "Сервер для GSM-шлюзов GoIP и Skyline (входящие по UDP, HTTP и даже SMTP, очередь с троттлингом и автоповторами, REST API, Telegram-бот, роли по SIM) и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера. Начиналось как магистерская, теперь в ежедневной работе."
       },
-      "tech": ["Python", "FastAPI", "asyncio", "PostgreSQL", "Kotlin Multiplatform", "Compose Multiplatform", "Ktor"],
-      "platforms": ["Android", "iOS", "Windows", "macOS", "Linux", "Web"],
+      "tech": [
+        "Python",
+        "FastAPI",
+        "asyncio",
+        "PostgreSQL",
+        "Kotlin Multiplatform",
+        "Compose Multiplatform",
+        "Ktor"
+      ],
+      "platforms": [
+        "Android",
+        "iOS",
+        "Windows",
+        "macOS",
+        "Linux",
+        "Web"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/SMSNode" },
-        { "type": "github", "url": "https://github.com/vasmarfas/SMSNodeBackend", "label": { "en": "Backend", "ru": "Бэкенд" } },
-        { "type": "habr", "url": "https://habr.com/ru/articles/1081702/" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/SMSNode"
+        },
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/SMSNodeBackend",
+          "label": {
+            "en": "Backend",
+            "ru": "Бэкенд"
+          }
+        },
+        {
+          "type": "habr",
+          "url": "https://habr.com/ru/articles/1081702/"
+        }
       ],
       "year": "2026",
       "featured": true
@@ -121,16 +227,33 @@
       "id": "sipgram",
       "name": "SIPgram",
       "source": "github",
-      "tagline": { "en": "FreePBX extensions that ring as regular Telegram voice calls.", "ru": "Внутренние номера FreePBX звонят обычными голосовыми звонками Telegram." },
+      "tagline": {
+        "en": "FreePBX extensions that ring as regular Telegram voice calls.",
+        "ru": "Внутренние номера FreePBX звонят обычными голосовыми звонками Telegram."
+      },
       "description": {
         "en": "A self-hosted gateway between Asterisk/FreePBX and Telegram: one gateway account serves every user, calls go both ways with audio transcoding, and nothing leaves the owner's server.",
         "ru": "Self-hosted шлюз между Asterisk/FreePBX и Telegram: один аккаунт-шлюз обслуживает всех пользователей, звонки идут в обе стороны с транскодированием звука, и ничего не уходит с сервера владельца."
       },
-      "tech": ["Python", "Asterisk", "SIP", "Telegram", "Docker"],
-      "platforms": ["Server"],
+      "tech": [
+        "Python",
+        "Asterisk",
+        "SIP",
+        "Telegram",
+        "Docker"
+      ],
+      "platforms": [
+        "Server"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/sipgram" },
-        { "type": "habr", "url": "https://habr.com/ru/articles/1081702/" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/sipgram"
+        },
+        {
+          "type": "habr",
+          "url": "https://habr.com/ru/articles/1081702/"
+        }
       ],
       "year": "2026",
       "featured": true,
@@ -140,17 +263,36 @@
       "id": "screenvigil",
       "name": "ScreenVigil",
       "source": "github",
-      "tagline": { "en": "Camera auto-brightness and wake-on-approach for tablets with no light sensor.", "ru": "Автояркость по камере и пробуждение при приближении для планшетов без датчика света." },
+      "tagline": {
+        "en": "Camera auto-brightness and wake-on-approach for tablets with no light sensor.",
+        "ru": "Автояркость по камере и пробуждение при приближении для планшетов без датчика света."
+      },
       "description": {
         "en": "Turns an old tablet into a proper wall panel for Home Assistant: the front camera measures ambient light and detects a person approaching, the app adjusts brightness and wakes the screen. I wrote it up on Habr.",
         "ru": "Превращает старый планшет в нормальную настенную панель для Home Assistant: фронтальная камера измеряет освещённость и замечает приближение человека, приложение подстраивает яркость и будит экран. Про него писал на Хабре."
       },
-      "tech": ["Kotlin", "Android", "CameraX", "Jetpack Compose"],
-      "platforms": ["Android"],
+      "tech": [
+        "Kotlin",
+        "Android",
+        "CameraX",
+        "Jetpack Compose"
+      ],
+      "platforms": [
+        "Android"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/ScreenVigil" },
-        { "type": "googleplay", "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.screenvigil" },
-        { "type": "habr", "url": "https://habr.com/ru/articles/1070708/" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/ScreenVigil"
+        },
+        {
+          "type": "googleplay",
+          "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.screenvigil"
+        },
+        {
+          "type": "habr",
+          "url": "https://habr.com/ru/articles/1070708/"
+        }
       ],
       "year": "2026",
       "featured": true,
@@ -160,18 +302,86 @@
       "id": "vasmarfas-app",
       "name": "vasmarfas",
       "source": "github",
-      "tagline": { "en": "This site and app: a business card and a multitool from one Kotlin codebase.", "ru": "Этот сайт и приложение: визитка и мультитул из одной кодовой базы на Kotlin." },
+      "tagline": {
+        "en": "This site and app: a business card and a multitool from one Kotlin codebase.",
+        "ru": "Этот сайт и приложение: визитка и мультитул из одной кодовой базы на Kotlin."
+      },
       "description": {
         "en": "Compose Multiplatform with Material 3 Expressive, compiled to Wasm for the web and to native apps for Android, iOS, Windows, macOS and Linux. Profile data is a JSON file that the app refreshes from the repository, so the site updates without a release.",
         "ru": "Compose Multiplatform на Material 3 Expressive, собирается в Wasm для веба и в нативные приложения для Android, iOS, Windows, macOS и Linux. Данные профиля — JSON-файл, который приложение подтягивает из репозитория, поэтому сайт обновляется без релиза."
       },
-      "tech": ["Kotlin Multiplatform", "Compose Multiplatform", "Material 3 Expressive", "Kotlin/Wasm", "Ktor"],
-      "platforms": ["Web", "Android", "iOS", "Windows", "macOS", "Linux"],
+      "tech": [
+        "Kotlin Multiplatform",
+        "Compose Multiplatform",
+        "Material 3 Expressive",
+        "Kotlin/Wasm",
+        "Ktor"
+      ],
+      "platforms": [
+        "Web",
+        "Android",
+        "iOS",
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
       "links": [
-        { "type": "github", "url": "https://github.com/vasmarfas/vasmarfas" },
-        { "type": "website", "url": "https://vasmarfas.com" }
+        {
+          "type": "github",
+          "url": "https://github.com/vasmarfas/vasmarfas"
+        },
+        {
+          "type": "website",
+          "url": "https://vasmarfas.com"
+        }
       ],
       "year": "2026",
+      "featured": true
+    },
+    {
+      "id": "dotadiviner",
+      "name": "Dota Diviner",
+      "tagline": {
+        "en": "Draft analytics for Dota 2: KMP app, Telegram bot and backend.",
+        "ru": "Аналитика драфтов Dota 2: KMP-приложение, Telegram-бот и бэкенд."
+      },
+      "description": {
+        "en": "Начиналось с Telegram-бота, сейчас это Python-бэкенд (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
+        "ru": "Начиналось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
+      },
+      "tech": [
+        "Kotlin Multiplatform",
+        "Compose Multiplatform",
+        "Ktor",
+        "Koin",
+        "Room",
+        "Python",
+        "FastAPI",
+        "PostgreSQL"
+      ],
+      "platforms": [
+        "Android",
+        "iOS",
+        "Windows",
+        "macOS",
+        "Linux",
+        "Web"
+      ],
+      "links": [
+        {
+          "type": "website",
+          "url": "https://dotadiviner.com"
+        },
+        {
+          "type": "telegram",
+          "url": "https://t.me/DotaDivinerBot",
+          "label": {
+            "en": "Telegram bot",
+            "ru": "Telegram-бот"
+          }
+        }
+      ],
+      "year": "2023–2026",
       "featured": true
     }
   ],
@@ -243,8 +453,29 @@
     }
   ],
   "downloads": [
-    { "type": "github", "url": "https://github.com/vasmarfas/vasmarfas/releases", "label": { "en": "GitHub Releases (Windows, macOS, Linux, Android)", "ru": "GitHub Releases (Windows, macOS, Linux, Android)" } },
-    { "type": "website", "url": "https://vasmarfas.com", "label": { "en": "vasmarfas.com", "ru": "vasmarfas.com" } },
-    { "type": "website", "url": "https://vasmarfas.ru", "label": { "en": "vasmarfas.ru", "ru": "vasmarfas.ru" } }
+    {
+      "type": "github",
+      "url": "https://github.com/vasmarfas/vasmarfas/releases",
+      "label": {
+        "en": "GitHub Releases (Windows, macOS, Linux, Android)",
+        "ru": "GitHub Releases (Windows, macOS, Linux, Android)"
+      }
+    },
+    {
+      "type": "website",
+      "url": "https://vasmarfas.com",
+      "label": {
+        "en": "vasmarfas.com",
+        "ru": "vasmarfas.com"
+      }
+    },
+    {
+      "type": "website",
+      "url": "https://vasmarfas.ru",
+      "label": {
+        "en": "vasmarfas.ru",
+        "ru": "vasmarfas.ru"
+      }
+    }
   ]
 }

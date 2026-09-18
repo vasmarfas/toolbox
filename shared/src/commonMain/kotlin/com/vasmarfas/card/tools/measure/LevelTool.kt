@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +30,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.expandedSquare
+import com.vasmarfas.card.ui.theme.LocalStatusColors
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -80,7 +80,7 @@ private fun LevelScreen() {
 private fun LevelDial(nx: Float, ny: Float, flat: Boolean, modifier: Modifier) {
     val container = MaterialTheme.colorScheme.surfaceContainerHigh
     val ring = MaterialTheme.colorScheme.outline
-    val bubble = if (flat) Color(0xFF2E7D32) else MaterialTheme.colorScheme.primary
+    val bubble = if (flat) LocalStatusColors.current.good else MaterialTheme.colorScheme.primary
     Canvas(modifier) {
         val radius = size.minDimension / 2
         val center = Offset(size.width / 2, size.height / 2)

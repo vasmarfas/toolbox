@@ -27,6 +27,7 @@
     <string name="search_tools">Поиск инструментов</string>
     <string name="favorites">Избранное</string>
     <string name="recent">Недавние</string>
+    <string name="popular">Популярное</string>
     <string name="all_tools">Все инструменты</string>
     <string name="add_to_favorites">В избранное</string>
     <string name="remove_from_favorites">Убрать из избранного</string>
@@ -34,6 +35,8 @@
     <string name="available_on">Доступно на</string>
     <string name="open">Открыть</string>
     <string name="language">Язык</string>
+    <string name="appearance">Внешний вид</string>
+    <string name="behaviour">Поведение</string>
     <string name="theme">Тема</string>
     <string name="system">Системная</string>
     <string name="light">Светлая</string>
@@ -65,7 +68,14 @@
     <string name="web_version">Веб-версия</string>
     <string name="tools_intro">Бесплатный мультитул: сеть, конвертеры, калькуляторы, текст, инструменты разработчика и устройства. Всё считается локально, где это возможно; инструменты, которым нужен системный API, помечены платформами, на которых они работают.</string>
     <string name="categories">Категории</string>
+    <string name="collapse">Свернуть</string>
+    <string name="expand">Развернуть</string>
+    <string name="show_all_categories">Показать все категории</string>
+    <string name="show_fewer_categories">Свернуть категории</string>
     <string name="nothing_found">Ничего не найдено</string>
+    <string name="nothing_found_hint">Попробуйте другой запрос или снимите фильтр категории.</string>
+    <string name="reset_search">Сбросить поиск</string>
+    <string name="unknown_tool_hint">Ссылка ведёт на инструмент, которого нет. Возможно, его переименовали.</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="input">Ввод</string>

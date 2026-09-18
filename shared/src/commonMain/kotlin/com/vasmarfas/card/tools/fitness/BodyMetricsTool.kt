@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +33,7 @@ val bodyMetricsTool = Tool(
     category = ToolCategory.FITNESS,
     title = Res.string.body_metrics,
     description = Res.string.waist_to_height_and_waist_to_hip_ratios_body,
-    icon = Icons.Filled.Straighten,
+    icon = Icons.Filled.Accessibility,
     keywords = listOf("waist", "hip", "ffmi", "lean body mass", "bsa", "du bois", "талия", "бёдра", "сухая масса", "площадь тела"),
 ) { BodyMetricsScreen() }
 

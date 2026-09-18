@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,13 +90,6 @@ fun SimpleTable(header: List<String>, rows: List<List<String>>, weights: List<Fl
         HorizontalDivider()
         rows.forEach { TableRow(it, weights = weights, mono = mono) }
     }
-}
-
-fun latencyColor(ms: Double?): Color = when {
-    ms == null -> Color(0xFFB3261E)
-    ms < 50 -> Color(0xFF2E7D32)
-    ms < 150 -> Color(0xFF9C6D00)
-    else -> Color(0xFFC62828)
 }
 
 fun looksLikeIp(text: String): Boolean = Ipv4.parse(text) != null || Ipv6Address.parse(text) != null

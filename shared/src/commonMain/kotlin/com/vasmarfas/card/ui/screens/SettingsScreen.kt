@@ -2,7 +2,6 @@ package com.vasmarfas.card.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +11,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,10 +32,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.APP_VERSION
 import com.vasmarfas.card.core.AppConfig
@@ -50,6 +59,7 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.theme.seedPresets
@@ -62,19 +72,18 @@ fun SettingsScreen() {
     val profileState by ProfileRepository.state.collectAsState()
     val scope = rememberCoroutineScope()
     val info = platformInfo()
-    ContentColumn(maxWidth = 760.dp) {
-        Text(Res.string.settings.str(), style = MaterialTheme.typography.headlineMedium)
+    ContentColumn(maxWidth = PageMaxWidth) {
+        Text(Res.string.settings.str(), style = MaterialTheme.typography.headlineSmall)
 
-        SettingsCard(Res.string.language.str()) {
+        SettingsCard(Res.string.appearance.str()) {
+            SettingsLabel(Res.string.language.str())
             SegmentedChoice(
                 options = Lang.entries,
                 selected = settings.lang,
                 onSelect = { settings.updateLang(it) },
                 label = { it.nativeName },
             )
-        }
-
-        SettingsCard(Res.string.theme.str()) {
+            SettingsLabel(Res.string.theme.str())
             SegmentedChoice(
                 options = ThemeMode.entries,
                 selected = settings.themeMode,
@@ -95,27 +104,48 @@ fun SettingsScreen() {
                     description = Res.string.dynamic_color_hint.str(),
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(Res.string.accent_color.str(), style = MaterialTheme.typography.titleSmall)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    seedPresets.forEach { (seed, _) ->
+            val accentUsed = !settings.dynamicColor
+            Column(
+                modifier = Modifier.alpha(if (accentUsed) 1f else 0.4f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SettingsLabel(Res.string.accent_color.str())
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    seedPresets.forEach { (seed, name) ->
                         val selected = seed == settings.seedColor
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
-                                .background(Color(seed))
                                 .border(
-                                    width = if (selected) 3.dp else 1.dp,
-                                    color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
+                                    width = if (selected) 2.dp else 0.dp,
+                                    color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                     shape = CircleShape,
                                 )
-                                .clickable { settings.updateSeedColor(seed) }
-                                .pointerHoverIcon(PointerIcon.Hand),
-                        )
+                                .selectable(
+                                    selected = selected,
+                                    enabled = accentUsed,
+                                    role = Role.RadioButton,
+                                    onClick = { settings.updateSeedColor(seed) },
+                                )
+                                .pointerHoverIcon(PointerIcon.Hand)
+                                .semantics { contentDescription = name },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(if (selected) 32.dp else 36.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(seed))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        SettingsCard(Res.string.behaviour.str()) {
             SwitchRow(
                 Res.string.wide_tables.str(),
                 settings.wideTables,
@@ -155,15 +185,36 @@ fun SettingsScreen() {
             KeyValueRow(Res.string.version.str(), APP_VERSION, mono = false, copyable = false)
             KeyValueRow(Res.string.platform.str(), "${info.kind.title.str()} · ${info.osName} ${info.osVersion} · ${info.deviceModel}", mono = false, copyable = false)
             Text(Res.string.built_with.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = { openUrl(AppConfig.REPO_URL) }) { Text(Res.string.source_code.str()) }
-                TextButton(onClick = { openUrl(AppConfig.SITE_COM) }) { Text("vasmarfas.com") }
-                TextButton(onClick = { openUrl(AppConfig.SITE_RU) }) { Text("vasmarfas.ru") }
-                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/master/privacy-policy.md") }) { Text(Res.string.privacy_policy.str()) }
-                TextButton(onClick = { openUrl("${AppConfig.REPO_URL}/blob/master/terms.md") }) { Text(Res.string.terms.str()) }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                AboutLink(Res.string.source_code.str(), AppConfig.REPO_URL)
+                AboutLink("vasmarfas.com", AppConfig.SITE_COM)
+                AboutLink("vasmarfas.ru", AppConfig.SITE_RU)
+                AboutLink(Res.string.privacy_policy.str(), "${AppConfig.REPO_URL}/blob/master/privacy-policy.md")
+                AboutLink(Res.string.terms.str(), "${AppConfig.REPO_URL}/blob/master/terms.md")
             }
         }
     }
+}
+
+@Composable
+private fun AboutLink(text: String, url: String) {
+    AssistChip(
+        onClick = { openUrl(url) },
+        label = { Text(text) },
+        leadingIcon = {
+            Icon(
+                Icons.AutoMirrored.Filled.OpenInNew,
+                contentDescription = null,
+                modifier = Modifier.size(AssistChipDefaults.IconSize),
+            )
+        },
+        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+    )
+}
+
+@Composable
+private fun SettingsLabel(text: String) {
+    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable

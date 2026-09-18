@@ -2,13 +2,15 @@ package com.vasmarfas.card.ui.screens
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,9 +25,10 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +75,7 @@ import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LinkChips
 import com.vasmarfas.card.ui.components.LocalLayoutSize
+import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SectionTitle
 import com.vasmarfas.card.ui.components.SelectableText
 import com.vasmarfas.card.ui.components.linkIcon
@@ -94,7 +98,7 @@ fun HomeScreen(
     onOpenTool: (String) -> Unit,
 ) {
     val state by ProfileRepository.state.collectAsState()
-    ContentColumn(verticalSpacing = 24.dp) {
+    ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 24.dp) {
         HomeHeader(onOpenSettings)
         Crossfade(targetState = state.value) { profile ->
             if (profile == null) return@Crossfade
@@ -131,7 +135,13 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
             Spacer(Modifier.width(6.dp))
             Text(if (lang == Lang.RU) "EN" else "RU")
         }
-        val dark = settings.themeMode == ThemeMode.DARK
+        // Effective darkness, not the stored mode: on SYSTEM in the dark the button used to offer
+        // "go dark", and the first click changed nothing.
+        val dark = when (settings.themeMode) {
+            ThemeMode.DARK -> true
+            ThemeMode.LIGHT -> false
+            ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        }
         IconButton(
             onClick = { settings.updateThemeMode(if (dark) ThemeMode.LIGHT else ThemeMode.DARK) },
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
@@ -154,12 +164,12 @@ private fun HeroCard(profile: Profile) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         if (compact) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Avatar(profile.avatar, 96.dp)
                 HeroText(profile)
             }
         } else {
-            Row(Modifier.padding(28.dp), horizontalArrangement = Arrangement.spacedBy(28.dp), verticalAlignment = Alignment.Top) {
+            Row(Modifier.padding(32.dp), horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
                 Avatar(profile.avatar, 160.dp)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) { HeroText(profile) }
             }
@@ -225,7 +235,6 @@ private fun AboutSection(profile: Profile) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatsRow(profile: Profile) {
     val year = remember { currentYear() }
@@ -239,40 +248,50 @@ private fun StatsRow(profile: Profile) {
         profile.articles.size.toString() to Res.string.habr_articles,
         ToolRegistry.all.size.toString() to Res.string.tools_in_this_app,
     )
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        stats.forEach { (value, label) ->
-            Card(
-                modifier = Modifier.widthIn(min = 150.dp).weight(1f),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 2 else 3
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        stats.chunked(columns).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                    Text(label.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                row.forEach { (value, label) ->
+                    Card(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                            Text(label.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
     if (stars.isEmpty()) Spacer(Modifier.height(0.dp))
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FeaturedProjects(profile: Profile, onOpenProjects: () -> Unit) {
     val featured = profile.projects.filter { it.featured }.ifEmpty { profile.projects.take(4) }
+    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 1 else 2
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.featured_projects.str(), action = { SeeAllButton(onOpenProjects) })
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-            maxItemsInEachRow = if (LocalLayoutSize.current == LayoutSize.COMPACT) 1 else 3,
-        ) {
-            featured.forEach { project ->
-                ProjectCard(project, modifier = Modifier.weight(1f).widthIn(min = 260.dp))
+        // A Row divides its width by weight; FlowRow keeps asking the card how wide it wants to be,
+        // and a card holding a paragraph always answers "wider than the row", so it never paired up.
+        featured.chunked(columns).forEach { row ->
+            // IntrinsicSize.Min makes the row as tall as its tallest card, so the cards end level
+            // instead of one hanging below the other by a link chip.
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                row.forEach { project ->
+                    ProjectCard(project, modifier = Modifier.weight(1f).fillMaxHeight(), condensed = true)
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
@@ -301,9 +320,9 @@ fun ArticleRow(article: Article, modifier: Modifier = Modifier) {
     Card(
         onClick = { openUrl(article.url) },
         modifier = modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
             Icon(linkIcon(article.source), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
@@ -327,27 +346,37 @@ private fun ToolsTeaser(onOpenTools: () -> Unit, onOpenTool: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.tools.str(), action = { SeeAllButton(onOpenTools) })
         Text(Res.string.tools_intro.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Thirteen filled tonal buttons all leading to the same screen read as thirteen commands.
+        // They are an inventory with a way in, which is what an assist chip is for.
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ToolCategory.entries.forEach { category ->
                 val count = ToolRegistry.byCategory(category).size
                 if (count == 0) return@forEach
-                FilledTonalButton(onClick = onOpenTools, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
-                    Icon(category.icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("${category.title.str()} · $count")
-                }
+                AssistChip(
+                    onClick = onOpenTools,
+                    label = { Text("${category.title.str()} · $count") },
+                    leadingIcon = { Icon(category.icon, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                )
             }
         }
         val popular = listOf("subnet-calculator", "dns-lookup", "unit-converter", "json-formatter", "qr-generator", "password-generator")
             .mapNotNull { ToolRegistry.byId(it) }
         if (popular.isNotEmpty()) {
+            // Both groups are chips now, so the shortcuts need a word to tell them from the counts.
+            Text(
+                Res.string.popular.str(),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 popular.forEach { tool ->
-                    TextButton(onClick = { onOpenTool(tool.id) }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
-                        Icon(tool.icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(tool.title.str())
-                    }
+                    AssistChip(
+                        onClick = { onOpenTool(tool.id) },
+                        label = { Text(tool.title.str()) },
+                        leadingIcon = { Icon(tool.icon, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                    )
                 }
             }
         }
@@ -361,7 +390,7 @@ private fun ResumeTeaser(onOpenResume: () -> Unit) {
         modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
-        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(Res.string.resume_page.str(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
                 Text(
@@ -388,7 +417,8 @@ private fun Footer() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(Res.string.built_with.str(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // A Row squeezed the three buttons until "Исходный код" broke mid-word at 360 dp.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)) {
             FooterLink("vasmarfas.com", AppConfig.SITE_COM)
             FooterLink("vasmarfas.ru", AppConfig.SITE_RU)
             FooterLink(Res.string.source_code.str(), AppConfig.REPO_URL)
@@ -400,10 +430,7 @@ private fun Footer() {
 
 @Composable
 private fun FooterLink(text: String, url: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.clickable { openUrl(url) }.pointerHoverIcon(PointerIcon.Hand),
-    )
+    TextButton(onClick = { openUrl(url) }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
+        Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+    }
 }

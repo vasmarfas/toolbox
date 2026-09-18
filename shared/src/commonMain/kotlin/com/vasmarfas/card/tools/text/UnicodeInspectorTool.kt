@@ -1,7 +1,7 @@
 package com.vasmarfas.card.tools.text
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +29,7 @@ val unicodeInspectorTool = Tool(
     category = ToolCategory.TEXT,
     title = Res.string.unicode_inspector,
     description = Res.string.code_point_utf_8_and_utf_16_bytes_category_a,
-    icon = Icons.Filled.Fingerprint,
+    icon = Icons.Filled.EmojiSymbols,
     keywords = listOf("unicode", "utf-8", "utf-16", "code point", "escape", "character", "юникод", "символ", "кодовая точка", "экранирование"),
 ) { UnicodeInspectorScreen() }
 

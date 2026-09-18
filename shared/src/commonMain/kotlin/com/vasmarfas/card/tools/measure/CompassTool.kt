@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +33,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.expandedSquare
+import com.vasmarfas.card.ui.theme.LocalStatusColors
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -86,7 +86,7 @@ private fun CompassDial(heading: Float, modifier: Modifier) {
     val primary = MaterialTheme.colorScheme.primary
     val onSurface = MaterialTheme.colorScheme.onSurface
     val container = MaterialTheme.colorScheme.surfaceContainerHigh
-    val north = Color(0xFFD32F2F)
+    val north = LocalStatusColors.current.bad
     Canvas(modifier) {
         val radius = size.minDimension / 2
         val center = Offset(size.width / 2, size.height / 2)

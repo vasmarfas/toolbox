@@ -27,6 +27,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.theme.LocalStatusColors
 
 private const val MAX_DIFF_LINES = 500
 
@@ -67,8 +68,9 @@ private fun TextDiffScreen() {
         KeyValueRow(Res.string.added_lines.str(), result.added.toString(), copyable = false)
         KeyValueRow(Res.string.removed_lines.str(), result.removed.toString(), copyable = false)
     }
-    val addedColor = Color(0xFF2E7D32).copy(alpha = 0.25f)
-    val removedColor = Color(0xFFC62828).copy(alpha = 0.25f)
+    val status = LocalStatusColors.current
+    val addedColor = status.good.copy(alpha = 0.25f)
+    val removedColor = status.bad.copy(alpha = 0.25f)
     val style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
     ResultCard(Res.string.differences.str()) {
         Column(Modifier.fillMaxWidth()) {
