@@ -12,3 +12,4 @@ expect fun systemTimeZoneId(): String
 
 expect fun setSystemBarsHidden(hidden: Boolean)
 
+expect fun setSystemBarsDark(dark: Boolean)

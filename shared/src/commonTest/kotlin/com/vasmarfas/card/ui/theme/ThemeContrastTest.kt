@@ -2,8 +2,6 @@ package com.vasmarfas.card.ui.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -45,7 +43,7 @@ class ThemeContrastTest {
     private fun schemes(): List<Triple<String, Boolean, ColorScheme>> =
         seedPresets.flatMap { (seed, name) ->
             listOf(false, true).map { dark ->
-                Triple(name, dark, dynamicColorScheme(Color(seed), dark, style = PaletteStyle.Vibrant))
+                Triple(name, dark, appColorScheme(seed, dark))
             }
         }
 

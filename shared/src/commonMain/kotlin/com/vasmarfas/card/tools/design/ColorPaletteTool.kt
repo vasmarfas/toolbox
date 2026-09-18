@@ -40,7 +40,7 @@ val colorPaletteTool = Tool(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColorPaletteScreen() {
-    var input by rememberSaveable { mutableStateOf("#00696D") }
+    var input by rememberSaveable { mutableStateOf("#326773") }
     val base = remember(input) { ColorMath.parse(input) }
     val copy = rememberCopy()
     ToolInputField(

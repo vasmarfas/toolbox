@@ -8,6 +8,8 @@ import platform.Foundation.dateWithTimeIntervalSince1970
 import platform.Foundation.knownTimeZoneNames
 import platform.Foundation.localTimeZone
 import platform.Foundation.timeZoneWithName
+import platform.UIKit.UIApplication
+import platform.UIKit.UIUserInterfaceStyle
 
 actual fun playTone(frequencyHz: Double, durationMs: Int, volume: Float) {
     AudioServicesPlaySystemSound(1057u)
@@ -36,3 +38,7 @@ actual fun setSystemBarsHidden(hidden: Boolean) {
     SystemBarsBridge.onChange?.invoke(hidden)
 }
 
+actual fun setSystemBarsDark(dark: Boolean) {
+    UIApplication.sharedApplication.keyWindow?.overrideUserInterfaceStyle =
+        if (dark) UIUserInterfaceStyle.UIUserInterfaceStyleDark else UIUserInterfaceStyle.UIUserInterfaceStyleLight
+}

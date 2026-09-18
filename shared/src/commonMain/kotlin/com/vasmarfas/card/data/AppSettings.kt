@@ -96,7 +96,7 @@ class AppSettings(private val store: KeyValueStore = Prefs.store) {
         store.get(key)?.split(',')?.filter { it.isNotBlank() } ?: emptyList()
 
     companion object {
-        const val DEFAULT_SEED = 0xFF00696D
+        const val DEFAULT_SEED = 0xFF326773
         private const val KEY_LANG = "settings.lang"
         private const val KEY_THEME = "settings.theme"
         private const val KEY_DYNAMIC = "settings.dynamic"

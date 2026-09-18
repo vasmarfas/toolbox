@@ -3,9 +3,11 @@ package com.vasmarfas.card.core
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.TargetDataLine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 
 actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
@@ -35,4 +37,4 @@ actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
         line.stop()
         line.close()
     }
-}
+}.flowOn(Dispatchers.IO)

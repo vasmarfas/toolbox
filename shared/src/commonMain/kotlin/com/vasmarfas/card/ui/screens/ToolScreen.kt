@@ -1,12 +1,12 @@
 package com.vasmarfas.card.ui.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloseFullscreen
@@ -16,14 +16,16 @@ import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,24 +56,33 @@ import com.vasmarfas.card.ui.components.LocalChrome
 import com.vasmarfas.card.ui.components.PlatformBadges
 import com.vasmarfas.card.ui.components.PageMaxWidth
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ToolScreen(toolId: String, onBack: () -> Unit) {
     val tool = ToolRegistry.byId(toolId)
     val settings = LocalSettings.current
     val chrome = LocalChrome.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     LaunchedEffect(toolId) { if (tool != null) settings.markRecent(toolId) }
     LaunchedEffect(chrome.immersive) { setSystemBarsHidden(chrome.immersive) }
     DisposableEffect(Unit) { onDispose { setSystemBarsHidden(false) } }
     BackHandler(enabled = chrome.immersive) { chrome.immersive = false }
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0),
         topBar = {
             if (chrome.immersive) return@Scaffold
-            TopAppBar(
+            MediumFlexibleTopAppBar(
                 title = {
-                    Text(tool?.title?.str() ?: Res.string.nothing_found.str(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val style = LocalTextStyle.current
+                    Text(
+                        tool?.title?.str() ?: Res.string.nothing_found.str(),
+                        autoSize = TextAutoSize.StepBased(minFontSize = style.fontSize * 0.7f, maxFontSize = style.fontSize),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 },
+                subtitle = tool?.let { { Text(it.category.title.str(), maxLines = 1, overflow = TextOverflow.Ellipsis) } },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Res.string.back.str())
@@ -96,6 +108,7 @@ fun ToolScreen(toolId: String, onBack: () -> Unit) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->

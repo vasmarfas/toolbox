@@ -2,6 +2,7 @@ package com.vasmarfas.card.core
 
 import android.Manifest
 import android.content.Context
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -9,6 +10,9 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -81,3 +85,13 @@ actual fun setSystemBarsHidden(hidden: Boolean) {
     }
 }
 
+private val lightNavigationScrim = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
+private val darkNavigationScrim = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
+
+actual fun setSystemBarsDark(dark: Boolean) {
+    val activity = ActivityHolder.activity as? ComponentActivity ?: return
+    activity.enableEdgeToEdge(
+        statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { dark },
+        navigationBarStyle = SystemBarStyle.auto(lightNavigationScrim, darkNavigationScrim) { dark },
+    )
+}
