@@ -1,7 +1,7 @@
 package com.vasmarfas.card.tools.text
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +22,7 @@ val textCounterTool = Tool(
     category = ToolCategory.TEXT,
     title = Res.string.text_counter,
     description = Res.string.characters_words_sentences_paragraphs_bytes,
-    icon = Icons.Filled.Numbers,
+    icon = Icons.Filled.Tag,
     keywords = listOf("count", "words", "characters", "statistics", "frequency", "reading time", "счётчик", "слова", "символы", "статистика", "частота"),
 ) { TextCounterScreen() }
 

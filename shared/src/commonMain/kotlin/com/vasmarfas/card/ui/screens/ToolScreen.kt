@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloseFullscreen
+import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,8 +47,11 @@ import com.vasmarfas.card.resources.the_tool_needs_a_system_api_the_browser_does
 import com.vasmarfas.card.tools.ToolRegistry
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ContentColumn
+import com.vasmarfas.card.ui.components.EmptyState
+import com.vasmarfas.card.ui.components.ImmersiveMaxWidth
 import com.vasmarfas.card.ui.components.LocalChrome
 import com.vasmarfas.card.ui.components.PlatformBadges
+import com.vasmarfas.card.ui.components.PageMaxWidth
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -59,7 +64,7 @@ fun ToolScreen(toolId: String, onBack: () -> Unit) {
     DisposableEffect(Unit) { onDispose { setSystemBarsHidden(false) } }
     BackHandler(enabled = chrome.immersive) { chrome.immersive = false }
     Scaffold(
-        contentWindowInsets = if (chrome.immersive) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             if (chrome.immersive) return@Scaffold
             TopAppBar(
@@ -95,13 +100,21 @@ fun ToolScreen(toolId: String, onBack: () -> Unit) {
         },
     ) { padding ->
         if (tool == null) {
-            Column(Modifier.padding(padding).padding(16.dp)) { Text(Res.string.nothing_found.str()) }
+            Box(Modifier.padding(padding).fillMaxSize()) {
+                EmptyState(
+                    icon = Icons.Filled.SearchOff,
+                    title = Res.string.nothing_found.str(),
+                    description = Res.string.unknown_tool_hint.str(),
+                ) {
+                    ActionButton(text = Res.string.tools.str(), onClick = onBack)
+                }
+            }
             return@Scaffold
         }
         Box(Modifier.padding(padding).fillMaxSize()) {
             ContentColumn(
                 modifier = Modifier.fillMaxSize(),
-                maxWidth = if (chrome.immersive) 4000.dp else 860.dp,
+                maxWidth = if (chrome.immersive) ImmersiveMaxWidth else PageMaxWidth,
                 contentPadding = if (chrome.immersive) PaddingValues(0.dp) else PaddingValues(horizontal = 16.dp, vertical = 16.dp),
                 verticalSpacing = if (chrome.immersive) 0.dp else 16.dp,
             ) {
@@ -111,15 +124,19 @@ fun ToolScreen(toolId: String, onBack: () -> Unit) {
                 if (tool.availableHere) {
                     tool.content()
                 } else {
-                    Text(Res.string.not_available_on_this_platform.str(), style = MaterialTheme.typography.titleMedium)
-                    Text(Res.string.available_on.str() + ":", style = MaterialTheme.typography.bodyMedium)
-                    PlatformBadges(tool.platforms)
-                    Text(
-                        Res.string.the_tool_needs_a_system_api_the_browser_does.str(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    ActionButton(text = Res.string.get_the_app.str(), onClick = { openUrl(AppConfig.REPO_URL + "/releases") })
+                    EmptyState(
+                        icon = Icons.Filled.DoNotDisturbOn,
+                        title = Res.string.not_available_on_this_platform.str(),
+                        description = Res.string.the_tool_needs_a_system_api_the_browser_does.str(),
+                    ) {
+                        Text(
+                            Res.string.available_on.str(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        PlatformBadges(tool.platforms, Modifier.wrapContentWidth())
+                        ActionButton(text = Res.string.get_the_app.str(), onClick = { openUrl(AppConfig.REPO_URL + "/releases") })
+                    }
                 }
             }
             if (chrome.immersive) {

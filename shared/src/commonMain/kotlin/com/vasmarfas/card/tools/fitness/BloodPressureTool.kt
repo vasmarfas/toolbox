@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +30,7 @@ val bloodPressureTool = Tool(
     category = ToolCategory.FITNESS,
     title = Res.string.blood_pressure,
     description = Res.string.blood_pressure_description,
-    icon = Icons.Filled.MonitorHeart,
+    icon = Icons.Filled.Compress,
     keywords = listOf(
         "blood pressure", "hypertension", "systolic", "diastolic", "map", "pulse pressure",
         "давление", "гипертония", "систолическое", "диастолическое", "пульсовое", "тонометр",

@@ -5,6 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
@@ -26,11 +27,13 @@ fun VasmarfasTheme(settings: AppSettings, content: @Composable () -> Unit) {
         isDark = dark,
         style = PaletteStyle.Vibrant,
     )
-    MaterialExpressiveTheme(
-        colorScheme = dynamic ?: generated,
-        motionScheme = MotionScheme.expressive(),
-        content = content,
-    )
+    CompositionLocalProvider(LocalStatusColors provides statusColors(dark)) {
+        MaterialExpressiveTheme(
+            colorScheme = dynamic ?: generated,
+            motionScheme = MotionScheme.expressive(),
+            content = content,
+        )
+    }
 }
 
 val seedPresets: List<Pair<Long, String>> = listOf(

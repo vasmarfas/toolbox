@@ -1,5 +1,6 @@
 package com.vasmarfas.card
 
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -15,7 +16,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "vasmarfas",
         icon = painterResource(Res.drawable.app_icon),
-        state = rememberWindowState(size = DpSize(1180.dp, 820.dp), position = WindowPosition.Aligned(androidx.compose.ui.Alignment.Center)),
+        state = rememberWindowState(size = DpSize(1180.dp, 820.dp), position = WindowPosition.Aligned(Alignment.Center)),
     ) {
         App()
     }

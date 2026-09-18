@@ -268,6 +268,7 @@ private fun TouchTesterScreen() {
     val pointers = remember { mutableStateMapOf<Long, Offset>() }
     val trail = remember { mutableStateListOf<Offset>() }
     var maxPointers by remember { mutableStateOf(0) }
+    val mark = MaterialTheme.colorScheme.primary
     Box(
         Modifier
             .fillMaxWidth()
@@ -295,11 +296,11 @@ private fun TouchTesterScreen() {
             },
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            trail.forEach { drawCircle(Color(0x8000696D), 5f, it) }
+            trail.forEach { drawCircle(mark.copy(alpha = 0.5f), 5f, it) }
             pointers.values.forEach { p ->
-                drawCircle(Color(0xFF00696D), 36f, p)
-                drawLine(Color(0xFF00696D), Offset(p.x, 0f), Offset(p.x, size.height), 1f)
-                drawLine(Color(0xFF00696D), Offset(0f, p.y), Offset(size.width, p.y), 1f)
+                drawCircle(mark, 36f, p)
+                drawLine(mark, Offset(p.x, 0f), Offset(p.x, size.height), 1f)
+                drawLine(mark, Offset(0f, p.y), Offset(size.width, p.y), 1f)
             }
         }
         Column(Modifier.padding(12.dp)) {

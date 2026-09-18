@@ -1,7 +1,7 @@
 package com.vasmarfas.card.tools.developer
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +25,7 @@ val stringEscapeTool = Tool(
     category = ToolCategory.DEVELOPER,
     title = Res.string.string_escape,
     description = Res.string.escape_and_unescape_strings_for_json_java_ko,
-    icon = Icons.Filled.Code,
+    icon = Icons.Filled.FormatQuote,
     keywords = listOf("escape", "unescape", "quote", "json", "html", "sql", "shell", "экранирование", "кавычки", "спецсимволы"),
 ) { StringEscapeScreen() }
 

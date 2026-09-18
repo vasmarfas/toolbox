@@ -1,5 +1,6 @@
 package com.vasmarfas.card.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -52,7 +54,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,6 +73,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -85,6 +87,10 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 val ContentMaxWidth = 1080.dp
+
+val PageMaxWidth = 860.dp
+
+val ImmersiveMaxWidth = 4000.dp
 
 @Composable
 fun ContentColumn(
@@ -270,6 +276,43 @@ fun MonoText(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun EmptyState(
+    icon: ImageVector,
+    title: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    content: @Composable ColumnScope.() -> Unit = {},
+) {
+    Column(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(40.dp),
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(max = 420.dp),
+            )
+        }
+        content()
+    }
+}
+
+@Composable
 fun ErrorText(text: String, modifier: Modifier = Modifier) {
     Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium, modifier = modifier)
 }
@@ -301,6 +344,9 @@ fun <T> SegmentedChoice(
                 selected = option == selected,
                 onClick = { onSelect(option) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                // The default check mark costs every label 24 dp and says what the filled container
+                // already says; at a 1.3 font scale it was enough to clip "Системная".
+                icon = {},
                 label = {
                     Text(label(option), autoSize = labelSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
@@ -322,7 +368,7 @@ fun <T> ChoiceChips(
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         options.forEach { option ->
             FilterChip(
@@ -341,12 +387,10 @@ fun <T> ChoiceChips(
 fun TagChips(tags: List<String>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        tags.forEach { tag ->
-            SuggestionChip(onClick = {}, label = { Text(tag, style = MaterialTheme.typography.labelMedium) })
-        }
+        tags.forEach { tag -> OutlineLabel(tag) }
     }
 }
 
@@ -469,10 +513,23 @@ fun LinkChips(links: List<Link>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         links.filter { it.active }.forEach { LinkChip(it) }
     }
+}
+
+@Composable
+fun OutlineLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        modifier = modifier
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -480,15 +537,11 @@ fun LinkChips(links: List<Link>, modifier: Modifier = Modifier) {
 fun PlatformBadges(platforms: Set<PlatformKind>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         PlatformKind.entries.filter { it in platforms }.forEach { platform ->
-            Text(
-                text = platform.title.str(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.padding(vertical = 2.dp),
-            )
+            OutlineLabel(platform.title.str())
         }
     }
 }

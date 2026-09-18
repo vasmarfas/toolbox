@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import com.vasmarfas.card.core.AppPermission
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.SensorReading
@@ -33,6 +32,7 @@ import com.vasmarfas.card.ui.components.ChartKind
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.theme.LocalStatusColors
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -61,7 +61,7 @@ private fun AccelerometerScreen() {
         if (dynamic > peak) peak = dynamic
         LineChart(
             series = listOf(history.map { it.x }, history.map { it.y }, history.map { it.z }),
-            colors = listOf(Color(0xFFE53935), Color(0xFF43A047), Color(0xFF1E88E5)),
+            colors = LocalStatusColors.current.series,
         )
         ResultCard {
             KeyValueRow("X / Y / Z", "${reading.x.toDouble().fmt(2)} / ${reading.y.toDouble().fmt(2)} / ${reading.z.toDouble().fmt(2)} m/s²", copyable = false)

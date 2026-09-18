@@ -1,8 +1,8 @@
 package com.vasmarfas.card.tools.text
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +31,7 @@ val morseCodeTool = Tool(
     category = ToolCategory.TEXT,
     title = Res.string.morse_code,
     description = Res.string.text_morse_for_latin_and_cyrillic_letters_di,
-    icon = Icons.Filled.GraphicEq,
+    icon = Icons.Filled.Sensors,
     keywords = listOf("morse", "telegraph", "dots", "dashes", "sos", "морзе", "телеграф", "точки", "тире"),
 ) { MorseCodeScreen() }
 

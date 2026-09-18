@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -102,11 +104,7 @@ fun InteractiveChart(
             modifier = modifier.fillMaxWidth().height(chartHeight()),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = ChartStrings.empty.str(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            EmptyState(icon = Icons.Filled.ShowChart, title = ChartStrings.empty.str())
         }
         return
     }
@@ -146,7 +144,10 @@ fun InteractiveChart(
             val heightPx = with(density) { maxHeight.toPx() }
             val left = tickLabels.maxOf { it.size.width }.toFloat() + gutter
             val plotWidth = (widthPx - left - inset).coerceAtLeast(1f)
-            val plotHeight = (heightPx - inset * 2).coerceAtLeast(1f)
+            val axisIndices = remember(start, end) { listOf(start, (start + end - 1) / 2, end - 1).distinct() }
+            val axisLabels = remember(axisIndices, labelStyle, xLabel) { axisIndices.map { measurer.measure(xLabel(it), labelStyle) } }
+            val axisHeight = axisLabels.maxOf { it.size.height }.toFloat() + gutter
+            val plotHeight = (heightPx - inset * 2 - axisHeight).coerceAtLeast(1f)
             val metrics = PlotMetrics(left, plotWidth, start, visible, count, bars)
             val shapes = remember(series, metrics, range, plotHeight, inset, kind) {
                 series.map { buildShape(it, metrics, range, inset, plotHeight, kind) }
@@ -207,6 +208,17 @@ fun InteractiveChart(
                         topLeft = Offset(left - gutter - tickLabels[index].size.width, y - tickLabels[index].size.height / 2f),
                     )
                 }
+                axisIndices.forEachIndexed { index, point ->
+                    val label = axisLabels[index]
+                    val anchor = metrics.xAt(point) - label.size.width / 2f
+                    drawText(
+                        textLayoutResult = label,
+                        topLeft = Offset(
+                            anchor.coerceIn(left, (left + plotWidth - label.size.width).coerceAtLeast(left)),
+                            inset + plotHeight + gutter,
+                        ),
+                    )
+                }
                 shapes.forEachIndexed { index, shape ->
                     shape.fills.forEach { (color, path) -> drawPath(path, color) }
                     shape.stroke?.let {
@@ -224,6 +236,10 @@ fun InteractiveChart(
             }
 
             if (active != null) {
+                // Keep the card out of the way of the point it describes: away from it horizontally,
+                // and on the opposite half vertically, so a peak is never covered by its own reading.
+                val point = series.firstNotNullOfOrNull { it.points.getOrNull(active) }
+                val high = point != null && yOf(point) < inset + plotHeight / 2f
                 ChartTooltip(
                     header = xLabel(active),
                     entries = series.mapNotNull { line ->
@@ -231,17 +247,24 @@ fun InteractiveChart(
                         ChartEntry(line.colorAt?.invoke(active) ?: line.color, line.label, line.tooltip?.invoke(active) ?: yFormat(value))
                     },
                     modifier = Modifier
-                        .align(if (metrics.xAt(active) > widthPx / 2) Alignment.TopStart else Alignment.TopEnd)
+                        .align(
+                            when {
+                                metrics.xAt(active) > widthPx / 2 -> if (high) Alignment.BottomStart else Alignment.TopStart
+                                else -> if (high) Alignment.BottomEnd else Alignment.TopEnd
+                            },
+                        )
                         .padding(4.dp),
                 )
             }
         }
-        TagChips(
-            listOf(
+        Text(
+            text = listOf(
                 "${ChartStrings.min.str()} ${yFormat(range.low)}",
                 "${ChartStrings.avg.str()} ${yFormat(range.average)}",
                 "${ChartStrings.max.str()} ${yFormat(range.high)}",
-            ),
+            ).joinToString(" · "),
+            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         val choices = windowOptions.filter { it == 0 || it < count }
         if (windows && choices.size > 1) {
@@ -267,7 +290,7 @@ private fun ChartLegend(series: List<ChartSeries>) {
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         series.forEach { line ->
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(10.dp).clip(CircleShape).background(line.color))
                 Text(line.label, style = MaterialTheme.typography.labelMedium)
             }
@@ -281,18 +304,18 @@ private class ChartEntry(val color: Color, val label: String, val value: String)
 private fun ChartTooltip(header: String, entries: List<ChartEntry>, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.widthIn(max = 200.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         tonalElevation = 2.dp,
         shadowElevation = 2.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(header, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             entries.forEach { entry ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(entry.color))
                     if (entry.label.isNotEmpty()) {
                         Text(entry.label, style = MaterialTheme.typography.labelMedium)
