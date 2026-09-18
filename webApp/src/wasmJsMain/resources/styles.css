@@ -1,21 +1,21 @@
 :root {
     color-scheme: light dark;
-    --bg: #f6fafa;
-    --fg: #1a1c1c;
-    --muted: #4a6363;
-    --accent: #00696d;
-    --accent-soft: #9cf1f4;
-    --card: #ffffff;
+    --bg: #fff9ef;
+    --fg: #1d1b16;
+    --muted: #3a494d;
+    --accent: #006878;
+    --accent-soft: #a8edff;
+    --card: #f3ede4;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg: #0f1415;
-        --fg: #e0e3e3;
-        --muted: #b1cccd;
-        --accent: #4dd9dd;
-        --accent-soft: #004f52;
-        --card: #1b2122;
+        --bg: #15130e;
+        --fg: #e8e2d9;
+        --muted: #b9c9ce;
+        --accent: #00d9fa;
+        --accent-soft: #004e5b;
+        --card: #211f1a;
     }
 }
 
@@ -70,6 +70,14 @@ canvas {
     object-fit: cover;
     display: block;
     margin: 0 auto 16px;
+}
+
+.splash-mark {
+    width: 48px;
+    height: 48px;
+    display: block;
+    margin: 0 auto 12px;
+    color: var(--accent);
 }
 
 .splash-name {

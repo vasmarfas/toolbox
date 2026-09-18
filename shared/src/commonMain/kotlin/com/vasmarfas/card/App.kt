@@ -1,8 +1,12 @@
 package com.vasmarfas.card
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -209,8 +213,14 @@ private fun AppShell(
                     modifier = Modifier.weight(1f).fillMaxSize(),
                     contentWindowInsets = if (chrome.immersive) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
                     bottomBar = {
-                        if (compact && !chrome.immersive && topDestination != null) {
-                            ShortNavigationBar {
+                        if (compact) {
+                            AnimatedVisibility(
+                                visible = !chrome.immersive && topDestination != null,
+                                enter = fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
+                                    slideInVertically(tween(NavFadeIn, delayMillis = NavFadeOut)) { it },
+                                exit = fadeOut(tween(NavFadeOut + NavFadeIn)) + slideOutVertically(tween(NavFadeOut + NavFadeIn)) { it },
+                            ) {
+                                ShortNavigationBar {
                                 TopDestination.visible.forEach { tab ->
                                     ShortNavigationBarItem(
                                         selected = tab == topDestination,
@@ -219,6 +229,7 @@ private fun AppShell(
                                         // At a 2.0 font scale a wrapped label spills out of the bar.
                                         label = { Text(tab.label.str(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     )
+                                }
                                 }
                             }
                         }
@@ -231,9 +242,13 @@ private fun AppShell(
     }
 }
 
-// NavHost fades over 700 ms by default, which reads as a stall when the bottom bar switches tabs.
-private const val NavFadeIn = 110
-private const val NavFadeOut = 80
+// Material fade-through: the outgoing screen is gone in 90 ms, the incoming one settles from 92 %
+// over the next 210. NavHost's default 700 ms read as a stall; 110/80 read as a blink.
+private const val NavFadeOut = 90
+private const val NavFadeIn = 210
+
+private fun fadeThroughIn() = fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
+    scaleIn(initialScale = 0.92f, animationSpec = tween(NavFadeIn, delayMillis = NavFadeOut))
 
 @Composable
 private fun AppNavHost(
@@ -248,9 +263,9 @@ private fun AppNavHost(
         NavHost(
             navController = navController,
             startDestination = if (startOnTools) ToolsRoute else HomeRoute,
-            enterTransition = { fadeIn(tween(NavFadeIn)) },
+            enterTransition = { fadeThroughIn() },
             exitTransition = { fadeOut(tween(NavFadeOut)) },
-            popEnterTransition = { fadeIn(tween(NavFadeIn)) },
+            popEnterTransition = { fadeThroughIn() },
             popExitTransition = { fadeOut(tween(NavFadeOut)) },
         ) {
             composable<HomeRoute> {
@@ -265,7 +280,14 @@ private fun AppNavHost(
             composable<ProjectsRoute> { ProjectsScreen() }
             composable<ResumeRoute> { ResumeScreen() }
             composable<ToolsRoute> { ToolsScreen(onOpenTool = openTool) }
-            composable<ToolRoute> { entry ->
+            // A tool rises out of the card that opened it and sinks back on the way out.
+            composable<ToolRoute>(
+                enterTransition = {
+                    fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
+                        slideInVertically(tween(NavFadeIn, delayMillis = NavFadeOut)) { it / 24 }
+                },
+                popExitTransition = { fadeOut(tween(NavFadeOut)) + slideOutVertically(tween(NavFadeOut)) { it / 24 } },
+            ) { entry ->
                 val route = entry.toRoute<ToolRoute>()
                 ToolScreen(
                     toolId = route.id,

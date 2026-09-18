@@ -5,9 +5,11 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import androidx.annotation.RequiresPermission
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -49,4 +51,4 @@ actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
         record.stop()
         record.release()
     }
-}
+}.flowOn(Dispatchers.IO)

@@ -16,17 +16,17 @@
       "ru": "Удалённо"
     },
     "bio": {
-      "en": "I build Android and Kotlin Multiplatform apps that ship to Google Play, App Store, Microsoft Store and the web from one codebase, and I keep my own infrastructure running: MikroTik networks, Proxmox, Home Assistant, FreePBX and GSM gateways. MSc in Software Engineering (NRNU MEPhI).",
-      "ru": "Делаю Android- и Kotlin Multiplatform-приложения, которые из одной кодовой базы выходят в Google Play, App Store, Microsoft Store и в браузер, и держу собственную инфраструктуру: сети на MikroTik, Proxmox, Home Assistant, FreePBX и GSM-шлюзы. Магистр программной инженерии (НИЯУ МИФИ)."
+      "en": "I build Android and Kotlin Multiplatform apps that ship to Google Play, RuStore, App Store, Microsoft Store and the web from one codebase, and I keep my own infrastructure running: MikroTik networks, Ubuntu and Windows Server hosts, Proxmox, Home Assistant, FreePBX and GSM gateways. MSc in Software Engineering (NRNU MEPhI).",
+      "ru": "Делаю Android- и Kotlin Multiplatform-приложения, которые из одной кодовой базы выходят в Google Play, RuStore, App Store, Microsoft Store и в браузер, и держу собственную инфраструктуру: сети на MikroTik, серверы на Ubuntu и Windows Server, Proxmox, Home Assistant, FreePBX и GSM-шлюзы. Магистр программной инженерии (НИЯУ МИФИ)."
     },
     "about": [
       {
-        "en": "Mobile is the main track: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, publishing and CI/CD for the stores. Dota Diviner and SMSNode build from one codebase for Android, iOS, Windows, macOS, Linux and the browser — this site works the same way.",
-        "ru": "Основное направление — мобильная разработка: Kotlin, Jetpack Compose, Compose Multiplatform, Room, Ktor, Koin, Firebase, публикация и CI/CD под магазины. Dota Diviner и SMSNode собираются из одного кода под Android, iOS, Windows, macOS, Linux и браузер — этот сайт устроен так же."
+        "en": "Mobile is the main track: Android, Kotlin Multiplatform and Compose Multiplatform, publishing and CI/CD for the stores. Dota Diviner and SMSNode build from one codebase for Android, iOS, Windows, macOS, Linux and the browser, and this site works the same way.",
+        "ru": "Основное направление: Android, Kotlin Multiplatform и Compose Multiplatform, публикация и CI/CD под магазины. Dota Diviner и SMSNode собираются из одного кода под Android, iOS, Windows, macOS, Linux и браузер, этот сайт устроен так же."
       },
       {
-        "en": "Before and alongside development: systems and network administration. MikroTik (CAPsMAN, roaming, VPN, firewall, routing), Proxmox virtualization, Windows/Linux/macOS workstations and servers, cellular signal boosters, Arduino and ESP8266 projects. Раздел инструментов вырос отсюда: это то, чем я пользуюсь сам.",
-        "ru": "До разработки и параллельно с ней — системное и сетевое администрирование. MikroTik (CAPsMAN, бесшовный роуминг, VPN, firewall, маршрутизация), виртуализация на Proxmox, рабочие станции и серверы на Windows/Linux/macOS, усилители сотовой связи, проекты на Arduino и ESP8266. Раздел инструментов вырос отсюда — я собрал то, чем пользуюсь сам."
+        "en": "The second specialty is systems and network administration. MikroTik (CAPsMAN, roaming, VPN, firewall, routing), Proxmox virtualization, Windows, Linux and macOS workstations and servers, Arduino and ESP8266 projects. The tools section grew out of this: it is what I use myself.",
+        "ru": "Вторая специальность: системное и сетевое администрирование. MikroTik (CAPsMAN, бесшовный роуминг, VPN, firewall, маршрутизация), виртуализация на Proxmox, рабочие станции и серверы на Windows, Linux и macOS, проекты на Arduino и ESP8266. Раздел инструментов вырос отсюда: я собрал то, чем пользуюсь сам."
       },
       {
         "en": "I write about what I build on Habr: self-hosted telephony, Home Assistant panels from old tablets, UPS protocols, ambient lighting, even liquid cooling for a laptop.",
@@ -308,7 +308,7 @@
       },
       "description": {
         "en": "Compose Multiplatform with Material 3 Expressive, compiled to Wasm for the web and to native apps for Android, iOS, Windows, macOS and Linux. Profile data is a JSON file that the app refreshes from the repository, so the site updates without a release.",
-        "ru": "Compose Multiplatform на Material 3 Expressive, собирается в Wasm для веба и в нативные приложения для Android, iOS, Windows, macOS и Linux. Данные профиля — JSON-файл, который приложение подтягивает из репозитория, поэтому сайт обновляется без релиза."
+        "ru": "Compose Multiplatform на Material 3 Expressive, собирается в Wasm для веба и в нативные приложения для Android, iOS, Windows, macOS и Linux. Данные профиля лежат в JSON-файле, который приложение подтягивает из репозитория, поэтому сайт обновляется без релиза."
       },
       "tech": [
         "Kotlin Multiplatform",
@@ -346,7 +346,7 @@
         "ru": "Аналитика драфтов Dota 2: KMP-приложение, Telegram-бот и бэкенд."
       },
       "description": {
-        "en": "Начиналось с Telegram-бота, сейчас это Python-бэкенд (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
+        "en": "It started as a Telegram bot; now it is a Python backend (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
         "ru": "Начиналось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
       },
       "tech": [

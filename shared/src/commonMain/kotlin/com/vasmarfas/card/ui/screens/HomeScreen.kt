@@ -1,9 +1,17 @@
 package com.vasmarfas.card.ui.screens
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,8 +24,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.DarkMode
@@ -43,11 +51,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,6 +88,8 @@ import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LinkChips
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.PageMaxWidth
+import com.vasmarfas.card.ui.components.PromptChevron
+import com.vasmarfas.card.ui.components.PromptMark
 import com.vasmarfas.card.ui.components.SectionTitle
 import com.vasmarfas.card.ui.components.SelectableText
 import com.vasmarfas.card.ui.components.linkIcon
@@ -85,6 +99,7 @@ import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.decodeToImageBitmap
 
 fun currentYear(): Int = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
@@ -102,12 +117,14 @@ fun HomeScreen(
         HomeHeader(onOpenSettings)
         Crossfade(targetState = state.value) { profile ->
             if (profile == null) return@Crossfade
+            // Thirty seconds: who, proof, where to write. The paragraphs wait for the reader who
+            // got that far.
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                HeroCard(profile)
-                AboutSection(profile)
-                StatsRow(profile)
+                Hero(profile)
+                StatsStrip(profile, onOpenTools)
                 FeaturedProjects(profile, onOpenProjects)
                 LatestArticles(profile, onOpenProjects)
+                AboutSection(profile)
                 ToolsTeaser(onOpenTools, onOpenTool)
                 ResumeTeaser(onOpenResume)
                 Footer()
@@ -121,6 +138,8 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
     val settings = LocalSettings.current
     val lang = LocalLang.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Icon(PromptMark, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.width(8.dp))
         Text(
             Res.string.app_name.str(),
             style = MaterialTheme.typography.headlineSmall,
@@ -157,23 +176,64 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
 }
 
 @Composable
-private fun HeroCard(profile: Profile) {
+private fun Hero(profile: Profile) {
+    val person = profile.person
     val compact = LocalLayoutSize.current == LayoutSize.COMPACT
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        if (compact) {
-            Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Avatar(profile.avatar, 96.dp)
-                HeroText(profile)
+    Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+        Avatar(profile.avatar, if (compact) 72.dp else 120.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            PromptLine(
+                person.name.str(),
+                if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
+            )
+            Text(person.title.str(), style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.Place,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else {
-            Row(Modifier.padding(32.dp), horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
-                Avatar(profile.avatar, 160.dp)
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) { HeroText(profile) }
-            }
+            LinkChips(profile.links)
         }
+    }
+}
+
+/** The mark's chevron, the name typed after it and a cursor still blinking: the icon, spelled out. */
+@Composable
+private fun PromptLine(text: String, style: TextStyle) {
+    val glyph = with(LocalDensity.current) { (style.fontSize * 0.72f).toDp() }
+    val cursor by rememberInfiniteTransition().animateFloat(
+        initialValue = 1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+                1f at 0
+                1f at 499
+                0f at 500
+                0f at 999
+            },
+            repeatMode = RepeatMode.Restart,
+        ),
+    )
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(
+            PromptChevron,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(width = glyph * 170 / 295, height = glyph),
+        )
+        Text(text, style = style)
+        Box(
+            Modifier
+                .size(width = 4.dp, height = glyph)
+                .alpha(cursor)
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)),
+        )
     }
 }
 
@@ -204,73 +264,74 @@ private fun Avatar(avatar: ProfileAvatar, size: Dp) {
 }
 
 @Composable
-private fun HeroText(profile: Profile) {
-    val person = profile.person
-    val colors = MaterialTheme.colorScheme
-    Text(person.name.str(), style = MaterialTheme.typography.displaySmall, color = colors.onPrimaryContainer)
-    Text(person.title.str(), style = MaterialTheme.typography.titleMedium, color = colors.onPrimaryContainer)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Filled.Place, contentDescription = null, modifier = Modifier.size(18.dp), tint = colors.onPrimaryContainer)
-        Spacer(Modifier.width(4.dp))
-        Text(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = colors.onPrimaryContainer)
-    }
-    SelectableText(
-        person.bio.str(),
-        style = MaterialTheme.typography.bodyLarge.copy(color = colors.onPrimaryContainer),
-    )
-    LinkChips(profile.links)
-}
-
-@Composable
 private fun AboutSection(profile: Profile) {
-    if (profile.person.about.isEmpty()) return
+    val person = profile.person
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.about_me.str())
-        profile.person.about.forEach { paragraph ->
-            SelectableText(
-                paragraph.str(),
-                style = MaterialTheme.typography.bodyLarge,
-            )
+        (listOf(person.bio) + person.about).forEach { paragraph ->
+            SelectableText(paragraph.str(), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
+private class Stat(val value: String, val label: StringResource, val onClick: (() -> Unit)? = null)
+
 @Composable
-private fun StatsRow(profile: Profile) {
+private fun StatsStrip(profile: Profile, onOpenTools: () -> Unit) {
     val year = remember { currentYear() }
     val stars by GithubStars.stars.collectAsState()
     val totalStars = profile.projects.sumOf { project -> GithubStars.starsOf(project) ?: 0 }
     val stats = listOfNotNull(
-        (year - profile.milestones.androidSince).takeIf { it > 0 }?.let { "$it+" to Res.string.years_in_android_kmp },
-        (year - profile.milestones.sysadminSince).takeIf { it > 0 }?.let { "$it+" to Res.string.years_of_sysadmin_work },
-        profile.projects.size.toString() to Res.string.public_projects,
-        totalStars.takeIf { it > 0 }?.let { "$it" to Res.string.github_stars },
-        profile.articles.size.toString() to Res.string.habr_articles,
-        ToolRegistry.all.size.toString() to Res.string.tools_in_this_app,
+        (year - profile.milestones.androidSince).takeIf { it > 0 }?.let { Stat("$it+", Res.string.years_in_android_kmp) },
+        (year - profile.milestones.sysadminSince).takeIf { it > 0 }?.let { Stat("$it+", Res.string.years_of_sysadmin_work) },
+        Stat(profile.projects.size.toString(), Res.string.public_projects),
+        totalStars.takeIf { it > 0 }?.let { Stat("$it", Res.string.github_stars) },
+        Stat(profile.articles.size.toString(), Res.string.habr_articles),
+        Stat(ToolRegistry.all.size.toString(), Res.string.tools_in_this_app, onOpenTools),
     )
-    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 2 else 3
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        stats.chunked(columns).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                row.forEach { (value, label) ->
-                    Card(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                            Text(label.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+    // Three columns on a phone left ~100 dp per label, and "администрирования" broke mid-word.
+    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 2 else 6
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            stats.chunked(columns).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { stat -> StatCell(stat, Modifier.weight(1f)) }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
     if (stars.isEmpty()) Spacer(Modifier.height(0.dp))
+}
+
+@Composable
+private fun StatCell(stat: Stat, modifier: Modifier) {
+    val primary = MaterialTheme.colorScheme.primary
+    Column(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .then(
+                if (stat.onClick == null) {
+                    Modifier
+                } else {
+                    Modifier.clickable(onClick = stat.onClick, role = Role.Button).pointerHoverIcon(PointerIcon.Hand)
+                },
+            )
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stat.value, style = MaterialTheme.typography.headlineMedium, color = primary)
+            if (stat.onClick != null) {
+                Spacer(Modifier.width(4.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = primary, modifier = Modifier.size(18.dp))
+            }
+        }
+        Text(stat.label.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
