@@ -63,7 +63,7 @@ val shrinkageScaleTool = Tool(
     id = "shrinkage-scale",
     category = ToolCategory.PRINTING,
     title = Res.string.shrinkage_and_scale,
-    description = Res.string.scale_factor_that_compensates_material_shrin,
+    description = Res.string.shrinkage_scale_description,
     icon = Icons.Filled.Scale,
     keywords = listOf("shrinkage", "scale", "calibration cube", "steps per mm", "усадка", "масштаб", "куб", "шаги", "калибровка"),
 ) { ShrinkageScaleScreen() }
@@ -99,22 +99,22 @@ private fun ShrinkSection() {
             onValueChange = { nominalText = it },
             label = Res.string.nominal_dimension.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = nominalText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
     val shrink = shrinkText.toDoubleLenient()
     val nominal = nominalText.toDoubleLenient()
     if (shrink == null || shrink <= -100 || shrink >= 100 || nominal == null || nominal <= 0) {
-        ErrorText(Res.string.shrinkage_must_be_between_100_and_100.str())
+        ErrorText(Res.string.shrinkage_must_be_between_100.str())
         return
     }
     val factor = Shrinkage.scaleFactor(shrink)
     ResultCard {
         KeyValueRow(Res.string.scale_factor.str(), factor.fmt(5))
         KeyValueRow(Res.string.scale_in_the_slicer.str(), "${(factor * 100).fmt(3)} %")
-        KeyValueRow(Res.string.model_dimension.str(), "${(nominal * factor).fmt(3)} ${Res.string.mm.str()}")
-        KeyValueRow(Res.string.compensation.str(), "${(nominal * factor - nominal).fmt(3)} ${Res.string.mm.str()}")
+        KeyValueRow(Res.string.model_dimension.str(), "${(nominal * factor).fmt(3)} ${Res.string.unit_mm.str()}")
+        KeyValueRow(Res.string.compensation.str(), "${(nominal * factor - nominal).fmt(3)} ${Res.string.unit_mm.str()}")
     }
     ToolSection(Res.string.typical_shrinkage.str()) {
         SimpleTable(
@@ -146,7 +146,7 @@ private fun CubeSection() {
         value = targetText,
         onValueChange = { targetText = it },
         label = Res.string.nominal_cube_size.str(),
-        suffix = Res.string.mm.str(),
+        suffix = Res.string.unit_mm.str(),
         isError = targetText.toDoubleLenient().let { it == null || it <= 0 },
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -155,16 +155,16 @@ private fun CubeSection() {
         NumberField(zText, { zText = it }, Res.string.measured_z.str(), Modifier.weight(1f), isError = zText.toDoubleLenient() == null)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        NumberField(stepsXText, { stepsXText = it }, "X steps/mm", Modifier.weight(1f), isError = stepsXText.toDoubleLenient() == null)
-        NumberField(stepsYText, { stepsYText = it }, "Y steps/mm", Modifier.weight(1f), isError = stepsYText.toDoubleLenient() == null)
-        NumberField(stepsZText, { stepsZText = it }, "Z steps/mm", Modifier.weight(1f), isError = stepsZText.toDoubleLenient() == null)
+        NumberField(stepsXText, { stepsXText = it }, "X, ${Res.string.unit_steps_mm.str()}", Modifier.weight(1f), isError = stepsXText.toDoubleLenient() == null)
+        NumberField(stepsYText, { stepsYText = it }, "Y, ${Res.string.unit_steps_mm.str()}", Modifier.weight(1f), isError = stepsYText.toDoubleLenient() == null)
+        NumberField(stepsZText, { stepsZText = it }, "Z, ${Res.string.unit_steps_mm.str()}", Modifier.weight(1f), isError = stepsZText.toDoubleLenient() == null)
     }
 
     val target = targetText.toDoubleLenient()
     val measured = listOf(xText, yText, zText).map { it.toDoubleLenient() }
     val steps = listOf(stepsXText, stepsYText, stepsZText).map { it.toDoubleLenient() }
     if (target == null || target <= 0 || measured.any { it == null || it <= 0 } || steps.any { it == null || it <= 0 }) {
-        ErrorText(Res.string.fill_in_every_measurement_and_the_current_st.str())
+        ErrorText(Res.string.shrinkage_fill_in_every.str())
         return
     }
     val axes = listOf("X", "Y", "Z")
@@ -174,7 +174,7 @@ private fun CubeSection() {
         SimpleTable(
             header = listOf(
                 Res.string.axis.str(),
-                Res.string.measured_2.str(),
+                Res.string.shrinkage_measured.str(),
                 Res.string.error.str(),
                 Res.string.new_steps.str(),
             ),
@@ -187,7 +187,7 @@ private fun CubeSection() {
     }
     if (errors.maxOf { abs(it) } > 2.0) {
         ErrorText(
-            Res.string.an_error_above_2_is_mechanical_check_belts_p.str(),
+            Res.string.shrinkage_error_above_2.str(),
         )
     }
 }

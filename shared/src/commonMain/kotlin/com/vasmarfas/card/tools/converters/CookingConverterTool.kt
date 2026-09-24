@@ -19,6 +19,7 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -36,7 +37,7 @@ val cookingConverterTool = Tool(
     id = "cooking-converter",
     category = ToolCategory.CONVERTERS,
     title = Res.string.cooking_converter,
-    description = Res.string.cups_spoons_millilitres_and_grams_for_common,
+    description = Res.string.cooking_converter_description,
     icon = Icons.Filled.Restaurant,
     keywords = listOf("cup", "tablespoon", "teaspoon", "flour", "sugar", "oven", "gas mark", "чашка", "ложка", "мука", "сахар", "духовка", "граммы", "рецепт"),
 ) { CookingConverterScreen() }
@@ -73,42 +74,31 @@ private fun IngredientsSection() {
         value = input,
         onValueChange = { input = it },
         label = Res.string.amount.str(),
-        suffix = from.symbol,
+        suffix = from.symbol.str(),
         isError = input.isNotBlank() && value == null,
     )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        DropdownChoice(
-            options = CookingUnit.entries,
-            selected = from,
-            onSelect = { from = it },
-            label = Res.string.from_.str(),
-            text = { it.title.str() },
-            modifier = Modifier.weight(1f),
-        )
-        DropdownChoice(
-            options = CookingUnit.entries,
-            selected = to,
-            onSelect = { to = it },
-            label = Res.string.to.str(),
-            text = { it.title.str() },
-            modifier = Modifier.weight(1f),
-        )
-    }
+    DropdownChoice(
+        options = CookingUnit.entries,
+        selected = from,
+        onSelect = { from = it },
+        label = Res.string.from_.str(),
+        text = { it.title.str() },
+    )
+    DropdownChoice(
+        options = CookingUnit.entries,
+        selected = to,
+        onSelect = { to = it },
+        label = Res.string.to.str(),
+        text = { it.title.str() },
+    )
     if (value != null) {
-        ResultCard {
-            KeyValueRow(
-                "${value.fmt(2)} ${from.symbol} · ${ingredient.title.str()}",
-                "${Cooking.convert(value, from, to, ingredient).fmt(2)} ${to.symbol}",
-            )
-            KeyValueRow(Res.string.density.str(), "${ingredient.density.fmt(2)} g/ml", copyable = false)
-        }
+        AnswerCard(
+            "${Cooking.convert(value, from, to, ingredient).fmt(2)} ${to.symbol.str()}",
+            "${value.fmt(2)} ${from.symbol.str()} · ${ingredient.title.str()} · ${ingredient.density.fmt(2)} ${Res.string.unit_g_ml.str()}",
+        )
         ResultCard(Res.string.all_units.str()) {
             CookingUnit.entries.forEach { unit ->
-                KeyValueRow(unit.title.str(), "${Cooking.convert(value, from, unit, ingredient).fmt(2)} ${unit.symbol}")
+                KeyValueRow(unit.title.str(), "${Cooking.convert(value, from, unit, ingredient).fmt(2)} ${unit.symbol.str()}")
             }
         }
     }

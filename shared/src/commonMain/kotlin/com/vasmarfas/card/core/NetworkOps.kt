@@ -94,7 +94,7 @@ expect suspend fun reverseLookup(address: String): String?
 
 expect suspend fun wakeOnLan(mac: String, broadcast: String, port: Int): Boolean
 
-expect fun networkInterfaces(): List<InterfaceInfo>
+expect suspend fun networkInterfaces(): List<InterfaceInfo>
 
 expect suspend fun tlsHandshake(host: String, port: Int, timeoutMs: Int): TlsInfo
 

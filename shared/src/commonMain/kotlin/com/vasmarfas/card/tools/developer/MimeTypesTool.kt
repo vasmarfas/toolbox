@@ -12,12 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.extension_type_or_description
-import com.vasmarfas.card.resources.look_up_the_media_type_by_file_extension_or
-import com.vasmarfas.card.resources.mime_types
-import com.vasmarfas.card.resources.nothing_found_2
-import com.vasmarfas.card.resources.types
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -30,7 +25,7 @@ val mimeTypesTool = Tool(
     id = "mime-types",
     category = ToolCategory.DEVELOPER,
     title = Res.string.mime_types,
-    description = Res.string.look_up_the_media_type_by_file_extension_or,
+    description = Res.string.mime_types_description,
     icon = Icons.Filled.Description,
     keywords = listOf("mime", "media type", "content-type", "extension", "file type", "тип файла", "расширение", "content type"),
 ) { MimeTypesScreen() }
@@ -46,7 +41,7 @@ private fun MimeTypesScreen() {
     )
     val found = remember(query) { MimeTypes.search(query) }
     if (found.isEmpty()) {
-        Text(Res.string.nothing_found_2.str(), style = MaterialTheme.typography.bodyMedium)
+        Text(Res.string.nothing_found.str(), style = MaterialTheme.typography.bodyMedium)
         return
     }
     ResultCard("${found.size} ${Res.string.types.str()}") {

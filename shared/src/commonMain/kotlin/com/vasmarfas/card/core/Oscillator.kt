@@ -8,22 +8,16 @@ import kotlin.random.Random
 
 enum class Waveform { SINE, SQUARE, TRIANGLE, SAWTOOTH, NOISE }
 
-/**
- * Highest sample rate the audio output accepted, so callers can cap the frequency at Nyquist.
- * Most phones and laptops open at 48 kHz, which puts the ceiling at 24 kHz.
- */
+// highest rate the output accepted, callers cap the frequency at Nyquist. Most devices open at 48 kHz
 expect fun toneSampleRate(): Int
 
-/** Starts the oscillator, or retunes the running one without restarting the phase. */
+// retunes a running oscillator without restarting the phase
 expect fun startTone(frequencyHz: Double, waveform: Waveform, volume: Float)
 
 expect fun stopTone()
 
-/**
- * Shared sample generation for the platforms that fill a PCM buffer themselves. Phase carries over
- * between buffers and the amplitude is ramped, otherwise every retune and every volume change
- * lands as a click.
- */
+// phase carries over between buffers and the amplitude is ramped, otherwise every retune and volume
+// change lands as a click
 internal class OscillatorState {
     @Volatile
     private var frequency = 440.0

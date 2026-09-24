@@ -31,7 +31,7 @@ val flowAndEstepsTool = Tool(
     id = "flow-and-esteps",
     category = ToolCategory.PRINTING,
     title = Res.string.flow_and_e_steps,
-    description = Res.string.extruder_calibration_new_e_steps_from_a_100,
+    description = Res.string.flow_and_esteps_description,
     icon = Icons.Filled.Speed,
     keywords = listOf("esteps", "e-steps", "flow", "extrusion multiplier", "m92", "calibration", "калибровка", "поток", "экструдер", "стенка"),
 ) { FlowAndEstepsScreen() }
@@ -68,7 +68,7 @@ private fun EstepsSection() {
         value = oldStepsText,
         onValueChange = { oldStepsText = it },
         label = Res.string.current_e_steps.str(),
-        suffix = "steps/mm",
+        suffix = Res.string.unit_steps_mm.str(),
         isError = oldStepsText.toDoubleLenient().let { it == null || it <= 0 },
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -77,7 +77,7 @@ private fun EstepsSection() {
             onValueChange = { requestedText = it },
             label = Res.string.asked_to_extrude.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = requestedText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -85,7 +85,7 @@ private fun EstepsSection() {
             onValueChange = { extrudedText = it },
             label = Res.string.actually_extruded.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = extrudedText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -93,7 +93,7 @@ private fun EstepsSection() {
     val requested = requestedText.toDoubleLenient()
     val extruded = extrudedText.toDoubleLenient()
     if (old == null || old <= 0 || requested == null || requested <= 0 || extruded == null || extruded <= 0) {
-        ErrorText(Res.string.all_three_values_must_be_greater_than_zero.str())
+        ErrorText(Res.string.flow_all_three_values.str())
         return
     }
     val steps = Extrusion.newESteps(old, requested, extruded)
@@ -105,7 +105,7 @@ private fun EstepsSection() {
     }
     if (error < 0) {
         ErrorText(
-            Res.string.the_extruder_pushed_more_than_asked_the_new.str(),
+            Res.string.flow_extruder_pushed_more.str(),
         )
     }
 }
@@ -129,7 +129,7 @@ private fun FlowSection() {
             onValueChange = { expectedText = it },
             label = Res.string.expected_wall.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = expectedText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -137,7 +137,7 @@ private fun FlowSection() {
             onValueChange = { measuredText = it },
             label = Res.string.measured_wall.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = measuredText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -145,7 +145,7 @@ private fun FlowSection() {
     val expected = expectedText.toDoubleLenient()
     val measured = measuredText.toDoubleLenient()
     if (current == null || current <= 0 || expected == null || expected <= 0 || measured == null || measured <= 0) {
-        ErrorText(Res.string.all_three_values_must_be_greater_than_zero.str())
+        ErrorText(Res.string.flow_all_three_values.str())
         return
     }
     val flow = Extrusion.newFlowPercent(current, expected, measured)
@@ -157,7 +157,7 @@ private fun FlowSection() {
     }
     if (flow < 85 || flow > 115) {
         ErrorText(
-            Res.string.a_correction_over_15_usually_means_wrong_e_s.str(),
+            Res.string.flow_correction_over_15_usually.str(),
         )
     }
 }
@@ -175,7 +175,7 @@ private fun VolumetricSection() {
             onValueChange = { layerText = it },
             label = Res.string.layer_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = layerText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -183,7 +183,7 @@ private fun VolumetricSection() {
             onValueChange = { widthText = it },
             label = Res.string.extrusion_width.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = widthText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -193,7 +193,7 @@ private fun VolumetricSection() {
             onValueChange = { speedText = it },
             label = Res.string.print_speed.str(),
             modifier = Modifier.weight(1f),
-            suffix = "mm/s",
+            suffix = Res.string.unit_mm_s.str(),
             isError = speedText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -201,7 +201,7 @@ private fun VolumetricSection() {
             onValueChange = { maxRateText = it },
             label = Res.string.hotend_limit.str(),
             modifier = Modifier.weight(1f),
-            suffix = "mm³/s",
+            suffix = Res.string.unit_mm3_s.str(),
             isError = maxRateText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -210,19 +210,19 @@ private fun VolumetricSection() {
     val speed = speedText.toDoubleLenient()
     val maxRate = maxRateText.toDoubleLenient()
     if (layer == null || layer <= 0 || width == null || width <= 0 || speed == null || speed <= 0 || maxRate == null || maxRate <= 0) {
-        ErrorText(Res.string.all_four_values_must_be_greater_than_zero.str())
+        ErrorText(Res.string.flow_all_four_values.str())
         return
     }
     val rate = Extrusion.volumetricRate(layer, width, speed)
     ResultCard {
-        KeyValueRow(Res.string.required_flow.str(), "${rate.fmt(2)} mm³/s")
-        KeyValueRow(Res.string.headroom.str(), "${(maxRate - rate).fmt(2)} mm³/s")
-        KeyValueRow(Res.string.load_2.str(), "${(rate / maxRate * 100).fmt(1)} %")
-        KeyValueRow(Res.string.max_speed_at_this_limit.str(), "${Extrusion.maxSpeed(maxRate, layer, width).fmt(1)} mm/s")
+        KeyValueRow(Res.string.required_flow.str(), "${rate.fmt(2)} ${Res.string.unit_mm3_s.str()}")
+        KeyValueRow(Res.string.headroom.str(), "${(maxRate - rate).fmt(2)} ${Res.string.unit_mm3_s.str()}")
+        KeyValueRow(Res.string.flow_load.str(), "${(rate / maxRate * 100).fmt(1)} %")
+        KeyValueRow(Res.string.max_speed_at_this_limit.str(), "${Extrusion.maxSpeed(maxRate, layer, width).fmt(1)} ${Res.string.unit_mm_s.str()}")
     }
     if (rate > maxRate) {
         ErrorText(
-            Res.string.the_hotend_cannot_melt_this_much_drop_the_sp.str(),
+            Res.string.flow_hotend_cannot_melt.str(),
         )
     }
 }

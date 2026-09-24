@@ -36,7 +36,7 @@ enum class DnsResolver(val label: StringResource, val dohUrl: String?, val dohFl
     CLOUDFLARE(Res.string.cloudflare_1_1_1_1, "https://cloudflare-dns.com/dns-query", DohFlavour.JSON, "1.1.1.1", Res.string.dns_over_https),
     GOOGLE(Res.string.google_8_8_8_8, "https://dns.google/resolve", DohFlavour.JSON, "8.8.8.8", Res.string.dns_over_https),
     QUAD9(Res.string.quad9_9_9_9_9, "https://dns.quad9.net:5053/dns-query", DohFlavour.JSON, "9.9.9.9", Res.string.blocks_malicious_domains),
-    QUAD9_ECS(Res.string.quad9_ecs_9_9_9_11, "https://dns11.quad9.net/dns-query", DohFlavour.AUTO, "9.9.9.11", Res.string.same_filtering_plus_edns_client_subnet),
+    QUAD9_ECS(Res.string.quad9_ecs_9_9_9_11, "https://dns11.quad9.net/dns-query", DohFlavour.AUTO, "9.9.9.11", Res.string.doh_same_filtering_plus_edns),
     ADGUARD(Res.string.adguard_94_140_14_14, "https://dns.adguard-dns.com/resolve", DohFlavour.JSON, "94.140.14.14", Res.string.blocks_ads_and_trackers),
     MULLVAD(Res.string.mullvad_194_242_2_2, "https://dns.mullvad.net/dns-query", DohFlavour.AUTO, "194.242.2.2", Res.string.no_logging),
     DNS4EU(Res.string.dns4eu_86_54_11_1, "https://unfiltered.joindns4.eu/dns-query", DohFlavour.AUTO, "86.54.11.1", Res.string.eu_public_resolver_unfiltered),

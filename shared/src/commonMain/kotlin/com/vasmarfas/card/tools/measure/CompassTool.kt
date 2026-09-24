@@ -22,12 +22,7 @@ import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.SensorType
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.compass
-import com.vasmarfas.card.resources.keep_the_device_level_and_away_from_magnets
-import com.vasmarfas.card.resources.magnetic_heading_from_the_orientation_sensor
-import com.vasmarfas.card.resources.pitch
-import com.vasmarfas.card.resources.roll_2
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -41,7 +36,7 @@ val compassTool = Tool(
     id = "compass",
     category = ToolCategory.MEASURE,
     title = Res.string.compass,
-    description = Res.string.magnetic_heading_from_the_orientation_sensor,
+    description = Res.string.compass_description,
     icon = Icons.Filled.Explore,
     keywords = listOf("heading", "azimuth", "north", "magnetic", "азимут", "север", "направление"),
     platforms = PlatformKind.mobileAndWeb,
@@ -71,10 +66,10 @@ private fun CompassScreen() {
         )
         ResultCard {
             KeyValueRow(Res.string.pitch.str(), "${reading.y.toDouble().fmt(1)}°", copyable = false)
-            KeyValueRow(Res.string.roll_2.str(), "${reading.z.toDouble().fmt(1)}°", copyable = false)
+            KeyValueRow(Res.string.compass_roll.str(), "${reading.z.toDouble().fmt(1)}°", copyable = false)
         }
         Text(
-            Res.string.keep_the_device_level_and_away_from_magnets.str(),
+            Res.string.compass_keep_the_device_level.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

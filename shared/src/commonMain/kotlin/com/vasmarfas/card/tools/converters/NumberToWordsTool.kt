@@ -26,7 +26,7 @@ val numberToWordsTool = Tool(
     id = "number-to-words",
     category = ToolCategory.CONVERTERS,
     title = Res.string.number_to_words,
-    description = Res.string.spells_numbers_and_money_amounts_in_english,
+    description = Res.string.number_to_words_description,
     icon = Icons.Filled.Spellcheck,
     keywords = listOf("words", "spell", "amount", "invoice", "прописью", "сумма", "рубли", "копейки", "счёт"),
 ) { NumberToWordsScreen() }
@@ -65,7 +65,7 @@ private fun NumberToWordsScreen() {
         },
     )
     if (input.isNotBlank() && amount == null) {
-        ErrorText(Res.string.enter_a_number_with_up_to_18_integer_digits.str())
+        ErrorText(Res.string.words_enter_a_number.str())
     }
     if (amount != null) {
         ResultCard {
@@ -74,7 +74,7 @@ private fun NumberToWordsScreen() {
                 val (whole, cents) = NumberWords.roundedCents(amount)
                 val symbol = if (currency == WordsCurrency.RUB) "₽" else "\$"
                 val sign = if (amount.negative && (whole != 0L || cents != 0)) "-" else ""
-                KeyValueRow(Res.string.amount_2.str(), "$sign${whole.fmtGrouped()}.${cents.toString().padStart(2, '0')} $symbol")
+                KeyValueRow(Res.string.money_amount.str(), "$sign${whole.fmtGrouped()}.${cents.toString().padStart(2, '0')} $symbol")
             }
         }
     }

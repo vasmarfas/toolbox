@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.PortProbe
 import com.vasmarfas.card.core.str
@@ -45,7 +44,7 @@ val portScannerTool = Tool(
     id = "port-scanner",
     category = ToolCategory.NETWORK,
     title = Res.string.port_scanner,
-    description = Res.string.tcp_connect_scan_of_a_host_a_list_ranges_or,
+    description = Res.string.port_scanner_description,
     icon = Icons.Filled.Radar,
     keywords = listOf("nmap", "open ports", "tcp", "scan", "открытые порты", "сканирование"),
     platforms = PlatformKind.native,
@@ -108,7 +107,7 @@ private fun PortScannerScreen() {
         }
     }
 
-    ToolInputField(value = host, onValueChange = { host = it }, label = NetStrings.host.str(), keyboardType = KeyboardType.Uri, monospace = true)
+    ToolInputField(value = host, onValueChange = { host = it }, label = Res.string.host_or_ip_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
     ToolInputField(value = spec, onValueChange = { spec = it }, label = Res.string.ports_22_80_443_or_1_1024.str(), monospace = true)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         TextButton(onClick = { spec = WellKnownPorts.topTcp.joinToString(",") }) { Text(Res.string.top_ports.str()) }
@@ -116,19 +115,19 @@ private fun PortScannerScreen() {
         TextButton(onClick = { spec = "1-65535" }) { Text(Res.string.all.str()) }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        NumberField(value = timeout, onValueChange = { timeout = it }, label = NetStrings.timeout.str(), modifier = Modifier.weight(1f))
+        NumberField(value = timeout, onValueChange = { timeout = it }, label = Res.string.timeout_ms.str(), modifier = Modifier.weight(1f))
         NumberField(value = concurrency, onValueChange = { concurrency = it }, label = Res.string.parallel.str(), modifier = Modifier.weight(1f))
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = NetStrings.start.str(), onClick = ::start, enabled = !running)
-        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(NetStrings.stop.str()) }
+        ActionButton(text = Res.string.start.str(), onClick = ::start, enabled = !running)
+        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(Res.string.stop_short.str()) }
     }
     error?.let { ErrorText(it) }
-    if (running) LoadingRow("${NetStrings.scanning.str()} $done / $total")
+    if (running) LoadingRow("${Res.string.scanning.str()} $done / $total")
     if (results.isNotEmpty() || (!running && total > 0)) {
-        ResultCard(title = "${results.size} " + NetStrings.open.str() + " · $done / $total") {
+        ResultCard(title = "${results.size} " + Res.string.net_open.str() + " · $done / $total") {
             results.sortedBy { it.port }.forEach { p ->
-                KeyValueRow("${p.port}/tcp", "${WellKnownPorts.service(p.port) ?: "?"} · ${p.timeMs} ms", mono = false, copyable = false)
+                KeyValueRow("${p.port}/tcp", "${WellKnownPorts.service(p.port) ?: "?"} · ${p.timeMs} ${Res.string.unit_ms.str()}", mono = false, copyable = false)
             }
             if (results.isEmpty() && !running) Text(Res.string.no_open_ports_found.str(), style = MaterialTheme.typography.bodyMedium)
         }

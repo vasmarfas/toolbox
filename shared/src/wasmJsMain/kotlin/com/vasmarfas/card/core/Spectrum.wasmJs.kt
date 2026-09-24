@@ -34,7 +34,14 @@ private fun jsSpectrumRate(): Int = js("Math.round(globalThis.__spectrum.ctx.sam
 
 private fun jsSpectrumBins(): Int = js("globalThis.__spectrum.analyser.frequencyBinCount")
 
-private fun jsSpectrumSample(): Unit = js("{ var a = globalThis.__spectrum; a.analyser.getFloatFrequencyData(a.data); }")
+// Silent bins come back as -Infinity, which the peak interpolation cannot take.
+private fun jsSpectrumSample(): Unit = js(
+    """{
+        var a = globalThis.__spectrum;
+        a.analyser.getFloatFrequencyData(a.data);
+        for (var i = 0; i < a.data.length; i++) if (!(a.data[i] > -160)) a.data[i] = -160;
+    }"""
+)
 
 private fun jsSpectrumAt(index: Int): Double = js("globalThis.__spectrum.data[index]")
 

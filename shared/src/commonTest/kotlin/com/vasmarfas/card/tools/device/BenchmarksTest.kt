@@ -6,10 +6,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * A benchmark that computes the wrong thing still produces a number, so every kernel is checked
- * against a property that holds independently of how fast the machine is.
- */
+// a benchmark that computes the wrong thing still gives a number, so every kernel is checked against
+// a property that holds however fast the machine is
 class BenchmarksTest {
     @Test
     fun linpackSolvesTheSystemItGenerates() {

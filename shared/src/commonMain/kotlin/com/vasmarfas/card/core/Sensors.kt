@@ -49,6 +49,11 @@ expect fun screenDpi(): Float?
 
 expect fun screenPixels(): Pair<Int, Int>?
 
+expect fun appleScreen(): AppleScreen?
+
+// only the desktop can read EDID
+expect suspend fun displayPanels(): List<DisplayPanel>
+
 expect fun microphoneSupported(): Boolean
 
 expect fun microphoneLevelFlow(): Flow<Double>

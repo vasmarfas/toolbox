@@ -39,7 +39,7 @@ object GithubStars {
         return url.substringAfter("github.com/").trim('/').split('/').take(2).takeIf { it.size == 2 }?.joinToString("/")
     }
 
-    fun starsOf(project: Project): Int? = repoOf(project)?.let { _stars.value[it] } ?: project.stars
+    fun starsOf(project: Project, live: Map<String, Int>): Int? = repoOf(project)?.let { live[it] } ?: project.stars
 
     suspend fun refresh(projects: List<Project>, force: Boolean = false) {
         if (!force && cacheAge() < MAX_AGE_MS && _stars.value.isNotEmpty()) return

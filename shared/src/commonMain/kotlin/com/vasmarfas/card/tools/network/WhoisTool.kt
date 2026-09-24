@@ -19,11 +19,7 @@ import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.NetCapabilities
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.core.whoisQuery
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.domain_ip_address_network_or_as_number
-import com.vasmarfas.card.resources.registration_data_for_domains_ip_blocks_and
-import com.vasmarfas.card.resources.whois_port_43
-import com.vasmarfas.card.resources.whois_rdap
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
@@ -44,12 +40,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.StringResource
 
 val whoisTool = Tool(
     id = "whois-rdap",
     category = ToolCategory.NETWORK,
     title = Res.string.whois_rdap,
-    description = Res.string.registration_data_for_domains_ip_blocks_and,
+    description = Res.string.whois_rdap_description,
     icon = Icons.Filled.Badge,
     keywords = listOf("registrar", "domain", "asn", "rdap", "регистратор", "домен", "владелец"),
 ) { WhoisScreen() }
@@ -57,6 +54,29 @@ val whoisTool = Tool(
 private data class WhoisFacts(val rows: List<Pair<String, String>>, val raw: String)
 
 private val prettyJson = Json { prettyPrint = true }
+
+private val rdapLabels: Map<String, StringResource> = mapOf(
+    "Domain" to Res.string.domain,
+    "Unicode name" to Res.string.rdap_unicode_name,
+    "Handle" to Res.string.rdap_handle,
+    "Name" to Res.string.name,
+    "Type" to Res.string.type,
+    "Range" to Res.string.range,
+    "Country" to Res.string.country,
+    "Status" to Res.string.status,
+    "Name servers" to Res.string.rdap_name_servers,
+    "Whois server" to Res.string.rdap_whois_server,
+    "Registration" to Res.string.rdap_registration,
+    "Expiration" to Res.string.rdap_expiration,
+    "Last changed" to Res.string.rdap_last_changed,
+    "Last update of rdap database" to Res.string.rdap_last_update,
+    "Transfer" to Res.string.rdap_transfer,
+    "Registrar" to Res.string.rdap_registrar,
+    "Registrant" to Res.string.rdap_registrant,
+    "Abuse" to Res.string.rdap_abuse,
+    "Technical" to Res.string.rdap_technical,
+    "Administrative" to Res.string.rdap_administrative,
+)
 
 private object Rdap {
     fun url(query: String): String {
@@ -172,7 +192,7 @@ private fun WhoisScreen() {
     ToolInputField(
         value = query,
         onValueChange = { query = it },
-        label = Res.string.domain_ip_address_network_or_as_number.str(),
+        label = Res.string.whois_domain_ip_address_network.str(),
         placeholder = "example.com · 8.8.8.8 · AS15169",
         keyboardType = KeyboardType.Uri,
         monospace = true,
@@ -187,9 +207,9 @@ private fun WhoisScreen() {
     error?.let { ErrorText(it) }
     rdap?.let { facts ->
         ResultCard(title = "RDAP") {
-            facts.rows.forEach { (k, v) -> KeyValueRow(k, v, mono = false) }
+            facts.rows.forEach { (k, v) -> KeyValueRow(rdapLabels[k]?.str() ?: k, v, mono = false) }
         }
-        ResultCard(title = NetStrings.raw.str()) { MonoText(facts.raw) }
+        ResultCard(title = Res.string.raw_response.str()) { MonoText(facts.raw) }
     }
     whois?.let { ResultCard(title = "Whois") { MonoText(it) } }
 }

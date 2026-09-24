@@ -19,12 +19,7 @@ import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.SensorType
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.bubble_level
-import com.vasmarfas.card.resources.pitch_y
-import com.vasmarfas.card.resources.roll_x
-import com.vasmarfas.card.resources.total_tilt
-import com.vasmarfas.card.resources.two_axis_spirit_level_and_inclinometer_from
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -39,7 +34,7 @@ val levelTool = Tool(
     id = "bubble-level",
     category = ToolCategory.MEASURE,
     title = Res.string.bubble_level,
-    description = Res.string.two_axis_spirit_level_and_inclinometer_from,
+    description = Res.string.bubble_level_description,
     icon = Icons.Filled.Architecture,
     keywords = listOf("spirit level", "inclinometer", "angle", "tilt", "уклон", "наклон", "ватерпас"),
     platforms = PlatformKind.mobileAndWeb,

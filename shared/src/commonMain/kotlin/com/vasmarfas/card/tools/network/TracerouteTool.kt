@@ -16,7 +16,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.TracerouteHop
 import com.vasmarfas.card.core.fmt
@@ -24,12 +23,7 @@ import com.vasmarfas.card.core.icmpPing
 import com.vasmarfas.card.core.resolveHost
 import com.vasmarfas.card.core.reverseLookup
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.cannot_resolve_host
-import com.vasmarfas.card.resources.path_to_a_host_hop_by_hop_with_reply_times_a
-import com.vasmarfas.card.resources.resolve_hostnames
-import com.vasmarfas.card.resources.traceroute
-import com.vasmarfas.card.resources.tracing
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
@@ -45,7 +39,7 @@ val tracerouteTool = Tool(
     id = "traceroute",
     category = ToolCategory.NETWORK,
     title = Res.string.traceroute,
-    description = Res.string.path_to_a_host_hop_by_hop_with_reply_times_a,
+    description = Res.string.traceroute_description,
     icon = Icons.Filled.Route,
     keywords = listOf("tracert", "mtr", "hops", "path", "ttl", "маршрут", "узлы"),
     platforms = PlatformKind.native,
@@ -90,25 +84,25 @@ private fun TracerouteScreen() {
         }
     }
 
-    ToolInputField(value = host, onValueChange = { host = it }, label = NetStrings.host.str(), keyboardType = KeyboardType.Uri, monospace = true)
+    ToolInputField(value = host, onValueChange = { host = it }, label = Res.string.host_or_ip_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
     SwitchRow(Res.string.resolve_hostnames.str(), resolveNames, { resolveNames = it })
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = NetStrings.start.str(), onClick = ::start, enabled = !running)
-        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(NetStrings.stop.str()) }
+        ActionButton(text = Res.string.start.str(), onClick = ::start, enabled = !running)
+        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(Res.string.stop_short.str()) }
     }
     error?.let { ErrorText(it) }
     if (running) LoadingRow(Res.string.tracing.str())
     if (hops.isNotEmpty()) {
         ResultCard(title = "→ $target") {
             TableBlock {
-                TableRow(listOf("#", "Address", "Name", "Time"), header = true, weights = listOf(0.4f, 1.6f, 2.4f, 0.9f))
+                TableRow(listOf("#", Res.string.address.str(), Res.string.name.str(), Res.string.time.str()), header = true, weights = listOf(0.4f, 1.6f, 2.4f, 0.9f))
                 hops.forEach { hop ->
                     TableRow(
                         listOf(
                             hop.hop.toString(),
                             hop.address ?: "*",
                             hop.hostname ?: "",
-                            hop.timeMs?.let { "${it.fmt(1)} ms" } ?: "*",
+                            hop.timeMs?.let { "${it.fmt(1)} ${Res.string.unit_ms.str()}" } ?: "*",
                         ),
                         weights = listOf(0.4f, 1.6f, 2.4f, 0.9f),
                     )

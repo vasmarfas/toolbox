@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
@@ -62,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,6 +80,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vasmarfas.card.core.Analytics
+import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.openUrl
 import com.vasmarfas.card.core.str
@@ -101,10 +106,23 @@ fun ContentColumn(
     verticalSpacing: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val scroll = rememberScrollState()
+    if (scrollable) {
+        LaunchedEffect(scroll) {
+            var reported = 0
+            snapshotFlow { if (scroll.maxValue in 1..<Int.MAX_VALUE) scroll.value * 100 / scroll.maxValue else 0 }
+                .collect { percent ->
+                    Analytics.depthsReached(percent, reported).forEach { depth ->
+                        reported = depth
+                        Analytics.scrollDepth(depth)
+                    }
+                }
+        }
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+            .then(if (scrollable) Modifier.verticalScroll(scroll) else Modifier),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(
@@ -144,7 +162,13 @@ fun SelectableText(text: String, modifier: Modifier = Modifier, style: TextStyle
 fun rememberCopy(): (String) -> Unit {
     @Suppress("DEPRECATION")
     val clipboard = LocalClipboardManager.current
-    return remember(clipboard) { { text: String -> clipboard.setText(AnnotatedString(text)) } }
+    val tool = LocalToolId.current
+    return remember(clipboard, tool) {
+        { text: String ->
+            clipboard.setText(AnnotatedString(text))
+            tool?.let { Analytics.log(AnalyticsEvent.RESULT_COPY, mapOf(AnalyticsParam.TOOL to it)) }
+        }
+    }
 }
 
 @Composable
@@ -179,12 +203,14 @@ fun ToolInputField(
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
     minLines: Int = 1,
+    maxLines: Int = Int.MAX_VALUE,
     placeholder: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     isError: Boolean = false,
     supportingText: String? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     monospace: Boolean = false,
+    textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
 ) {
     OutlinedTextField(
         value = value,
@@ -193,12 +219,13 @@ fun ToolInputField(
         modifier = modifier.fillMaxWidth(),
         singleLine = singleLine,
         minLines = minLines,
+        maxLines = if (singleLine) 1 else maxLines,
         placeholder = placeholder?.let { { Text(it) } },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         trailingIcon = trailingIcon,
-        textStyle = if (monospace) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
+        textStyle = if (monospace) textStyle.copy(fontFamily = FontFamily.Monospace) else textStyle,
     )
 }
 
@@ -248,7 +275,36 @@ fun ResultCard(
 }
 
 @Composable
-fun KeyValueRow(label: String, value: String, mono: Boolean = true, copyable: Boolean = true) {
+fun AnswerCard(value: String, caption: String, modifier: Modifier = Modifier, copyValue: String = value) =
+    AnswerCard(AnnotatedString(value), caption, modifier, copyValue)
+
+@Composable
+fun AnswerCard(value: AnnotatedString, caption: String, modifier: Modifier = Modifier, copyValue: String = value.text) {
+    val colors = MaterialTheme.colorScheme
+    Card(modifier = modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = colors.primaryContainer, contentColor = colors.onPrimaryContainer)) {
+        Row(Modifier.padding(start = 20.dp, top = 14.dp, bottom = 14.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                SelectionContainer {
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.displaySmall,
+                        maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = MaterialTheme.typography.displaySmall.fontSize),
+                    )
+                }
+                Text(caption, style = MaterialTheme.typography.bodyMedium)
+            }
+            CopyIconButton(copyValue)
+        }
+    }
+}
+
+@Composable
+fun KeyValueRow(label: String, value: String, mono: Boolean = true, copyable: Boolean = true, copyValue: String = value) =
+    KeyValueRow(label, AnnotatedString(value), mono, copyable, copyValue)
+
+@Composable
+fun KeyValueRow(label: String, value: AnnotatedString, mono: Boolean = true, copyable: Boolean = true, copyValue: String = value.text) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -263,7 +319,7 @@ fun KeyValueRow(label: String, value: String, mono: Boolean = true, copyable: Bo
             }
         }
         if (copyable && value.isNotEmpty()) {
-            CopyIconButton(value)
+            CopyIconButton(copyValue)
         }
     }
 }
@@ -314,6 +370,8 @@ fun EmptyState(
 
 @Composable
 fun ErrorText(text: String, modifier: Modifier = Modifier) {
+    val tool = LocalToolId.current
+    if (tool != null) LaunchedEffect(text) { Analytics.log(AnalyticsEvent.TOOL_ERROR, mapOf(AnalyticsParam.TOOL to tool)) }
     Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium, modifier = modifier)
 }
 
@@ -344,11 +402,10 @@ fun <T> SegmentedChoice(
                 selected = option == selected,
                 onClick = { onSelect(option) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                // The default check mark costs every label 24 dp and says what the filled container
-                // already says; at a 1.3 font scale it was enough to clip "Системная".
+                // The filled container already marks the selection, the check mark would only take 24 dp from the label.
                 icon = {},
                 label = {
-                    Text(label(option), autoSize = labelSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(label(option), autoSize = labelSize, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                 },
             )
         }
@@ -422,12 +479,20 @@ fun ActionButton(
     enabled: Boolean = true,
     icon: ImageVector? = null,
 ) {
-    Button(onClick = onClick, enabled = enabled, modifier = modifier.pointerHoverIcon(PointerIcon.Hand)) {
+    val tool = LocalToolId.current
+    Button(
+        onClick = {
+            tool?.let { Analytics.log(AnalyticsEvent.TOOL_ACTION, mapOf(AnalyticsParam.TOOL to it)) }
+            onClick()
+        },
+        enabled = enabled,
+        modifier = modifier.pointerHoverIcon(PointerIcon.Hand),
+    ) {
         if (icon != null) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(8.dp))
         }
-        Text(text)
+        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -440,34 +505,41 @@ fun linkIcon(type: String): ImageVector = when (type) {
     "appstore" -> Icons.Filled.PhoneIphone
     "rustore", "msstore" -> Icons.Filled.Storefront
     "support" -> Icons.Filled.Favorite
+    "channel" -> Icons.Filled.Campaign
     "phone" -> Icons.Filled.Call
     "resume" -> Icons.Filled.Description
     "website" -> Icons.Filled.Language
     else -> Icons.AutoMirrored.Filled.OpenInNew
 }
 
+@Composable
 fun linkDefaultLabel(type: String): String = when (type) {
-    "telegram" -> "Telegram"
-    "github" -> "GitHub"
-    "habr" -> "Habr"
-    "email" -> "Email"
-    "googleplay" -> "Google Play"
-    "appstore" -> "App Store"
-    "rustore" -> "RuStore"
-    "msstore" -> "Microsoft Store"
-    "support" -> "Support"
-    "website" -> "Website"
+    "telegram" -> Res.string.link_telegram.str()
+    "github" -> Res.string.link_github.str()
+    "habr" -> Res.string.link_habr.str()
+    "email" -> Res.string.link_email.str()
+    "googleplay" -> Res.string.link_googleplay.str()
+    "appstore" -> Res.string.link_appstore.str()
+    "rustore" -> Res.string.link_rustore.str()
+    "msstore" -> Res.string.link_msstore.str()
+    "support" -> Res.string.link_support.str()
+    "website" -> Res.string.link_website.str()
+    "channel" -> Res.string.link_channel.str()
     else -> type
 }
 
+// source is where on the page the link sits, for analytics: resources, project and so on
 @Composable
-fun LinkChip(link: Link, modifier: Modifier = Modifier) {
+fun LinkChip(link: Link, modifier: Modifier = Modifier, source: String? = null) {
     if (link.type == "email") {
-        EmailChip(link.url.removePrefix("mailto:"), modifier)
+        EmailChip(link.url.removePrefix("mailto:"), modifier, source)
         return
     }
     AssistChip(
-        onClick = { openUrl(link.url) },
+        onClick = {
+            Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, source))
+            openUrl(link.url)
+        },
         label = { Text(link.label?.str() ?: linkDefaultLabel(link.type)) },
         leadingIcon = {
             Icon(linkIcon(link.type), contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize))
@@ -476,17 +548,15 @@ fun LinkChip(link: Link, modifier: Modifier = Modifier) {
     )
 }
 
-/**
- * Copying beats a `mailto:` link here: plenty of visitors have no mail client wired up, and the
- * canvas gives them nothing to right-click on, so the address itself is the label.
- */
+// the address is copied and is the label itself: plenty of visitors have no mail client set up, and
+// the canvas gives them nothing to right-click
 @Composable
-private fun EmailChip(address: String, modifier: Modifier = Modifier) {
+private fun EmailChip(address: String, modifier: Modifier = Modifier, source: String? = null) {
     val copy = rememberCopy()
     var copied by remember { mutableStateOf(false) }
     LaunchedEffect(copied) {
         if (copied) {
-            delay(1500)
+            delay(1500.milliseconds)
             copied = false
         }
     }
@@ -494,6 +564,7 @@ private fun EmailChip(address: String, modifier: Modifier = Modifier) {
         onClick = {
             copy(address)
             copied = true
+            Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams("email", source))
         },
         label = { Text(if (copied) Res.string.copied.str() else address) },
         leadingIcon = {
@@ -509,15 +580,18 @@ private fun EmailChip(address: String, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LinkChips(links: List<Link>, modifier: Modifier = Modifier) {
+fun LinkChips(links: List<Link>, modifier: Modifier = Modifier, source: String? = null) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        links.filter { it.active }.forEach { LinkChip(it) }
+        links.filter { it.active }.forEach { LinkChip(it, source = source) }
     }
 }
+
+fun linkParams(type: String, source: String?): Map<String, String> =
+    source?.let { mapOf(AnalyticsParam.LINK to type, AnalyticsParam.SOURCE to it) } ?: mapOf(AnalyticsParam.LINK to type)
 
 @Composable
 fun OutlineLabel(text: String, modifier: Modifier = Modifier) {

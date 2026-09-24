@@ -48,7 +48,7 @@ val countdownTimerTool = Tool(
     id = "countdown-timer",
     category = ToolCategory.TIME,
     title = Res.string.countdown_timer,
-    description = Res.string.countdown_with_presets_and_a_sound_at_the_en,
+    description = Res.string.countdown_timer_description,
     icon = Icons.Filled.HourglassBottom,
     keywords = listOf("timer", "countdown", "pomodoro", "alarm", "таймер", "отсчёт", "помодоро", "будильник"),
     expandable = true,
@@ -141,9 +141,9 @@ private fun CountdownTimerScreen() {
     )
     if (mode == TimerMode.TIMER) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            NumberField(hText, { hText = it; started = false }, Res.string.hours_2.str(), Modifier.weight(1f), isError = h == null)
-            NumberField(mText, { mText = it; started = false }, Res.string.minutes_2.str(), Modifier.weight(1f), isError = m == null)
-            NumberField(sText, { sText = it; started = false }, Res.string.seconds_2.str(), Modifier.weight(1f), isError = s == null)
+            NumberField(hText, { hText = it; started = false }, Res.string.hours_field.str(), Modifier.weight(1f), isError = h == null)
+            NumberField(mText, { mText = it; started = false }, Res.string.minutes_field.str(), Modifier.weight(1f), isError = m == null)
+            NumberField(sText, { sText = it; started = false }, Res.string.seconds_field.str(), Modifier.weight(1f), isError = s == null)
         }
         ChoiceChips(
             options = listOf(1, 5, 10, 25),
@@ -155,7 +155,7 @@ private fun CountdownTimerScreen() {
                 started = false
                 running = false
             },
-            label = { "$it ${Res.string.min.str()}" },
+            label = { "$it ${Res.string.unit_min.str()}" },
         )
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -163,7 +163,7 @@ private fun CountdownTimerScreen() {
             NumberField(breakText, { breakText = it; started = false }, Res.string.break_min.str(), Modifier.weight(1f), isError = breakMs <= 0)
         }
     }
-    if (!valid) ErrorText(Res.string.enter_a_duration_greater_than_zero.str())
+    if (!valid) ErrorText(Res.string.timer_enter_a_duration_greater.str())
 
     ResultCard {
         if (mode == TimerMode.POMODORO) {

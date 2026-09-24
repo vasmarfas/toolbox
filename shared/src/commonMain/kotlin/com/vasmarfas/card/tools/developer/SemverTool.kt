@@ -29,7 +29,7 @@ val semverTool = Tool(
     id = "semver",
     category = ToolCategory.DEVELOPER,
     title = Res.string.semantic_versioning,
-    description = Res.string.parse_and_compare_versions_with_pre_release,
+    description = Res.string.semver_description,
     icon = Icons.AutoMirrored.Filled.CompareArrows,
     keywords = listOf("semver", "version", "compare", "range", "npm", "caret", "tilde", "версия", "сравнение", "диапазон"),
 ) { SemverScreen() }
@@ -50,7 +50,7 @@ private fun SemverScreen() {
         monospace = true,
     )
     if (a == null) {
-        if (left.isNotBlank()) ErrorText(Res.string.not_a_semantic_version_expected_major_minor.str())
+        if (left.isNotBlank()) ErrorText(Res.string.semver_not_a_semantic_version.str())
         return
     }
     ResultCard {
@@ -95,7 +95,7 @@ private fun SemverScreen() {
                 KeyValueRow(Res.string.result.str(), "$a $sign $b")
                 KeyValueRow(
                     Res.string.newer.str(),
-                    if (cmp == 0) Res.string.versions_are_equal_build_metadata_ignored.str() else (if (cmp > 0) a else b).toString(),
+                    if (cmp == 0) Res.string.semver_versions_are_equal_build.str() else (if (cmp > 0) a else b).toString(),
                     mono = false,
                     copyable = false,
                 )

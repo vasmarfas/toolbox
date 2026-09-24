@@ -14,11 +14,11 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
-import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolInputField
 import org.jetbrains.compose.resources.StringResource
 
@@ -26,7 +26,7 @@ val subnetSplitterTool = Tool(
     id = "subnet-splitter",
     category = ToolCategory.NETWORK,
     title = Res.string.subnet_splitter_and_vlsm,
-    description = Res.string.split_a_network_into_equal_subnets_allocate,
+    description = Res.string.subnet_splitter_description,
     icon = Icons.AutoMirrored.Filled.CallSplit,
     keywords = listOf("vlsm", "cidr", "supernet", "aggregate", "range", "разбить", "суммаризация"),
 ) { SubnetSplitterScreen() }
@@ -104,7 +104,7 @@ private fun SubnetSplitterScreen() {
     var rangeStart by rememberSaveable { mutableStateOf("192.168.1.10") }
     var rangeEnd by rememberSaveable { mutableStateOf("192.168.1.250") }
 
-    SegmentedChoice(options = SplitMode.entries, selected = mode, onSelect = { mode = it }, label = { it.title.str() })
+    ChoiceChips(options = SplitMode.entries, selected = mode, onSelect = { mode = it }, label = { it.title.str() })
     when (mode) {
         SplitMode.EQUAL -> {
             ToolInputField(value = network, onValueChange = { network = it }, label = Res.string.network.str(), keyboardType = KeyboardType.Uri, monospace = true)
@@ -117,9 +117,9 @@ private fun SubnetSplitterScreen() {
                 if (parts.isEmpty()) ErrorText(Res.string.too_many_subnets_for_this_prefix.str())
                 else ResultCard(title = "${parts.size} × /${parts.first().prefix} · ${parts.first().usableHosts.fmtGrouped()} " + Res.string.hosts_each.str()) {
                     SimpleTable(
-                        header = listOf("#", "Network", "Hosts", "Broadcast"),
-                        rows = parts.mapIndexed { i, s -> listOf((i + 1).toString(), "${Ipv4.format(s.network)}/${s.prefix}", "${Ipv4.format(s.firstHost)} – ${Ipv4.format(s.lastHost)}", Ipv4.format(s.broadcast)) },
-                        weights = listOf(0.4f, 1.5f, 2.6f, 1.4f),
+                        header = listOf(Res.string.network.str(), Res.string.host_addresses.str(), Res.string.broadcast.str()),
+                        rows = parts.map { s -> listOf("${Ipv4.format(s.network)}/${s.prefix}", "${Ipv4.format(s.firstHost)} – ${Ipv4.format(s.lastHost)}", Ipv4.format(s.broadcast)) },
+                        weights = listOf(1.5f, 2.6f, 1.4f),
                     )
                 }
             }
@@ -133,10 +133,10 @@ private fun SubnetSplitterScreen() {
             if (net == null || needs.isEmpty()) ErrorText(Res.string.enter_a_network_and_host_counts.str())
             else {
                 val plan = SubnetMath.vlsm(net, needs)
-                if (plan == null) ErrorText(Res.string.the_network_is_too_small_for_these_hosts.str())
+                if (plan == null) ErrorText(Res.string.subnet_network_is_too_small.str())
                 else ResultCard {
                     SimpleTable(
-                        header = listOf("Need", "Network", "Usable", "Range"),
+                        header = listOf(Res.string.hosts_needed.str(), Res.string.network.str(), Res.string.hosts_usable.str(), Res.string.range.str()),
                         rows = plan.map { (need, s) -> listOf(need.toString(), "${Ipv4.format(s.network)}/${s.prefix}", s.usableHosts.toString(), "${Ipv4.format(s.firstHost)} – ${Ipv4.format(s.lastHost)}") },
                         weights = listOf(0.6f, 1.6f, 0.8f, 2.6f),
                     )
@@ -166,7 +166,7 @@ private fun SubnetSplitterScreen() {
             if (s == null || e == null || e < s) ErrorText(Res.string.enter_a_valid_range.str())
             else {
                 val cidrs = SubnetMath.rangeToCidrs(s, e)
-                ResultCard(title = "${(e - s + 1).fmtGrouped()} " + Res.string.addresses_2.str() + " · ${cidrs.size} CIDR") {
+                ResultCard(title = "${(e - s + 1).fmtGrouped()} " + Res.string.subnet_addresses.str() + " · ${cidrs.size} CIDR") {
                     cidrs.forEach { c -> KeyValueRow("${Ipv4.format(c.network)}/${c.prefix}", "${Ipv4.format(c.network)} – ${Ipv4.format(c.broadcast)}") }
                 }
             }

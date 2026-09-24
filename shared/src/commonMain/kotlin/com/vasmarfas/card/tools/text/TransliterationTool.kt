@@ -23,7 +23,7 @@ val transliterationTool = Tool(
     id = "transliteration",
     category = ToolCategory.TEXT,
     title = Res.string.transliteration,
-    description = Res.string.russian_latin_by_the_passport_icao_gost_7_79,
+    description = Res.string.transliteration_description,
     icon = Icons.Filled.Translate,
     keywords = listOf("translit", "transliteration", "latin", "cyrillic", "slug", "passport", "gost", "транслит", "латиница", "кириллица", "паспорт", "гост"),
 ) { TransliterationScreen() }

@@ -25,7 +25,7 @@ val subnetCalculatorTool = Tool(
     id = "subnet-calculator",
     category = ToolCategory.NETWORK,
     title = Res.string.subnet_calculator,
-    description = Res.string.ipv4_and_ipv6_network_broadcast_host_range_m,
+    description = Res.string.subnet_calculator_description,
     icon = Icons.Filled.AccountTree,
     keywords = listOf("cidr", "ip", "mask", "netmask", "vlsm", "маска", "подсеть", "ipv6"),
 ) { SubnetCalculatorScreen() }
@@ -84,7 +84,7 @@ private fun Ipv4Result(s: Ipv4Subnet) {
         KeyValueRow(Res.string.total_addresses.str(), s.totalAddresses.fmtGrouped())
     }
     ResultCard(Res.string.address.str()) {
-        KeyValueRow(Res.string.decimal_3.str(), s.address.toString())
+        KeyValueRow(Res.string.decimal_format.str(), s.address.toString())
         KeyValueRow(Res.string.hex.str(), Ipv4.hex(s.address))
         KeyValueRow(Res.string.binary.str(), Ipv4.binary(s.address))
         KeyValueRow(Res.string.mask_binary.str(), Ipv4.binary(s.mask))

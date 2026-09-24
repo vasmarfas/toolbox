@@ -18,8 +18,8 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.calculators.Sex
 import com.vasmarfas.card.tools.network.SimpleTable
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -34,7 +34,7 @@ val calorieBurnTool = Tool(
     id = "calorie-burn",
     category = ToolCategory.FITNESS,
     title = Res.string.calorie_burn,
-    description = Res.string.kilocalories_from_a_met_table_of_about_fifty,
+    description = Res.string.calorie_burn_description,
     icon = Icons.Filled.LocalFireDepartment,
     keywords = listOf("calories", "met", "burn", "keytel", "heart rate", "калории", "расход", "мет", "пульс", "тренировка"),
 ) { CalorieBurnScreen() }
@@ -78,7 +78,7 @@ private fun CalorieBurnScreen() {
             onValueChange = { weightText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = weightText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -86,7 +86,7 @@ private fun CalorieBurnScreen() {
             onValueChange = { minutesText = it },
             label = Res.string.duration.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.min.str(),
+            suffix = Res.string.unit_min.str(),
             isError = minutesText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -94,14 +94,14 @@ private fun CalorieBurnScreen() {
     val weight = weightText.toDoubleLenient()
     val minutes = minutesText.toDoubleLenient()
     if (weight == null || weight <= 0 || minutes == null || minutes <= 0) {
-        ErrorText(Res.string.weight_and_duration_must_be_greater_than_zer.str())
+        ErrorText(Res.string.burn_weight_and_duration.str())
         return
     }
     val kcal = CalorieBurn.met(activity.met, weight, minutes)
+    AnswerCard("${kcal.fmt(0, grouping = true)} ${Res.string.unit_kcal.str()}", Res.string.burned.str(), copyValue = kcal.fmt(0))
     ResultCard(Res.string.by_met.str()) {
-        KeyValueRow(Res.string.burned.str(), "${kcal.fmt(0, grouping = true)} ${Res.string.kcal.str()}")
-        KeyValueRow(Res.string.per_minute.str(), "${(kcal / minutes).fmt(1)} ${Res.string.kcal.str()}")
-        KeyValueRow(Res.string.per_hour.str(), "${(kcal / minutes * 60).fmt(0)} ${Res.string.kcal.str()}")
+        KeyValueRow(Res.string.per_minute.str(), "${(kcal / minutes).fmt(1)} ${Res.string.unit_kcal.str()}")
+        KeyValueRow(Res.string.per_hour.str(), "${(kcal / minutes * 60).fmt(0)} ${Res.string.unit_kcal.str()}")
         KeyValueRow("MET", activity.met.fmt(1))
     }
     ResultCard(Res.string.same_session_other_activities.str()) {
@@ -109,7 +109,7 @@ private fun CalorieBurnScreen() {
             header = listOf(
                 Res.string.activity.str(),
                 "MET",
-                Res.string.kcal.str(),
+                Res.string.unit_kcal.str(),
             ),
             rows = filtered.take(20).map {
                 listOf(it.title.str(), it.met.fmt(1), CalorieBurn.met(it.met, weight, minutes).fmt(0))
@@ -139,7 +139,7 @@ private fun CalorieBurnScreen() {
                     onValueChange = { hrText = it },
                     label = Res.string.average_hr.str(),
                     modifier = Modifier.weight(1f),
-                    suffix = "bpm",
+                    suffix = Res.string.unit_bpm.str(),
                     isError = hrText.toDoubleLenient().let { it == null || it < 60 || it > 220 },
                 )
                 NumberField(
@@ -161,8 +161,8 @@ private fun CalorieBurnScreen() {
     }
     val byHr = CalorieBurn.keytel(sex, hr, weight, age, minutes)
     ResultCard(Res.string.by_heart_rate.str()) {
-        KeyValueRow(Res.string.burned.str(), "${byHr.fmt(0, grouping = true)} ${Res.string.kcal.str()}")
-        KeyValueRow(Res.string.per_minute.str(), "${(byHr / minutes).fmt(1)} ${Res.string.kcal.str()}")
-        KeyValueRow(Res.string.difference_from_met.str(), "${(byHr - kcal).fmt(0)} ${Res.string.kcal.str()}")
+        KeyValueRow(Res.string.burned.str(), "${byHr.fmt(0, grouping = true)} ${Res.string.unit_kcal.str()}")
+        KeyValueRow(Res.string.per_minute.str(), "${(byHr / minutes).fmt(1)} ${Res.string.unit_kcal.str()}")
+        KeyValueRow(Res.string.difference_from_met.str(), "${(byHr - kcal).fmt(0)} ${Res.string.unit_kcal.str()}")
     }
 }

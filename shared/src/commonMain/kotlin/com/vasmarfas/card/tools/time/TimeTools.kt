@@ -5,10 +5,13 @@ import com.vasmarfas.card.tools.Tool
 val timeTools: List<Tool> = listOf(
     stopwatchTool,
     countdownTimerTool,
-    dateCalculatorTool,
-    unixTimestampTool,
+    chessClockTool,
     worldClockTool,
-    sunriseSunsetTool,
+    dateCalculatorTool,
+    ageCalculatorTool,
+    reminderCountdownTool,
     calendarTool,
+    sunriseSunsetTool,
     workingHoursTool,
+    unixTimestampTool,
 )

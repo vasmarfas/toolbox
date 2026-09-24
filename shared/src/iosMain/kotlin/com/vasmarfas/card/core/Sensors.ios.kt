@@ -1,12 +1,18 @@
 package com.vasmarfas.card.core
 
 import kotlin.math.PI
+import kotlin.math.log10
+import kotlin.math.sqrt
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureTorchModeOff
 import platform.AVFoundation.AVCaptureTorchModeOn
@@ -25,11 +31,15 @@ import platform.CoreMotion.CMMotionManager
 import platform.CoreMotion.CMPedometer
 import platform.Foundation.NSDate
 import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSProcessInfo
+import platform.Foundation.iOSAppOnMac
 import platform.Foundation.timeIntervalSince1970
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceBatteryState
 import platform.UIKit.UIScreen
 import platform.darwin.NSObject
+import platform.posix.uname
+import platform.posix.utsname
 
 private val motionManager = CMMotionManager()
 
@@ -111,12 +121,10 @@ actual fun sensorFlow(type: SensorType): Flow<SensorReading> = callbackFlow {
                     }
                 } else {
                     val attitude = motion.attitude
-                    if (attitude != null) {
-                        val azimuth = ((-attitude.yaw * 180.0 / PI) + 360.0) % 360.0
-                        val pitch = attitude.pitch * 180.0 / PI
-                        val roll = attitude.roll * 180.0 / PI
-                        trySend(SensorReading(floatArrayOf(azimuth.toFloat(), pitch.toFloat(), roll.toFloat()), currentEpochMillis()))
-                    }
+                    val azimuth = ((-attitude.yaw * 180.0 / PI) + 360.0) % 360.0
+                    val pitch = attitude.pitch * 180.0 / PI
+                    val roll = attitude.roll * 180.0 / PI
+                    trySend(SensorReading(floatArrayOf(azimuth.toFloat(), pitch.toFloat(), roll.toFloat()), currentEpochMillis()))
                 }
             }
             awaitClose { motionManager.stopDeviceMotionUpdates() }
@@ -234,15 +242,32 @@ actual fun displayExtras(): List<Pair<String, String>> {
     }
 }
 
-actual fun screenDpi(): Float? = (UIScreen.mainScreen.scale * 163.0).toFloat()
+actual fun screenDpi(): Float? = null
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun screenPixels(): Pair<Int, Int>? = CGRectGetWidth(UIScreen.mainScreen.nativeBounds).toInt() to
     CGRectGetHeight(UIScreen.mainScreen.nativeBounds).toInt()
 
-actual fun microphoneSupported(): Boolean = false
+// the simulator reports the Mac's architecture as the machine, the simulated model is in its environment
+@OptIn(ExperimentalForeignApi::class)
+actual fun appleScreen(): AppleScreen? {
+    val info = NSProcessInfo.processInfo
+    if (info.iOSAppOnMac) return null
+    val model = info.environment["SIMULATOR_MODEL_IDENTIFIER"] as? String ?: memScoped {
+        val system = alloc<utsname>()
+        if (uname(system.ptr) == 0) system.machine.toKString() else null
+    }
+    return AppleScreen(model, UIScreen.mainScreen.nativeScale)
+}
 
-actual fun microphoneLevelFlow(): Flow<Double> = emptyFlow()
+actual suspend fun displayPanels(): List<DisplayPanel> = emptyList()
+
+actual fun microphoneSupported(): Boolean = true
+
+actual fun microphoneLevelFlow(): Flow<Double> = microphoneChunks().map { chunk ->
+    val rms = sqrt(chunk.samples.sumOf { it.toDouble() * it } / chunk.samples.size.coerceAtLeast(1))
+    20 * log10(rms.coerceAtLeast(1e-9)) + 90
+}
 
 actual fun setScreenBrightness(value: Float?) {
     if (value != null) UIScreen.mainScreen.brightness = value.toDouble()

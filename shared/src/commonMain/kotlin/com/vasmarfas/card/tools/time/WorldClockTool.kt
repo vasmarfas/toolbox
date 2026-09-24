@@ -41,6 +41,7 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ChoiceChips
+import com.vasmarfas.card.ui.components.DateField
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -51,12 +52,13 @@ import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.number
+import org.jetbrains.compose.resources.StringResource
 
 val worldClockTool = Tool(
     id = "world-clock",
     category = ToolCategory.TIME,
     title = Res.string.world_clock,
-    description = Res.string.current_time_in_several_zones_with_offsets_a,
+    description = Res.string.world_clock_description,
     icon = Icons.Filled.Public,
     keywords = listOf("time zone", "utc", "clock", "converter", "часовой пояс", "часы", "время", "конвертер"),
 ) { WorldClockScreen() }
@@ -119,7 +121,7 @@ private fun WorldClockScreen() {
                 label = { it },
             )
         } else if (q.length >= 2) {
-            Text(Res.string.nothing_found_2.str(), style = MaterialTheme.typography.bodyMedium)
+            Text(Res.string.nothing_found.str(), style = MaterialTheme.typography.bodyMedium)
         }
     }
 
@@ -135,15 +137,7 @@ private fun WorldClockScreen() {
             text = { it },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            ToolInputField(
-                value = dateText,
-                onValueChange = { dateText = it },
-                label = Res.string.date.str(),
-                modifier = Modifier.weight(1f),
-                placeholder = "YYYY-MM-DD",
-                isError = parseDate(dateText) == null,
-                monospace = true,
-            )
+            DateField(dateText, { dateText = it }, Res.string.date.str(), Modifier.weight(1f), isError = parseDate(dateText) == null)
             ToolInputField(
                 value = timeText,
                 onValueChange = { timeText = it },
@@ -186,13 +180,13 @@ private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean,
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = WorldClock.shortName(zone) + if (isLocal) " · " + Res.string.local_2.str() else "",
+                    text = zoneName(zone) + if (isLocal) " · " + Res.string.world_clock_local.str() else "",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(zone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (offset != null) {
                     Text(
-                        text = "UTC${Timestamps.formatOffset(offset)} · ${WorldClock.formatRelative(offset - localOffset)} ${Res.string.h.str()}",
+                        text = "UTC${Timestamps.formatOffset(offset)} · ${WorldClock.formatRelative(offset - localOffset)} ${Res.string.unit_h.str()}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -215,7 +209,7 @@ private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean,
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
                     )
                     Text(
-                        text = "${t.date.dayOfWeek.shortTitle().str()}, ${t.date.day} ${monthNames[t.date.month.number - 1].str()}",
+                        text = "${t.date.dayOfWeek.shortTitle().str()}, ${t.date.day} ${monthNamesInDate[t.date.month.number - 1].str()}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -227,3 +221,50 @@ private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean,
         }
     }
 }
+
+private val zoneNames: Map<String, StringResource> = mapOf(
+    "Europe/Moscow" to Res.string.city_moscow,
+    "Europe/London" to Res.string.city_london,
+    "America/New_York" to Res.string.city_new_york,
+    "Asia/Tokyo" to Res.string.city_tokyo,
+    "Asia/Dubai" to Res.string.city_dubai,
+    "Asia/Shanghai" to Res.string.city_shanghai,
+    "Europe/Paris" to Res.string.city_paris,
+    "Europe/Berlin" to Res.string.city_berlin,
+    "Europe/Rome" to Res.string.city_rome,
+    "Europe/Madrid" to Res.string.city_madrid,
+    "Europe/Istanbul" to Res.string.city_istanbul,
+    "Europe/Minsk" to Res.string.city_minsk,
+    "Europe/Kyiv" to Res.string.city_kyiv,
+    "Europe/Kaliningrad" to Res.string.city_kaliningrad,
+    "Europe/Samara" to Res.string.city_samara,
+    "Europe/Simferopol" to Res.string.city_simferopol,
+    "Asia/Yekaterinburg" to Res.string.city_yekaterinburg,
+    "Asia/Omsk" to Res.string.city_omsk,
+    "Asia/Novosibirsk" to Res.string.city_novosibirsk,
+    "Asia/Krasnoyarsk" to Res.string.city_krasnoyarsk,
+    "Asia/Irkutsk" to Res.string.city_irkutsk,
+    "Asia/Yakutsk" to Res.string.city_yakutsk,
+    "Asia/Vladivostok" to Res.string.city_vladivostok,
+    "Asia/Magadan" to Res.string.city_magadan,
+    "Asia/Kamchatka" to Res.string.city_kamchatka,
+    "Asia/Almaty" to Res.string.city_almaty,
+    "Asia/Tashkent" to Res.string.city_tashkent,
+    "Asia/Tbilisi" to Res.string.city_tbilisi,
+    "Asia/Yerevan" to Res.string.city_yerevan,
+    "Asia/Baku" to Res.string.city_baku,
+    "Asia/Kolkata" to Res.string.city_kolkata,
+    "Asia/Bangkok" to Res.string.city_bangkok,
+    "Asia/Singapore" to Res.string.city_singapore,
+    "Asia/Hong_Kong" to Res.string.city_hong_kong,
+    "Asia/Seoul" to Res.string.city_seoul,
+    "America/Los_Angeles" to Res.string.city_los_angeles,
+    "America/Chicago" to Res.string.city_chicago,
+    "America/Toronto" to Res.string.city_toronto,
+    "America/Sao_Paulo" to Res.string.city_sao_paulo,
+    "Australia/Sydney" to Res.string.city_sydney,
+)
+
+// translated for well-known zones, the IANA name otherwise
+@Composable
+private fun zoneName(zone: String): String = zoneNames[zone]?.str() ?: WorldClock.shortName(zone)

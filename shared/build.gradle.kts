@@ -1,6 +1,22 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
+
+// FFmpeg ships per OS; each desktop package is built on its own OS, so the host decides
+val javacppPlatform: String = run {
+    val os = System.getProperty("os.name").lowercase()
+    val arch = when (val a = System.getProperty("os.arch").lowercase()) {
+        "amd64", "x86_64" -> "x86_64"
+        "aarch64", "arm64" -> "arm64"
+        else -> a
+    }
+    when {
+        os.contains("win") -> "windows-$arch"
+        os.contains("mac") -> "macosx-$arch"
+        else -> "linux-$arch"
+    }
+}
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +27,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -43,19 +63,28 @@ kotlin {
     }
 
     sourceSets {
-        val jvmCommonMain by creating {
+        val nonWebMain by creating {
             dependsOn(commonMain.get())
+        }
+        val skikoMain by creating {
+            dependsOn(commonMain.get())
+        }
+        val jvmCommonMain by creating {
+            dependsOn(nonWebMain)
             dependencies {
                 implementation(libs.ktor.client.okhttp)
             }
         }
         jvmMain.get().dependsOn(jvmCommonMain)
+        jvmMain.get().dependsOn(skikoMain)
         androidMain.get().dependsOn(jvmCommonMain)
+        wasmJsMain.get().dependsOn(skikoMain)
 
         // the dependsOn edges above switch off the default hierarchy template, so the Apple
         // source set has to be attached by hand or nothing in iosMain reaches a compilation
         val appleShared = maybeCreate("iosMain")
-        appleShared.dependsOn(commonMain.get())
+        appleShared.dependsOn(nonWebMain)
+        appleShared.dependsOn(skikoMain)
         getByName("iosArm64Main").dependsOn(appleShared)
         getByName("iosSimulatorArm64Main").dependsOn(appleShared)
 
@@ -68,6 +97,8 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
+            implementation(libs.media3.transformer)
+            implementation(libs.media3.effect)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -75,7 +106,7 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.materialIconsExtended)
             implementation(libs.compose.ui)
-            implementation(libs.compose.ui.backhandler)
+            implementation(libs.navigationevent.compose)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
@@ -88,10 +119,13 @@ kotlin {
             implementation(libs.materialKolor)
             implementation(libs.qrose)
             implementation(libs.qrose.oned)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs)
         }
         jvmTest.dependencies {
             // Compose Resources on the JVM loads through Skiko, which needs the desktop runtime present.
             implementation(compose.desktop.currentOs)
+            implementation(libs.commons.imaging)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -99,6 +133,11 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.bytedeco.javacpp)
+            implementation(libs.bytedeco.ffmpeg)
+            implementation("org.bytedeco:javacpp:${libs.versions.javacpp.get()}:$javacppPlatform")
+            implementation("org.bytedeco:ffmpeg:${libs.versions.ffmpeg.get()}:$javacppPlatform")
+            implementation(libs.pdfbox)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -126,7 +165,7 @@ val generateStringIndex by tasks.registering {
         val tab = 9.toChar()
 
         fun parse(file: File): List<Pair<String, String>> {
-            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
             val nodes = doc.getElementsByTagName("string")
             return (0 until nodes.length).map { index ->
                 val node = nodes.item(index) as org.w3c.dom.Element
@@ -227,6 +266,13 @@ kotlin.sourceSets.commonMain.get().kotlin.srcDir(generateAppVersion)
 // Xcode picks the version up from the xcconfig, which the root task rewrites
 tasks.matching { it.name.contains("Framework") }.configureEach {
     dependsOn(rootProject.tasks.named("syncIosVersion"))
+}
+
+// PDFBox logs through commons-logging, which would pick the SLF4J API that Ktor brings and drop
+// the warnings the PDF tests assert on; java.util.logging keeps them visible.
+tasks.named<Test>("jvmTest") {
+    systemProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl")
+    systemProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.Jdk14Logger")
 }
 
 compose.resources {

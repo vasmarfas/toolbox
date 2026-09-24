@@ -3,18 +3,22 @@ package com.vasmarfas.card.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Analytics
+import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.Lang
 import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.openUrl
@@ -36,7 +43,6 @@ import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.EmptyState
 import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SectionTitle
-import com.vasmarfas.card.ui.components.SelectableText
 import com.vasmarfas.card.ui.components.TagChips
 
 // newest start first; when two jobs start the same month the one still running goes above
@@ -47,7 +53,22 @@ fun ResumeScreen() {
     val state by ResumeRepository.state.collectAsState()
     val resume = state.value
     ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 20.dp) {
-        Text(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineSmall)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            resume?.pdf?.let { url ->
+                OutlinedButton(
+                    onClick = {
+                        Analytics.log(AnalyticsEvent.LINK_OPEN, mapOf(AnalyticsParam.LINK to "resume_pdf", AnalyticsParam.SOURCE to "resume"))
+                        openUrl(url)
+                    },
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                ) {
+                    Icon(Icons.Filled.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(Res.string.resume_pdf.str())
+                }
+            }
+        }
         if (resume == null) return@ContentColumn
         if (resume.isEmpty) {
             EmptyState(
@@ -57,38 +78,42 @@ fun ResumeScreen() {
             )
             return@ContentColumn
         }
-        resume.summary?.let { SelectableText(it.str(), style = MaterialTheme.typography.bodyLarge) }
-        if (resume.experience.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle(Res.string.experience.str())
-                resume.experience.sortedWith(byRecency).forEach { ExperienceCard(it) }
-            }
-        }
-        if (resume.education.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle(Res.string.education.str())
-                resume.education.forEach { EducationCard(it) }
-            }
-        }
-        if (resume.courses.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle(Res.string.courses_and_certificates.str())
-                resume.courses.forEach { EducationCard(it) }
-            }
-        }
-        if (resume.skills.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle(Res.string.skills.str())
-                resume.skills.forEach { group ->
-                    Text(group.title.str(), style = MaterialTheme.typography.titleMedium)
-                    TagChips(group.items)
+        SelectionContainer {
+            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                resume.summary?.let { Text(it.str(), style = MaterialTheme.typography.bodyLarge) }
+                if (resume.experience.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionTitle(Res.string.experience.str())
+                        resume.experience.sortedWith(byRecency).forEach { ExperienceCard(it) }
+                    }
                 }
-            }
-        }
-        if (resume.languages.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SectionTitle(Res.string.languages.str())
-                TagChips(resume.languages.map { "${it.name.str()} — ${it.level.str()}" })
+                if (resume.education.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionTitle(Res.string.education.str())
+                        resume.education.forEach { EducationCard(it) }
+                    }
+                }
+                if (resume.courses.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionTitle(Res.string.courses_and_certificates.str())
+                        resume.courses.forEach { EducationCard(it) }
+                    }
+                }
+                if (resume.skills.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionTitle(Res.string.skills.str())
+                        resume.skills.forEach { group ->
+                            Text(group.title.str(), style = MaterialTheme.typography.titleMedium)
+                            TagChips(group.items)
+                        }
+                    }
+                }
+                if (resume.languages.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SectionTitle(Res.string.languages.str())
+                        TagChips(resume.languages.map { "${it.name.str()} — ${it.level.str()}" })
+                    }
+                }
             }
         }
     }
@@ -130,11 +155,11 @@ private fun ExperienceCard(item: Experience) {
             val period = "${formatMonth(item.from, lang)} — ${item.to?.let { formatMonth(it, lang) } ?: Res.string.present.str()}" +
                 (item.location?.let { " · ${it.str()}" } ?: "")
             Text(period, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            item.summary?.let { SelectableText(it.str(), style = MaterialTheme.typography.bodyMedium) }
+            item.summary?.let { Text(it.str(), style = MaterialTheme.typography.bodyMedium) }
             item.bullets.forEach { bullet ->
                 Row {
                     Text("•  ", style = MaterialTheme.typography.bodyMedium)
-                    SelectableText(bullet.str(), style = MaterialTheme.typography.bodyMedium)
+                    Text(bullet.str(), style = MaterialTheme.typography.bodyMedium)
                 }
             }
             if (item.tags.isNotEmpty()) TagChips(item.tags)

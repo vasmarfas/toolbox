@@ -1,9 +1,7 @@
 package com.vasmarfas.card.tools
 
 import com.vasmarfas.card.core.PlatformKind
-import com.vasmarfas.card.resources.english
-import com.vasmarfas.card.resources.matches
-import com.vasmarfas.card.resources.russian
+import com.vasmarfas.card.resources.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -65,5 +63,16 @@ class ToolRegistryTest {
     fun byIdResolvesEveryRegisteredTool() {
         ToolRegistry.all.forEach { assertEquals(it, ToolRegistry.byId(it.id)) }
         assertEquals(null, ToolRegistry.byId("no-such-tool"))
+    }
+
+    @Test
+    fun popularShelfIsShortAndWorksEverywhere() {
+        val popular = ToolRegistry.popular
+        assertEquals(popular.size, popular.distinct().size)
+        assertTrue(popular.size in 12..24, "${popular.size} popular tools")
+        PlatformKind.entries.forEach { platform ->
+            val shown = popular.count { platform in it.platforms }
+            assertTrue(shown >= 12, "only $shown popular tools on $platform")
+        }
     }
 }

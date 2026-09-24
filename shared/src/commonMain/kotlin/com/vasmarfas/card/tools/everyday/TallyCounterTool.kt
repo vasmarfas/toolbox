@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Prefs
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.core.vibrate
@@ -42,7 +41,7 @@ val tallyCounterTool = Tool(
     id = "tally-counter",
     category = ToolCategory.EVERYDAY,
     title = Res.string.tally_counter,
-    description = Res.string.several_named_counters_with_plus_minus_and_r,
+    description = Res.string.tally_counter_description,
     icon = Icons.Filled.Add,
     keywords = listOf("counter", "tally", "count", "clicker", "счётчик", "кликер", "подсчёт"),
 ) { TallyCounterScreen() }

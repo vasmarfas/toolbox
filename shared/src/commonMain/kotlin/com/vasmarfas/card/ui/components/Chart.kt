@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,12 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.avg_2
-import com.vasmarfas.card.resources.fit
-import com.vasmarfas.card.resources.max_2
-import com.vasmarfas.card.resources.min
-import com.vasmarfas.card.resources.no_data_yet
+import com.vasmarfas.card.resources.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -79,14 +74,6 @@ private const val TICKS = 5
 
 private val windowOptions = listOf(0, 60, 120, 300)
 
-private object ChartStrings {
-    val empty = Res.string.no_data_yet
-    val fit = Res.string.fit
-    val min = Res.string.min
-    val avg = Res.string.avg_2
-    val max = Res.string.max_2
-}
-
 @Composable
 fun InteractiveChart(
     series: List<ChartSeries>,
@@ -104,7 +91,7 @@ fun InteractiveChart(
             modifier = modifier.fillMaxWidth().height(chartHeight()),
             contentAlignment = Alignment.Center,
         ) {
-            EmptyState(icon = Icons.Filled.ShowChart, title = ChartStrings.empty.str())
+            EmptyState(icon = Icons.AutoMirrored.Filled.ShowChart, title = Res.string.no_data_yet.str())
         }
         return
     }
@@ -259,9 +246,9 @@ fun InteractiveChart(
         }
         Text(
             text = listOf(
-                "${ChartStrings.min.str()} ${yFormat(range.low)}",
-                "${ChartStrings.avg.str()} ${yFormat(range.average)}",
-                "${ChartStrings.max.str()} ${yFormat(range.high)}",
+                "${Res.string.unit_min.str()} ${yFormat(range.low)}",
+                "${Res.string.chart_avg.str()} ${yFormat(range.average)}",
+                "${Res.string.chart_max.str()} ${yFormat(range.high)}",
             ).joinToString(" · "),
             style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -275,7 +262,7 @@ fun InteractiveChart(
                     windowSize = it
                     windowStart = null
                 },
-                label = { if (it == 0) ChartStrings.fit.str() else it.toString() },
+                label = { if (it == 0) Res.string.fit.str() else it.toString() },
             )
         }
     }

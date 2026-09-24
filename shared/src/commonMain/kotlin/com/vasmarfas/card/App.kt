@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +23,6 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.WideNavigationRail
 import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.material3.WideNavigationRailValue
@@ -54,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.vasmarfas.card.core.Analytics
 import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.currentPlatform
@@ -63,6 +62,7 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.AppSettings
 import com.vasmarfas.card.data.GithubStars
 import com.vasmarfas.card.data.LocalSettings
+import com.vasmarfas.card.data.OnboardingStatus
 import com.vasmarfas.card.data.ProfileRepository
 import com.vasmarfas.card.data.ResumeRepository
 import com.vasmarfas.card.resources.*
@@ -73,13 +73,18 @@ import com.vasmarfas.card.ui.components.LocalChrome
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.layoutSizeFor
 import com.vasmarfas.card.ui.navigation.HomeRoute
+import com.vasmarfas.card.ui.navigation.MyToolsRoute
 import com.vasmarfas.card.ui.navigation.ProjectsRoute
 import com.vasmarfas.card.ui.navigation.ResumeRoute
 import com.vasmarfas.card.ui.navigation.SettingsRoute
 import com.vasmarfas.card.ui.navigation.ToolRoute
 import com.vasmarfas.card.ui.navigation.ToolsRoute
 import com.vasmarfas.card.ui.navigation.TopDestination
+import com.vasmarfas.card.ui.navigation.UrlRoutes
 import com.vasmarfas.card.ui.screens.HomeScreen
+import com.vasmarfas.card.ui.screens.MyToolsScreen
+import com.vasmarfas.card.ui.screens.OnboardingFirstRun
+import com.vasmarfas.card.ui.screens.OnboardingScreen
 import com.vasmarfas.card.ui.screens.ProjectsScreen
 import com.vasmarfas.card.ui.screens.ResumeScreen
 import com.vasmarfas.card.ui.screens.SettingsScreen
@@ -91,11 +96,16 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 
 @Composable
-fun App(onNavHostReady: suspend (NavController) -> Unit = {}) {
+fun App(
+    link: String? = null,
+    onLinkHandled: () -> Unit = {},
+    onNavHostReady: suspend (NavController) -> Unit = {},
+) {
     val settings = remember { AppSettings() }
     val chrome = remember { ChromeState() }
     LaunchedEffect(Unit) {
         initAnalytics()
+        settings.syncAnalytics()
         Analytics.log(AnalyticsEvent.APP_OPEN)
         withContext(Dispatchers.Default) { ToolRegistry.all.size }
     }
@@ -105,6 +115,13 @@ fun App(onNavHostReady: suspend (NavController) -> Unit = {}) {
     LaunchedEffect(profileState.value) {
         profileState.value?.projects?.let { GithubStars.refresh(it) }
     }
+    val linkRoute = link?.let { UrlRoutes.parse(it.substringAfter('#', "")) }
+    // A link to a tool opens the tool. The status stays NONE, so the questions are asked on the next cold start.
+    var onboarding by rememberSaveable {
+        val firstRun = currentPlatform != PlatformKind.WEB && settings.onboarding == OnboardingStatus.NONE
+        mutableStateOf(if (firstRun && linkRoute !is ToolRoute) OnboardingFirstRun else null)
+    }
+    LaunchedEffect(linkRoute) { if (linkRoute is ToolRoute) onboarding = null }
     CompositionLocalProvider(
         LocalSettings provides settings,
         LocalLang provides settings.lang,
@@ -112,10 +129,20 @@ fun App(onNavHostReady: suspend (NavController) -> Unit = {}) {
     ) {
         key(settings.lang) {
             VasmarfasTheme(settings) {
-                val onTools = remember { settings.startOnTools && currentPlatform != PlatformKind.WEB }
-                val greet = remember { settings.firstRun && currentPlatform != PlatformKind.WEB }
-                LaunchedEffect(Unit) { settings.markLaunched() }
-                AppShell(rememberNavController(), onNavHostReady, onTools, greet)
+                val navController = rememberNavController()
+                val entry = onboarding
+                if (entry != null) {
+                    OnboardingScreen(
+                        entry = entry,
+                        onFinish = {
+                            // Before the first run is over the nav host has never been composed and has no graph yet.
+                            if (entry != OnboardingFirstRun) navController.navigateTop(TopDestination.start)
+                            onboarding = null
+                        },
+                    )
+                } else {
+                    AppShell(navController, linkRoute, onLinkHandled, onNavHostReady, onRunOnboarding = { from -> onboarding = from })
+                }
             }
         }
     }
@@ -125,9 +152,10 @@ fun App(onNavHostReady: suspend (NavController) -> Unit = {}) {
 @Composable
 private fun AppShell(
     navController: NavHostController,
+    linkRoute: Any?,
+    onLinkHandled: () -> Unit,
     onNavHostReady: suspend (NavController) -> Unit,
-    startOnTools: Boolean,
-    greetOnStart: Boolean,
+    onRunOnboarding: (String) -> Unit,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
@@ -138,6 +166,8 @@ private fun AppShell(
 
     LaunchedEffect(toolId) { chrome.immersive = false }
 
+    // The site's page view carries the window title, so both come from one effect.
+    var viewed by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(topDestination, toolId, lang) {
         val page = when {
             toolId != null -> ToolRegistry.byId(toolId)?.title?.let { getString(it) } ?: getString(Res.string.tools)
@@ -145,42 +175,24 @@ private fun AppShell(
             topDestination != null -> getString(topDestination.label)
             else -> null
         }
-        setWindowTitle(if (page == null) "vasmarfas" else "$page · vasmarfas")
+        val title = when {
+            page != null -> "$page · vasmarfas"
+            currentPlatform == PlatformKind.WEB -> getString(Res.string.site_title)
+            else -> "vasmarfas"
+        }
+        setWindowTitle(title)
+        val screen = toolId?.let { "tool_$it" } ?: topDestination?.screenName ?: return@LaunchedEffect
+        if (screen == viewed) return@LaunchedEffect
+        viewed = screen
+        val path = toolId?.let(UrlRoutes::fragmentForTool) ?: topDestination?.let(UrlRoutes::fragmentFor).orEmpty()
+        Analytics.screen(screen, if (toolId != null) "tool" else "tab", path, title)
     }
-
-    var greeting by rememberSaveable { mutableStateOf(greetOnStart) }
 
     val navigateTop = remember(navController) {
         { tab: TopDestination ->
             chrome.immersive = false
-            navController.navigate(tab.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    inclusive = tab == TopDestination.HOME
-                    saveState = tab != TopDestination.HOME
-                }
-                launchSingleTop = true
-                restoreState = tab != TopDestination.HOME
-            }
+            navController.navigateTop(tab)
         }
-    }
-
-    if (greeting) {
-        AlertDialog(
-            onDismissRequest = { greeting = false },
-            title = { Text(Res.string.greeting_title.str()) },
-            text = { Text(Res.string.greeting_body.str()) },
-            confirmButton = {
-                TextButton(onClick = { greeting = false }) { Text(Res.string.greeting_to_tools.str()) }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        greeting = false
-                        navigateTop(TopDestination.HOME)
-                    },
-                ) { Text(Res.string.greeting_about_developer.str()) }
-            },
-        )
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -189,8 +201,7 @@ private fun AppShell(
             val compact = layout == LayoutSize.COMPACT
             Row(Modifier.fillMaxSize()) {
                 if (!compact && !chrome.immersive) {
-                    // Expanded, the rail costs about 200 dp. That is a third of a 640 dp window,
-                    // so it only unfolds once the window is wide enough not to notice.
+                    // The expanded rail takes about 200 dp, so it unfolds only in wide windows.
                     val expandedRail = layout == LayoutSize.EXPANDED
                     WideNavigationRail(
                         state = rememberWideNavigationRailState(
@@ -235,46 +246,65 @@ private fun AppShell(
                         }
                     },
                 ) { padding ->
-                    AppNavHost(navController, navigateTop, onNavHostReady, startOnTools, Modifier.padding(padding))
+                    AppNavHost(navController, navigateTop, linkRoute, onLinkHandled, onNavHostReady, onRunOnboarding, Modifier.padding(padding))
                 }
             }
         }
     }
 }
 
-// Material fade-through: the outgoing screen is gone in 90 ms, the incoming one settles from 92 %
-// over the next 210. NavHost's default 700 ms read as a stall; 110/80 read as a blink.
+// Material fade-through: the outgoing screen is gone in 90 ms, the incoming one settles from 92 % over the next 210.
 private const val NavFadeOut = 90
 private const val NavFadeIn = 210
 
 private fun fadeThroughIn() = fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
     scaleIn(initialScale = 0.92f, animationSpec = tween(NavFadeIn, delayMillis = NavFadeOut))
 
+// The start tab is rebuilt from scratch, every other tab keeps its own back stack between visits.
+private fun NavController.navigateTop(tab: TopDestination) {
+    val start = tab == TopDestination.start
+    navigate(tab.route) {
+        popUpTo(graph.findStartDestination().id) {
+            inclusive = start
+            saveState = !start
+        }
+        launchSingleTop = true
+        restoreState = !start
+    }
+}
+
 @Composable
 private fun AppNavHost(
     navController: NavHostController,
     onNavigateTop: (TopDestination) -> Unit,
+    linkRoute: Any?,
+    onLinkHandled: () -> Unit,
     onNavHostReady: suspend (NavController) -> Unit,
-    startOnTools: Boolean,
+    onRunOnboarding: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val openTool: (String) -> Unit = { id -> navController.navigate(ToolRoute(id)) }
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
         NavHost(
             navController = navController,
-            startDestination = if (startOnTools) ToolsRoute else HomeRoute,
+            startDestination = TopDestination.start.route,
             enterTransition = { fadeThroughIn() },
             exitTransition = { fadeOut(tween(NavFadeOut)) },
             popEnterTransition = { fadeThroughIn() },
             popExitTransition = { fadeOut(tween(NavFadeOut)) },
         ) {
+            composable<MyToolsRoute> {
+                MyToolsScreen(
+                    onOpenTool = openTool,
+                    onOpenCatalog = { onNavigateTop(TopDestination.TOOLS) },
+                    onRunOnboarding = onRunOnboarding,
+                )
+            }
             composable<HomeRoute> {
                 HomeScreen(
                     onOpenProjects = { onNavigateTop(TopDestination.PROJECTS) },
                     onOpenResume = { onNavigateTop(TopDestination.RESUME) },
-                    onOpenTools = { onNavigateTop(TopDestination.TOOLS) },
                     onOpenSettings = { onNavigateTop(TopDestination.SETTINGS) },
-                    onOpenTool = openTool,
                 )
             }
             composable<ProjectsRoute> { ProjectsScreen() }
@@ -294,8 +324,26 @@ private fun AppNavHost(
                     onBack = { if (!navController.popBackStack()) onNavigateTop(TopDestination.TOOLS) },
                 )
             }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<SettingsRoute> { SettingsScreen(onRunOnboarding = { onRunOnboarding("settings") }) }
         }
         LaunchedEffect(navController) { onNavHostReady(navController) }
+        LaunchedEffect(navController, linkRoute) {
+            if (linkRoute == null) return@LaunchedEffect
+            if (linkRoute is ToolRoute) {
+                val shown = navController.currentBackStackEntry?.takeIf { it.destination.hasRoute(ToolRoute::class) }?.toRoute<ToolRoute>()
+                if (shown != linkRoute) {
+                    ToolRegistry.byId(linkRoute.id)?.let { tool ->
+                        Analytics.log(
+                            AnalyticsEvent.TOOL_OPEN,
+                            mapOf(AnalyticsParam.TOOL to tool.id, AnalyticsParam.CATEGORY to tool.category.id, AnalyticsParam.SOURCE to "link"),
+                        )
+                    }
+                    openTool(linkRoute.id)
+                }
+            } else {
+                TopDestination.entries.firstOrNull { it.route == linkRoute }?.let(onNavigateTop)
+            }
+            onLinkHandled()
+        }
     }
 }

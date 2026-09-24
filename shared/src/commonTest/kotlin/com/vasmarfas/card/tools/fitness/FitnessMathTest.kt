@@ -1,7 +1,6 @@
 package com.vasmarfas.card.tools.fitness
 
-import com.vasmarfas.card.resources.english
-import com.vasmarfas.card.tools.calculators.Sex
+import com.vasmarfas.card.resources.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

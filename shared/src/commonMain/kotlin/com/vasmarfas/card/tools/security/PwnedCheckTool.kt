@@ -13,7 +13,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.fmtGrouped
@@ -40,7 +39,7 @@ val pwnedCheckTool = Tool(
     id = "pwned-check",
     category = ToolCategory.SECURITY,
     title = Res.string.leaked_password_check,
-    description = Res.string.checks_a_password_against_the_have_i_been_pw,
+    description = Res.string.pwned_check_description,
     icon = Icons.Filled.Verified,
     keywords = listOf("pwned", "leak", "breach", "haveibeenpwned", "hibp", "compromised", "утечка", "слив", "скомпрометирован", "пароль"),
 ) { PwnedCheckScreen() }
@@ -100,7 +99,7 @@ private fun PwnedCheckScreen() {
                     copyable = false,
                 )
                 Text(
-                    Res.string.absence_from_the_corpus_does_not_make_a_weak.str(),
+                    Res.string.pwned_absence_from_the_corpus.str(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -111,14 +110,14 @@ private fun PwnedCheckScreen() {
                     mono = false,
                     copyable = false,
                 )
-                ErrorText(Res.string.stop_using_this_password_everywhere.str())
+                ErrorText(Res.string.pwned_stop_using_this_password.str())
             }
             KeyValueRow(Res.string.hash_prefix_sent.str(), prefix)
         }
     }
     ResultCard(Res.string.how_it_works.str()) {
         Text(
-            Res.string.the_password_is_hashed_with_sha_1_on_the_dev.str(),
+            Res.string.pwned_password_is_hashed.str(),
             style = MaterialTheme.typography.bodyMedium,
         )
         Text(

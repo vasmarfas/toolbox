@@ -33,6 +33,8 @@ private fun jsSensorValue(key: String): Double = js("(function(){ var s = window
 
 private fun jsIsMobile(): Boolean = js("/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)")
 
+private fun jsAppleTouch(): Boolean = js("/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)")
+
 private fun jsHasGenericSensor(name: String): Boolean = js("(typeof window[name] === 'function')")
 
 private fun jsGenericSensorStart(name: String): Unit = js(
@@ -210,7 +212,7 @@ actual fun sensorFlow(type: SensorType): Flow<SensorReading> {
     val useGeneric = generic != null && jsHasGenericSensor(generic) && (type == SensorType.MAGNETOMETER || type == SensorType.LIGHT || !motionBacked)
     return flow {
         if (useGeneric) {
-            jsGenericSensorStart(generic!!)
+            jsGenericSensorStart(generic)
             try {
                 while (true) {
                     delay(100)
@@ -330,7 +332,7 @@ actual fun displayExtras(): List<Pair<String, String>> {
     val parts = jsScreenInfo().split('|')
     return buildList {
         add("Screen" to (parts.getOrNull(0) ?: ""))
-        add("Device pixel ratio" to (parts.getOrNull(1) ?: ""))
+        add("Device pixel ratio" to (parts.getOrNull(1)?.toDoubleOrNull()?.fmt(2) ?: ""))
         add("Color depth" to (parts.getOrNull(2) ?: "") + " bit")
         add("Viewport" to (parts.getOrNull(3) ?: ""))
         parts.getOrNull(4)?.takeIf { it.isNotBlank() }?.let { add("Orientation" to it) }
@@ -345,6 +347,11 @@ actual fun screenPixels(): Pair<Int, Int>? {
     val height = (window.screen.height * ratio).toInt()
     return if (width > 0 && height > 0) width to height else null
 }
+
+// Safari names no model, only iPhone or iPad, and iPadOS asks for desktop sites as a Mac with touch
+actual fun appleScreen(): AppleScreen? = if (jsAppleTouch()) AppleScreen(null, null) else null
+
+actual suspend fun displayPanels(): List<DisplayPanel> = emptyList()
 
 actual fun microphoneSupported(): Boolean = jsHasMediaDevices()
 

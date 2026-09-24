@@ -1,7 +1,9 @@
 package com.vasmarfas.card.tools.developer
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Terminal
@@ -15,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
@@ -29,7 +32,7 @@ val chmodCalculatorTool = Tool(
     id = "chmod-calculator",
     category = ToolCategory.DEVELOPER,
     title = Res.string.chmod_calculator,
-    description = Res.string.permission_checkboxes_setuid_setgid_sticky_b,
+    description = Res.string.chmod_calculator_description,
     icon = Icons.Filled.Terminal,
     keywords = listOf("chmod", "permissions", "unix", "linux", "octal", "rwx", "setuid", "sticky", "права доступа", "файл"),
 ) { ChmodCalculatorScreen() }
@@ -79,14 +82,19 @@ private fun ChmodCalculatorScreen() {
     }
     val labels = listOf(Res.string.owner, Res.string.group, Res.string.others)
     val permissions = listOf(Res.string.read, Res.string.write, Res.string.execute)
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.weight(1.3f))
+        permissions.forEach { permission ->
+            Text(permission.str(), style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+        }
+    }
     labels.forEachIndexed { row, label ->
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(label.str(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            permissions.forEachIndexed { col, permission ->
+            Text(label.str(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1.3f))
+            permissions.indices.forEach { col ->
                 val bit = Chmod.bits[row * 3 + col]
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Checkbox(checked = mode and bit != 0, onCheckedChange = { update(mode xor bit) })
-                    Text(permission.str(), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

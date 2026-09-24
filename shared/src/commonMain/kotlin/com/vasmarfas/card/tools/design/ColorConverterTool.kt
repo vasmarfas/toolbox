@@ -66,21 +66,11 @@ val colorConverterTool = Tool(
     id = "color-converter",
     category = ToolCategory.DESIGN,
     title = Res.string.color_converter,
-    description = Res.string.hex_rgb_hsl_hsv_cmyk_and_css_names_in_any_di,
+    description = Res.string.color_converter_description,
     icon = Icons.Filled.ColorLens,
     keywords = listOf("hex", "rgb", "hsl", "hsv", "cmyk", "alpha", "color picker", "color wheel", "color", "цвет", "конвертер", "палитра", "цветовой круг", "прозрачность", "код цвета"),
     expandable = true,
 ) { ColorConverterScreen() }
-
-private object ConverterStrings {
-    val withAlpha = Res.string.with_transparency
-    val alphaHint = Res.string.alpha_channel_in_hex_rgba_hsla_and_compose_v
-    val palette = Res.string.palette
-    val channels = Res.string.channels
-    val brightness = Res.string.brightness
-    val opacity = Res.string.opacity
-    val unknown = Res.string.unknown_color_format
-}
 
 @Composable
 private fun ColorConverterScreen() {
@@ -100,16 +90,16 @@ private fun ColorConverterScreen() {
         monospace = true,
     )
     SwitchRow(
-        label = ConverterStrings.withAlpha.str(),
+        label = Res.string.with_transparency.str(),
         checked = withAlpha,
         onCheckedChange = { on ->
             withAlpha = on
             parsed?.let { input = if (on) it.hex(withAlpha = true) else it.copy(a = 255).hex() }
         },
-        description = ConverterStrings.alphaHint.str(),
+        description = Res.string.color_alpha_channel_in_hex.str(),
     )
     if (parsed == null) {
-        ErrorText(ConverterStrings.unknown.str())
+        ErrorText(Res.string.unknown_color_format.str())
         return
     }
     val color = if (withAlpha) parsed else parsed.copy(a = 255)
@@ -127,7 +117,7 @@ private fun ColorConverterScreen() {
         input = value.hex(withAlpha)
     }
 
-    ToolSection(ConverterStrings.palette.str()) {
+    ToolSection(Res.string.palette.str()) {
         ChoiceChips(
             options = PaletteShape.entries,
             selected = shape,
@@ -158,7 +148,7 @@ private fun ColorConverterScreen() {
                 drawRect(Brush.horizontalGradient(listOf(Color.Black, brightest)))
             }
             Text(
-                text = "${ConverterStrings.brightness.str()} ${(hsv.v * 100).roundToInt()}%",
+                text = "${Res.string.brightness.str()} ${(hsv.v * 100).roundToInt()}%",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -172,7 +162,7 @@ private fun ColorConverterScreen() {
                 drawRect(Brush.horizontalGradient(listOf(opaque.copy(alpha = 0f), opaque)))
             }
             Text(
-                text = "${ConverterStrings.opacity.str()} ${(color.alphaFraction * 100).roundToInt()}%",
+                text = "${Res.string.opacity.str()} ${(color.alphaFraction * 100).roundToInt()}%",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -181,7 +171,7 @@ private fun ColorConverterScreen() {
 
     WideSwatch(color, color.hex(withAlpha), ColorMath.rgbString(color))
 
-    ToolSection(ConverterStrings.channels.str()) {
+    ToolSection(Res.string.channels.str()) {
         SegmentedChoice(options = ChannelSet.entries, selected = channels, onSelect = { channels = it }, label = { it.name })
         if (channels == ChannelSet.RGB) {
             ChannelSlider("R", color.r.toFloat(), 255f) { show(color.copy(r = it.roundToInt())) }

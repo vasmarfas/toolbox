@@ -10,3 +10,8 @@ actual fun applyPlatformLocale(tag: String) {
     }"""
     )
 }
+
+private fun jsRegionName(code: String, lang: String): String? =
+    js("{ try { return new Intl.DisplayNames([lang], { type: 'region' }).of(code) || null; } catch (e) { return null; } }")
+
+actual fun regionName(code: String, lang: Lang): String? = jsRegionName(code, lang.code)?.takeIf { it != code }

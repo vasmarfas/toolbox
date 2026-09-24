@@ -21,12 +21,12 @@ val hrZones = listOf(
     HrZone(
         1, 50, 60,
         Res.string.recovery,
-        Res.string.warm_up_cool_down_easy_movement_between_hard,
+        Res.string.hr_warm_up_cool_down,
     ),
     HrZone(
         2, 60, 70,
         Res.string.aerobic_base,
-        Res.string.fat_oxidation_and_capillary_growth_the_bulk,
+        Res.string.hr_fat_oxidation_and_capillary,
     ),
     HrZone(
         3, 70, 80,
@@ -36,12 +36,12 @@ val hrZones = listOf(
     HrZone(
         4, 80, 90,
         Res.string.threshold,
-        Res.string.lactate_threshold_race_pace_for_10k_to_half,
+        Res.string.hr_lactate_threshold_race_pace,
     ),
     HrZone(
         5, 90, 100,
         Res.string.maximal,
-        Res.string.vo2max_intervals_only_in_short_bouts,
+        Res.string.hr_vo2max_intervals,
     ),
 )
 

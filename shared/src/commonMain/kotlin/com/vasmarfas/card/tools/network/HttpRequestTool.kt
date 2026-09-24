@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.currentPlatform
@@ -59,26 +58,26 @@ val httpRequestTool = Tool(
     id = "http-request",
     category = ToolCategory.NETWORK,
     title = Res.string.http_request,
-    description = Res.string.get_post_put_patch_delete_head_options_with,
+    description = Res.string.http_request_description,
     icon = Icons.Filled.Http,
     keywords = listOf("rest", "api", "curl", "postman", "headers", "json", "запрос", "апи", "заголовки", "куки"),
 ) { HttpRequestScreen() }
 
 private enum class ResponseTab(val label: StringResource) {
-    BODY(Res.string.body_2),
+    BODY(Res.string.body_mode),
     HEADERS(Res.string.headers),
     COOKIES(Res.string.cookies),
 }
 
 private const val MAX_VISIBLE_CHARS = 100_000
 
-private val webHeadersNote = Res.string.in_the_browser_only_cors_safelisted_response
+private val webHeadersNote = Res.string.request_in_the_browser
 
-private val webRedirectNote = Res.string.the_browser_follows_redirects_on_its_own_the
+private val webRedirectNote = Res.string.request_browser_follows_redirects
 
 @Composable
 private fun HttpRequestScreen() {
-    val corsNoteText = NetStrings.corsNote.str()
+    val corsNoteText = Res.string.net_in_the_browser_requests.str()
     var spec by remember { mutableStateOf(HttpRequestSpec()) }
     var timeoutText by rememberSaveable { mutableStateOf((HttpRequests.DEFAULT_TIMEOUT_MS / 1000).toString()) }
     var curlText by rememberSaveable { mutableStateOf("") }
@@ -152,7 +151,7 @@ private fun HttpRequestScreen() {
             onFormat = { formatted = true },
         )
     }
-    ToolSection(Res.string.query_parameters_2.str()) {
+    ToolSection(Res.string.request_query_parameters.str()) {
         FieldsEditor(
             fields = spec.query,
             keyLabel = Res.string.name.str(),
@@ -175,7 +174,7 @@ private fun HttpRequestScreen() {
         )
         if (spec.bodyMode != HttpBodyMode.NONE && (spec.method == "GET" || spec.method == "HEAD")) {
             Text(
-                Res.string.get_and_head_are_sent_without_a_body.str(),
+                Res.string.request_get_and_head.str(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -272,7 +271,7 @@ private fun HttpRequestScreen() {
                 spec = spec.copy(timeoutMs = (seconds * 1000).toLong().coerceIn(1_000L, 300_000L))
             },
             label = Res.string.timeout.str(),
-            suffix = Res.string.s.str(),
+            suffix = Res.string.unit_s.str(),
         )
     }
     ToolSection("curl") {
@@ -305,7 +304,7 @@ private fun HttpRequestScreen() {
             ToolInputField(
                 value = saveName,
                 onValueChange = { saveName = it },
-                label = Res.string.name_2.str(),
+                label = Res.string.item_name.str(),
                 modifier = Modifier.weight(1f),
             )
             TextButton(
@@ -352,7 +351,7 @@ private fun HttpRequestScreen() {
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            "${entry.status} · ${entry.timeMs} ms",
+                            "${entry.status} · ${entry.timeMs} ${Res.string.unit_ms.str()}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -421,7 +420,7 @@ private fun ResponseSection(
             exchange.body
         }
     }
-    ResultCard(title = "${exchange.status} ${exchange.statusText} · ${exchange.timeMs} ms · ${formatBytes(exchange.sizeBytes)}") {
+    ResultCard(title = "${exchange.status} ${exchange.statusText} · ${exchange.timeMs} ${Res.string.unit_ms.str()} · ${formatBytes(exchange.sizeBytes)}") {
         exchange.contentType?.let { KeyValueRow("Content-Type", it, copyable = false) }
         SegmentedChoice(options = ResponseTab.entries, selected = tab, onSelect = onTab, label = { it.label.str() })
         when (tab) {
@@ -432,7 +431,7 @@ private fun ResponseSection(
                 }
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        Res.string.body_3.str(),
+                        Res.string.response_body.str(),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f),
                     )

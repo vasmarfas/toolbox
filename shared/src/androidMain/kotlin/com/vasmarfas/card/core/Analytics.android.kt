@@ -21,8 +21,17 @@ actual fun initAnalytics() {
     firebase = runCatching { FirebaseAnalytics.getInstance(AppContextHolder.context) }.getOrNull()
 }
 
-actual fun logEvent(name: String, params: Map<String, String>) {
+actual fun logEvent(name: String, params: Map<String, String>, metrics: Map<String, Long>) {
     val target = firebase ?: return
-    val bundle = Bundle().apply { params.forEach { (key, value) -> putString(key, value) } }
+    val bundle = Bundle().apply {
+        params.forEach { (key, value) -> putString(key, value) }
+        metrics.forEach { (key, value) -> putLong(key, value) }
+    }
     runCatching { target.logEvent(name, bundle) }
 }
+
+actual fun setUserProperty(name: String, value: String?) {
+    runCatching { firebase?.setUserProperty(name, value) }
+}
+
+actual fun trackPage(path: String, title: String) = Unit

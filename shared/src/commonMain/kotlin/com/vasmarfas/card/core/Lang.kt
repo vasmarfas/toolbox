@@ -2,7 +2,6 @@ package com.vasmarfas.card.core
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.vasmarfas.card.core.str
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -34,6 +33,10 @@ enum class Lang(val code: String, val nativeName: String) {
 }
 
 val LocalLang = staticCompositionLocalOf { Lang.EN }
+
+// for text built outside composition, such as durations from platform code, AppSettings sets it
+var appLang: Lang = Lang.EN
+    internal set
 
 @Serializable(with = TrSerializer::class)
 class Tr(val en: String, val ru: String = en) {

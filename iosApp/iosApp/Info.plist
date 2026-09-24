@@ -11,7 +11,7 @@
 	<key>NSMotionUsageDescription</key>
 	<string>The compass, level and pedometer tools read the motion sensors and show the values on screen.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>The sound meter computes a loudness level from the microphone in real time. No audio is recorded.</string>
+	<string>The sound meter, spectrum analyzer and tuner read the microphone in real time. No audio is recorded or sent anywhere.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Network tools such as ping, port scanner and device discovery talk to devices on your local network.</string>
 	<key>NSBonjourServices</key>

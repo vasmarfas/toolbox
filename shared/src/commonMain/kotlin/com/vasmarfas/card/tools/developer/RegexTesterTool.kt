@@ -31,7 +31,7 @@ val regexTesterTool = Tool(
     id = "regex-tester",
     category = ToolCategory.DEVELOPER,
     title = Res.string.regex_tester,
-    description = Res.string.matches_with_positions_and_groups_highlighte,
+    description = Res.string.regex_tester_description,
     icon = Icons.Filled.FindInPage,
     keywords = listOf("regex", "regexp", "regular expression", "pattern", "match", "groups", "регулярное выражение", "регулярка", "шаблон"),
 ) { RegexTesterScreen() }
@@ -102,10 +102,11 @@ private fun RegexTesterScreen() {
         Text(highlighted, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace))
     }
     ResultCard(Res.string.match_list.str()) {
+        val groupsLabel = Res.string.regex_groups.str()
         MonoTable(
-            listOf("#    Range        Match") +
+            listOf("#    " + Res.string.regex_header_range.str().padEnd(13) + Res.string.regex_header_match.str()) +
                 matches.take(200).map { m ->
-                    val groups = if (m.groups.isEmpty()) "" else "    groups: " + m.groups.mapIndexed { gi, g -> "\$${gi + 1}=${g ?: "null"}" }.joinToString("  ")
+                    val groups = if (m.groups.isEmpty()) "" else "    $groupsLabel: " + m.groups.mapIndexed { gi, g -> "\$${gi + 1}=${g ?: "null"}" }.joinToString("  ")
                     "${(m.index + 1).toString().padEnd(5)}${"[${m.start}, ${m.end})".padEnd(13)}${m.value}$groups"
                 },
         )

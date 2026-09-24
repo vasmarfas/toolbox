@@ -2,6 +2,7 @@ package com.vasmarfas.card.core
 
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
+import java.awt.Window
 import java.io.File
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
@@ -107,10 +108,35 @@ actual fun displayExtras(): List<Pair<String, String>> = runCatching {
 
 actual fun screenDpi(): Float? = runCatching { Toolkit.getDefaultToolkit().screenResolution.toFloat() }.getOrNull()
 
+// the monitor with the focused window, where the ruler is shown
 actual fun screenPixels(): Pair<Int, Int>? = runCatching {
-    val mode = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.displayMode
-    mode.width to mode.height
+    val device = Window.getWindows().firstOrNull { it.isActive }?.graphicsConfiguration?.device
+        ?: GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
+    device.displayMode.let { it.width to it.height }
 }.getOrNull()
+
+actual fun appleScreen(): AppleScreen? = null
+
+private const val EDID_SCRIPT = "Get-CimInstance -Namespace root\\wmi -ClassName WmiMonitorDescriptorMethods | ForEach-Object { " +
+    "[BitConverter]::ToString((Invoke-CimMethod -InputObject \$_ -MethodName WmiGetMonitorRawEEdidV1Block -Arguments @{BlockId = 0}).BlockContent) }"
+
+// Windows gives the raw EDID of active monitors through WMI without admin rights, Linux keeps it in sysfs
+actual suspend fun displayPanels(): List<DisplayPanel> = withContext(Dispatchers.IO) {
+    val os = System.getProperty("os.name").lowercase()
+    val blocks = when {
+        os.startsWith("windows") -> runCatching {
+            val process = ProcessBuilder("powershell", "-NoProfile", "-NonInteractive", "-Command", EDID_SCRIPT).redirectErrorStream(true).start()
+            val lines = process.inputStream.bufferedReader().readLines()
+            process.waitFor()
+            lines.filter { it.startsWith("00-FF-FF") }.map { line -> line.trim().split('-').map { it.toInt(16).toByte() }.toByteArray() }
+        }.getOrDefault(emptyList())
+        os.startsWith("linux") -> File("/sys/class/drm").listFiles().orEmpty()
+            .filter { runCatching { File(it, "status").readText().trim() == "connected" }.getOrDefault(false) }
+            .mapNotNull { runCatching { File(it, "edid").readBytes() }.getOrNull() }
+        else -> emptyList()
+    }
+    blocks.mapNotNull(::parseEdid).distinctBy { listOf(it.name, it.widthPx, it.heightPx, it.widthMm, it.heightMm) }
+}
 
 actual fun microphoneSupported(): Boolean = true
 

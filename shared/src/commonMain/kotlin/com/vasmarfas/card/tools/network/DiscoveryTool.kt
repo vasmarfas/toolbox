@@ -18,11 +18,7 @@ import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.mdnsQuery
 import com.vasmarfas.card.core.ssdpDiscover
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.find_devices_and_services_on_the_local_netwo
-import com.vasmarfas.card.resources.listening_for_replies
-import com.vasmarfas.card.resources.service_types
-import com.vasmarfas.card.resources.upnp_and_bonjour_discovery
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
@@ -35,7 +31,7 @@ val discoveryTool = Tool(
     id = "device-discovery",
     category = ToolCategory.NETWORK,
     title = Res.string.upnp_and_bonjour_discovery,
-    description = Res.string.find_devices_and_services_on_the_local_netwo,
+    description = Res.string.device_discovery_description,
     icon = Icons.Filled.Cast,
     keywords = listOf("ssdp", "upnp", "mdns", "bonjour", "dns-sd", "avahi", "printers", "chromecast", "устройства", "сервисы"),
     platforms = PlatformKind.jvm,
@@ -83,7 +79,7 @@ private fun DiscoveryScreen() {
     if (loading) LoadingRow(Res.string.listening_for_replies.str())
     ssdp?.let { devices ->
         ResultCard(title = "SSDP · ${devices.size}") {
-            if (devices.isEmpty()) Text(NetStrings.noResults.str(), style = MaterialTheme.typography.bodyMedium)
+            if (devices.isEmpty()) Text(Res.string.no_results.str(), style = MaterialTheme.typography.bodyMedium)
             devices.forEach { d ->
                 KeyValueRow(d.address, listOfNotNull(d.headers["SERVER"], d.headers["ST"], d.headers["LOCATION"], d.headers["USN"]).joinToString("\n"), mono = true)
             }
@@ -91,7 +87,7 @@ private fun DiscoveryScreen() {
     }
     mdns?.let { services ->
         ResultCard(title = "mDNS · ${services.size} " + Res.string.service_types.str()) {
-            if (services.isEmpty()) Text(NetStrings.noResults.str(), style = MaterialTheme.typography.bodyMedium)
+            if (services.isEmpty()) Text(Res.string.no_results.str(), style = MaterialTheme.typography.bodyMedium)
             services.forEach { (type, records) ->
                 val instances = records.filter { it.type == 12 }.map { it.data }
                 val details = records.filter { it.type != 12 }.joinToString("\n") { "${it.typeName} ${it.name} → ${it.data}" }

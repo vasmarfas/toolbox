@@ -2,15 +2,20 @@ package com.vasmarfas.card.tools.design
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,12 +24,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.EncodedFormat
+import com.vasmarfas.card.core.encode
+import com.vasmarfas.card.core.saveBytes
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.media.SaveButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ErrorText
@@ -43,6 +62,8 @@ import io.github.alexzhirkevich.qrose.options.QrPixelShape
 import io.github.alexzhirkevich.qrose.options.roundCorners
 import io.github.alexzhirkevich.qrose.options.solid
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private enum class QrPreset { TEXT, URL, WIFI, VCARD, EMAIL, PHONE, SMS, GEO, TELEGRAM }
 
@@ -58,7 +79,7 @@ val qrGeneratorTool = Tool(
     id = "qr-generator",
     category = ToolCategory.DESIGN,
     title = Res.string.qr_code,
-    description = Res.string.qr_codes_for_text_links_wi_fi_contacts_email,
+    description = Res.string.qr_generator_description,
     icon = Icons.Filled.QrCode2,
     keywords = listOf("qr", "qrcode", "wifi", "vcard", "link", "кьюар", "куар", "вайфай", "визитка", "ссылка"),
     expandable = true,
@@ -115,7 +136,7 @@ private fun QrGeneratorScreen() {
                 options = listOf("WPA", "WEP", "nopass"),
                 selected = wifiSecurity,
                 onSelect = { wifiSecurity = it },
-                label = { if (it == "nopass") Res.string.open_2.str() else it },
+                label = { if (it == "nopass") Res.string.qr_open.str() else it },
             )
             SwitchRow(Res.string.hidden_network.str(), wifiHidden, { wifiHidden = it })
         }
@@ -128,7 +149,7 @@ private fun QrGeneratorScreen() {
             ToolInputField(url, { url = it }, Res.string.website.str())
         }
 
-        QrPreset.EMAIL -> ToolSection(Res.string.email_2.str()) {
+        QrPreset.EMAIL -> ToolSection(Res.string.qr_email.str()) {
             ToolInputField(email, { email = it }, Res.string.address.str(), placeholder = "hi@example.com")
             ToolInputField(subject, { subject = it }, Res.string.subject.str())
             ToolInputField(body, { body = it }, Res.string.body.str(), singleLine = false, minLines = 2)
@@ -155,26 +176,6 @@ private fun QrGeneratorScreen() {
         QrPreset.SMS -> QrPayload.sms(phone, body)
         QrPreset.GEO -> QrPayload.geo(lat, lon)
     }
-
-    ChoiceChips(
-        options = qrColorPresets.indices.toList(),
-        selected = colorIndex,
-        onSelect = { colorIndex = it },
-        label = { qrColorPresets[it].first },
-    )
-    SwitchRow(Res.string.rounded_modules.str(), rounded, { rounded = it })
-    SegmentedChoice(
-        options = listOf(QrErrorCorrectionLevel.Low, QrErrorCorrectionLevel.Medium, QrErrorCorrectionLevel.High),
-        selected = ecLevel,
-        onSelect = { ecLevel = it },
-        label = {
-            when (it) {
-                QrErrorCorrectionLevel.Low -> "L 7%"
-                QrErrorCorrectionLevel.Medium -> "M 15%"
-                else -> "H 30%"
-            }
-        },
-    )
 
     if (payload.isBlank()) {
         ErrorText(Res.string.fill_in_the_fields_above.str())
@@ -206,10 +207,62 @@ private fun QrGeneratorScreen() {
     ) {
         Image(painter, contentDescription = null, modifier = Modifier.size(expandedSquare(normal = 280.dp, reserved = 260.dp)))
     }
+    val density = LocalDensity.current
+    SaveButton(Res.string.save_png.str()) {
+        val bitmap = painter.render(QR_EXPORT_SIDE, lightColor, density)
+        val png = withContext(Dispatchers.Default) { bitmap.encode(EncodedFormat.PNG, 100) }
+        saveBytes(png, "qr-code.png")
+    }
     ResultCard(Res.string.encoded_string.str()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MonoText(payload, Modifier.weight(1f))
             CopyIconButton(payload)
         }
     }
+    ToolSection(Res.string.appearance.str()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            qrColorPresets.forEachIndexed { index, (dark, light) ->
+                val selected = index == colorIndex
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(ColorMath.parse(light)?.toColor() ?: Color.White)
+                        .border(if (selected) 3.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        .selectable(selected = selected, role = Role.RadioButton, onClick = { colorIndex = index }),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)).background(ColorMath.parse(dark)?.toColor() ?: Color.Black))
+                }
+            }
+        }
+        SwitchRow(Res.string.rounded_modules.str(), rounded, { rounded = it })
+        Text(Res.string.qr_resistance.str(), style = MaterialTheme.typography.titleSmall)
+        SegmentedChoice(
+            options = listOf(QrErrorCorrectionLevel.Low, QrErrorCorrectionLevel.Medium, QrErrorCorrectionLevel.High),
+            selected = ecLevel,
+            onSelect = { ecLevel = it },
+            label = {
+                when (it) {
+                    QrErrorCorrectionLevel.Low -> Res.string.qr_resistance_low.str()
+                    QrErrorCorrectionLevel.Medium -> Res.string.qr_resistance_medium.str()
+                    else -> Res.string.high.str()
+                }
+            },
+        )
+        Text(Res.string.qr_resistance_hint.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private const val QR_EXPORT_SIDE = 1024
+
+// quiet zone of an eighth of the side, scanners want it
+private fun Painter.render(side: Int, background: Color, density: Density): ImageBitmap {
+    val bitmap = ImageBitmap(side, side)
+    val margin = side / 8f
+    CanvasDrawScope().draw(density, LayoutDirection.Ltr, Canvas(bitmap), Size(side.toFloat(), side.toFloat())) {
+        drawRect(background)
+        translate(margin, margin) { draw(Size(side - 2 * margin, side - 2 * margin)) }
+    }
+    return bitmap
 }

@@ -1,7 +1,6 @@
 package com.vasmarfas.card.tools.fitness
 
 import com.vasmarfas.card.resources.*
-import com.vasmarfas.card.tools.calculators.Sex
 import org.jetbrains.compose.resources.StringResource
 
 class Activity(val title: StringResource, val group: StringResource, val met: Double)

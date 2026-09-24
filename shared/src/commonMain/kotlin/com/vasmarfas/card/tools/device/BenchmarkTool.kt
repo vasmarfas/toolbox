@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 val benchmarkTool = Tool(
     id = "benchmarks",
@@ -103,7 +104,7 @@ private fun BenchmarkScreen() {
         options = durations,
         selected = seconds,
         onSelect = { seconds = it },
-        label = { Res.string.seconds_short.str().replace("%d", it.toString()) },
+        label = { stringResource(Res.string.seconds_short, it) },
         modifier = Modifier.fillMaxWidth(),
     )
     ActionButton(

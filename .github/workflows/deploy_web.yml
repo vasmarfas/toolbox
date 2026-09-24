@@ -204,6 +204,17 @@ jobs:
           sed -i 's|Sitemap: https://vasmarfas.com/|Sitemap: https://vasmarfas.ru/|g' dist/robots.txt
           sed -i 's|content="https://vasmarfas.com/|content="https://vasmarfas.ru/|g' dist/index.html
 
+      # Object Storage compresses text on the fly but serves application/wasm as stored: 18.6 MB instead of about 5.
+      - name: Compress wasm
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          set -eu
+          command -v brotli > /dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq brotli > /dev/null; }
+          find dist -name '*.wasm' -print0 | while IFS= read -r -d '' f; do
+            brotli -q 11 -f -o "$f.br" "$f"
+            mv "$f.br" "$f"
+          done
+
       - name: Upload hashed assets
         if: steps.guard.outputs.ready == 'true'
         run: |
@@ -213,7 +224,7 @@ jobs:
             --cache-control "$IMMUTABLE"
           aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
             --exclude '*' --include "$HASHED.wasm" \
-            --content-type application/wasm --cache-control "$IMMUTABLE"
+            --content-type application/wasm --content-encoding br --cache-control "$IMMUTABLE"
 
       - name: Upload entry point and unhashed assets
         if: steps.guard.outputs.ready == 'true'
@@ -224,7 +235,7 @@ jobs:
             --cache-control no-cache
           aws s3 sync dist "s3://$BUCKET" --endpoint-url "$ENDPOINT" \
             --exclude '*' --include '*.wasm' --exclude "$HASHED.wasm" \
-            --content-type application/wasm --cache-control no-cache
+            --content-type application/wasm --content-encoding br --cache-control no-cache
           if [ -f dist/manifest.webmanifest ]; then
             aws s3 cp dist/manifest.webmanifest "s3://$BUCKET/manifest.webmanifest" --endpoint-url "$ENDPOINT" \
               --content-type application/manifest+json --cache-control no-cache

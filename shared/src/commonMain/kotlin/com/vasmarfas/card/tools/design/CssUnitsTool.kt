@@ -31,7 +31,7 @@ val cssUnitsTool = Tool(
     id = "css-units",
     category = ToolCategory.DESIGN,
     title = Res.string.css_units,
-    description = Res.string.px_rem_em_pt_and_percent_against_an_editable,
+    description = Res.string.css_units_description,
     icon = Icons.Filled.Straighten,
     keywords = listOf("px", "rem", "em", "pt", "dp", "dpi", "css", "единицы", "пиксели", "плотность"),
 ) { CssUnitsScreen() }
@@ -57,7 +57,7 @@ private fun CssUnitsScreen() {
     val root = rootText.toDoubleLenient()
     val parent = parentText.toDoubleLenient()
     if (value == null || root == null || parent == null || root <= 0 || parent <= 0) {
-        ErrorText(Res.string.enter_numbers_root_and_parent_sizes_must_be.str())
+        ErrorText(Res.string.css_enter_numbers_root.str())
         return
     }
     val px = when (unit) {

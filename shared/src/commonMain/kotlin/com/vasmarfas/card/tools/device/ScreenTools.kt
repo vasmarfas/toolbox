@@ -50,8 +50,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
+import com.vasmarfas.card.core.currentPlatform
 import com.vasmarfas.card.core.setScreenBrightness
 import com.vasmarfas.card.core.setTorch
 import com.vasmarfas.card.core.str
@@ -68,34 +68,35 @@ import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.expandedHeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 
 val screenTestTool = Tool(
     id = "screen-test",
     category = ToolCategory.DEVICE,
     title = Res.string.screen_test,
-    description = Res.string.full_screen_solid_colours_and_gradients_to_f,
+    description = Res.string.screen_test_description,
     icon = Icons.Filled.Fullscreen,
     keywords = listOf("dead pixel", "burn-in", "backlight", "colors", "битые пиксели", "засветы", "дисплей"),
 ) { ScreenTestScreen() }
 
-private val testFills: List<Pair<String, Brush>> = listOf(
-    "White" to Brush.linearGradient(listOf(Color.White, Color.White)),
-    "Black" to Brush.linearGradient(listOf(Color.Black, Color.Black)),
-    "Red" to Brush.linearGradient(listOf(Color.Red, Color.Red)),
-    "Green" to Brush.linearGradient(listOf(Color.Green, Color.Green)),
-    "Blue" to Brush.linearGradient(listOf(Color.Blue, Color.Blue)),
-    "Gray 50%" to Brush.linearGradient(listOf(Color.Gray, Color.Gray)),
-    "Gray ramp" to Brush.horizontalGradient(listOf(Color.Black, Color.White)),
-    "Rainbow" to Brush.horizontalGradient(listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Blue, Color.Magenta, Color.Red)),
-    "Checker gray" to Brush.linearGradient(listOf(Color(0xFF202020), Color(0xFF202020))),
+private val testFills: List<Pair<StringResource, Brush>> = listOf(
+    Res.string.screen_color_white to Brush.linearGradient(listOf(Color.White, Color.White)),
+    Res.string.screen_color_black to Brush.linearGradient(listOf(Color.Black, Color.Black)),
+    Res.string.screen_color_red to Brush.linearGradient(listOf(Color.Red, Color.Red)),
+    Res.string.screen_color_green to Brush.linearGradient(listOf(Color.Green, Color.Green)),
+    Res.string.screen_color_blue to Brush.linearGradient(listOf(Color.Blue, Color.Blue)),
+    Res.string.screen_color_gray_50_percent to Brush.linearGradient(listOf(Color.Gray, Color.Gray)),
+    Res.string.screen_color_gray_ramp to Brush.horizontalGradient(listOf(Color.Black, Color.White)),
+    Res.string.screen_color_rainbow to Brush.horizontalGradient(listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Blue, Color.Magenta, Color.Red)),
+    Res.string.screen_color_checker_gray to Brush.linearGradient(listOf(Color(0xFF202020), Color(0xFF202020))),
 )
 
 @Composable
 private fun ScreenTestScreen() {
     var open by remember { mutableStateOf(false) }
     var index by remember { mutableStateOf(0) }
-    Text(Res.string.opens_a_full_screen_view_tap_anywhere_for_th.str())
-    ChoiceChips(options = testFills.indices.toList(), selected = index, onSelect = { index = it }, label = { testFills[it].first })
+    Text(Res.string.screen_opens_a_full_screen.str())
+    ChoiceChips(options = testFills.indices.toList(), selected = index, onSelect = { index = it }, label = { testFills[it].first.str() })
     ActionButton(text = Res.string.open_full_screen.str(), onClick = { open = true })
     if (open) {
         FullScreenOverlay(onClose = { open = false }) {
@@ -121,7 +122,7 @@ private fun ScreenTestScreen() {
                     },
             ) {
                 OverlayControls(
-                    label = "${index + 1}/${testFills.size} · ${testFills[index].first}",
+                    label = "${index + 1}/${testFills.size} · ${testFills[index].first.str()}",
                     hint = Res.string.tap_next_fill_long_press_or_exit.str(),
                     onClose = { open = false },
                 )
@@ -179,19 +180,19 @@ val screenLightTool = Tool(
     id = "screen-light",
     category = ToolCategory.DEVICE,
     title = Res.string.screen_light_and_torch,
-    description = Res.string.use_the_screen_as_a_lamp_with_adjustable_col,
+    description = Res.string.screen_light_description,
     icon = Icons.Filled.Lightbulb,
     keywords = listOf("flashlight", "lamp", "light", "torch", "фонарик", "лампа", "свет"),
 ) { ScreenLightScreen() }
 
 private val lightColors = listOf(
-    "White" to Color.White,
-    "Warm" to Color(0xFFFFE0B2),
-    "Candle" to Color(0xFFFFB74D),
-    "Red" to Color.Red,
-    "Green" to Color.Green,
-    "Blue" to Color.Blue,
-    "SOS" to Color.White,
+    Res.string.screen_color_white to Color.White,
+    Res.string.screen_color_warm to Color(0xFFFFE0B2),
+    Res.string.screen_color_candle to Color(0xFFFFB74D),
+    Res.string.screen_color_red to Color.Red,
+    Res.string.screen_color_green to Color.Green,
+    Res.string.screen_color_blue to Color.Blue,
+    Res.string.screen_color_sos to Color.White,
 )
 
 @Composable
@@ -203,7 +204,7 @@ private fun ScreenLightScreen() {
     var torch by remember { mutableStateOf(false) }
     var torchError by remember { mutableStateOf<String?>(null) }
     val torchAvailable = remember { torchSupported() }
-    ChoiceChips(options = lightColors.indices.toList(), selected = colorIndex, onSelect = { colorIndex = it }, label = { lightColors[it].first })
+    ChoiceChips(options = lightColors.indices.toList(), selected = colorIndex, onSelect = { colorIndex = it }, label = { lightColors[it].first.str() })
     Text(Res.string.brightness.str(), style = MaterialTheme.typography.labelLarge)
     Slider(value = brightness, onValueChange = { brightness = it }, valueRange = 0.05f..1f)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -222,7 +223,7 @@ private fun ScreenLightScreen() {
     torchError?.let { ErrorText(it) }
     DisposableEffect(Unit) { onDispose { if (torch) setTorch(false) } }
     if (open) {
-        val sos = lightColors[colorIndex].first == "SOS"
+        val sos = lightColors[colorIndex].first == Res.string.screen_color_sos
         var sosOn by remember { mutableStateOf(true) }
         if (sos) {
             LaunchedEffect(Unit) {
@@ -244,7 +245,7 @@ private fun ScreenLightScreen() {
             val color = if (sos && !sosOn) Color.Black else Color(base.red * brightness, base.green * brightness, base.blue * brightness)
             Box(Modifier.fillMaxSize().background(color).clickable { open = false }) {
                 OverlayControls(
-                    label = lightColors[colorIndex].first,
+                    label = lightColors[colorIndex].first.str(),
                     hint = Res.string.tap_anywhere_or_to_exit.str(),
                     onClose = { open = false },
                 )
@@ -257,7 +258,7 @@ val touchTesterTool = Tool(
     id = "touch-tester",
     category = ToolCategory.DEVICE,
     title = Res.string.touch_and_pointer_tester,
-    description = Res.string.shows_every_active_pointer_with_its_coordina,
+    description = Res.string.touch_tester_description,
     icon = Icons.Filled.TouchApp,
     keywords = listOf("multitouch", "digitizer", "pointer", "тач", "сенсор", "касание"),
     expandable = true,
@@ -320,7 +321,7 @@ val vibrationTool = Tool(
     id = "vibration-test",
     category = ToolCategory.DEVICE,
     title = Res.string.vibration_test,
-    description = Res.string.short_long_and_pattern_vibrations_to_check_t,
+    description = Res.string.vibration_test_description,
     icon = Icons.Filled.Vibration,
     keywords = listOf("haptic", "motor", "buzz", "вибро", "haptics"),
     platforms = PlatformKind.mobileAndWeb,
@@ -330,12 +331,15 @@ val vibrationTool = Tool(
 private fun VibrationScreen() {
     val scope = rememberCoroutineScope()
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ActionButton(text = "50 ms", onClick = { vibrate(50) })
-        ActionButton(text = "200 ms", onClick = { vibrate(200) })
-        ActionButton(text = "1 s", onClick = { vibrate(1000) })
+        ActionButton(text = "50 ${Res.string.unit_ms.str()}", onClick = { vibrate(50) })
+        ActionButton(text = "200 ${Res.string.unit_ms.str()}", onClick = { vibrate(200) })
+        ActionButton(text = "1 ${Res.string.unit_s.str()}", onClick = { vibrate(1000) })
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ActionButton(text = "SOS", onClick = { scope.launch { listOf(150, 150, 150, 400, 400, 400, 150, 150, 150).forEach { vibrate(it); delay(it + 150L) } } })
         ActionButton(text = Res.string.heartbeat.str(), onClick = { scope.launch { repeat(4) { vibrate(80); delay(180); vibrate(120); delay(600) } } })
+    }
+    if (currentPlatform == PlatformKind.WEB) {
+        Text(Res.string.vibration_web_note.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

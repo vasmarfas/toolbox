@@ -31,7 +31,7 @@ val uuidGeneratorTool = Tool(
     id = "uuid-generator",
     category = ToolCategory.DEVELOPER,
     title = Res.string.uuid_generator,
-    description = Res.string.random_v4_and_time_ordered_v7_uuids_up_to_10,
+    description = Res.string.uuid_generator_description,
     icon = Icons.Filled.Fingerprint,
     keywords = listOf("uuid", "guid", "v4", "v7", "identifier", "random", "уникальный идентификатор", "генератор"),
 ) { UuidGeneratorScreen() }
@@ -70,7 +70,7 @@ private fun UuidGeneratorScreen() {
         }
         OutputCard(output)
     }
-    ToolSection(Res.string.parse_2.str()) {
+    ToolSection(Res.string.uuid_parse.str()) {
         ToolInputField(
             value = parseInput,
             onValueChange = { parseInput = it },
@@ -81,7 +81,7 @@ private fun UuidGeneratorScreen() {
         if (parseInput.isNotBlank()) {
             val info = remember(parseInput) { Uuids.parse(parseInput) }
             if (info == null) {
-                ErrorText(Res.string.not_a_uuid_expected_32_hex_digits_optionally.str())
+                ErrorText(Res.string.uuid_not_a_uuid_expected.str())
             } else {
                 ResultCard {
                     KeyValueRow(Res.string.canonical.str(), info.canonical)

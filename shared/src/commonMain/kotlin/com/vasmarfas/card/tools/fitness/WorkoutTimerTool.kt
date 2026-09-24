@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -40,8 +43,8 @@ import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.expandedTextStyle
-import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 
 private enum class TimerSource { PLAN, INTERVAL }
 
@@ -49,7 +52,7 @@ val workoutTimerTool = Tool(
     id = "workout-timer",
     category = ToolCategory.FITNESS,
     title = Res.string.workout_timer,
-    description = Res.string.runs_a_plan_from_the_workout_builder_or_a_pl,
+    description = Res.string.workout_timer_description,
     icon = Icons.Filled.Timer,
     keywords = listOf("interval", "hiit", "tabata", "timer", "rest", "интервалы", "хиит", "табата", "таймер", "отдых"),
     expandable = true,
@@ -96,7 +99,7 @@ private fun WorkoutTimerScreen() {
     if (source == TimerSource.PLAN) {
         if (plan == null) {
             ErrorText(
-                Res.string.no_saved_plans_create_one_in_the_workout_bui.str(),
+                Res.string.workout_timer_no_saved_plans.str(),
             )
             return
         }
@@ -116,17 +119,17 @@ private fun WorkoutTimerScreen() {
         )
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            NumberField(prepareText, { prepareText = it }, Res.string.prepare_s.str(), Modifier.weight(1f), isError = prepareText.toIntOrZero() < 0)
-            NumberField(workText, { workText = it }, Res.string.work_s.str(), Modifier.weight(1f), isError = workText.toIntOrZero() <= 0)
-            NumberField(restText, { restText = it }, Res.string.rest_s.str(), Modifier.weight(1f), isError = restText.toIntOrZero() < 0)
+            NumberField(prepareText, { prepareText = it }, Res.string.prepare.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = prepareText.toIntOrZero() < 0)
+            NumberField(workText, { workText = it }, Res.string.work.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = workText.toIntOrZero() <= 0)
+            NumberField(restText, { restText = it }, Res.string.rest.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = restText.toIntOrZero() < 0)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             NumberField(roundsText, { roundsText = it }, Res.string.rounds.str(), Modifier.weight(1f), isError = roundsText.toIntOrZero() <= 0)
-            NumberField(setsText, { setsText = it }, Res.string.sets_3.str(), Modifier.weight(1f), isError = setsText.toIntOrZero() <= 0)
+            NumberField(setsText, { setsText = it }, Res.string.workout_timer_sets.str(), Modifier.weight(1f), isError = setsText.toIntOrZero() <= 0)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            NumberField(setRestText, { setRestText = it }, Res.string.rest_between_sets_s.str(), Modifier.weight(1f), isError = setRestText.toIntOrZero() < 0)
-            NumberField(cooldownText, { cooldownText = it }, Res.string.cooldown_s.str(), Modifier.weight(1f), isError = cooldownText.toIntOrZero() < 0)
+            NumberField(setRestText, { setRestText = it }, Res.string.rest_between_sets.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = setRestText.toIntOrZero() < 0)
+            NumberField(cooldownText, { cooldownText = it }, Res.string.cooldown.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = cooldownText.toIntOrZero() < 0)
         }
     }
 
@@ -145,7 +148,7 @@ private fun WorkoutTimerScreen() {
         }
     }
     if (steps.isEmpty()) {
-        ErrorText(Res.string.nothing_to_run_check_work_time_rounds_and_se.str())
+        ErrorText(Res.string.workout_timer_nothing_to_run_check.str())
         return
     }
 
@@ -226,7 +229,7 @@ private fun WorkoutTimerScreen() {
         }
     }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         if (running) {
             ActionButton(
                 text = Res.string.pause.str(),
@@ -256,8 +259,7 @@ private fun WorkoutTimerScreen() {
                 icon = Icons.Filled.PlayArrow,
             )
         }
-        ActionButton(
-            text = Res.string.skip.str(),
+        FilledTonalIconButton(
             onClick = {
                 if (index < steps.lastIndex) {
                     stepIndex = index + 1
@@ -272,12 +274,9 @@ private fun WorkoutTimerScreen() {
                     finished = true
                 }
             },
-            modifier = Modifier.weight(1f),
             enabled = started || running,
-            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-        )
-        ActionButton(
-            text = Res.string.reset.str(),
+        ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = Res.string.skip.str()) }
+        FilledTonalIconButton(
             onClick = {
                 running = false
                 started = false
@@ -286,16 +285,14 @@ private fun WorkoutTimerScreen() {
                 remainingPaused = 0L
                 transitions = 0
             },
-            modifier = Modifier.weight(1f),
             enabled = started || running || finished,
-            icon = Icons.Filled.Refresh,
-        )
+        ) { Icon(Icons.Filled.Refresh, contentDescription = Res.string.reset.str()) }
     }
 
     ResultCard(Res.string.session.str()) {
         KeyValueRow(Res.string.step.str(), "${index + 1} / ${steps.size}")
         KeyValueRow(Res.string.elapsed.str(), formatDurationMs(elapsed))
-        KeyValueRow(Res.string.total_2.str(), formatDurationMs(total))
+        KeyValueRow(Res.string.total_all.str(), formatDurationMs(total))
         KeyValueRow(Res.string.left.str(), formatDurationMs((total - elapsed).coerceAtLeast(0L)))
         val next = steps.getOrNull(index + 1)
         KeyValueRow(
@@ -325,7 +322,7 @@ private fun nextLabel(step: TimerStep): String {
         StepKind.COOLDOWN -> Res.string.cooldown
     }
     val name = if (step.name.isBlank()) "" else " · ${step.name}"
-    return "${kind.str()}$name · ${step.seconds} ${Res.string.s.str()}"
+    return "${kind.str()}$name · ${step.seconds} ${Res.string.unit_s.str()}"
 }
 
 private fun formatClock(ms: Long): String {

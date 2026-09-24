@@ -65,11 +65,13 @@ import platform.posix.sendto
 import platform.posix.setsockopt
 import platform.posix.sockaddr
 import platform.posix.sockaddr_in
+import platform.posix.sockaddr_in6
 import platform.posix.sockaddr_storage
 import platform.posix.socket
 import platform.posix.socklen_t
 import platform.posix.socklen_tVar
 import platform.posix.timeval
+import platform.posix.uint32_tVar
 
 actual fun platformNetCapabilities() = PlatformNetCapabilities(
     icmpPing = true,
@@ -328,9 +330,9 @@ actual suspend fun wakeOnLan(mac: String, broadcast: String, port: Int): Boolean
         val descriptor = socket(info.pointed.ai_family, info.pointed.ai_socktype, info.pointed.ai_protocol)
         if (descriptor >= 0) {
             memScoped {
-                val enable = alloc<platform.posix.uint32_tVar>()
+                val enable = alloc<uint32_tVar>()
                 enable.value = 1u
-                setsockopt(descriptor, SOL_SOCKET, SO_BROADCAST, enable.ptr, sizeOf<platform.posix.uint32_tVar>().convert())
+                setsockopt(descriptor, SOL_SOCKET, SO_BROADCAST, enable.ptr, sizeOf<uint32_tVar>().convert())
             }
             if (connect(descriptor, info.pointed.ai_addr, info.pointed.ai_addrlen) == 0) {
                 val written = send(descriptor, packet.refTo(0), packet.size.convert(), 0)
@@ -343,7 +345,7 @@ actual suspend fun wakeOnLan(mac: String, broadcast: String, port: Int): Boolean
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun networkInterfaces(): List<InterfaceInfo> {
+actual suspend fun networkInterfaces(): List<InterfaceInfo> {
     val byName = LinkedHashMap<String, MutableList<String>>()
     memScoped {
         val list = allocPointerTo<ifaddrs>()
@@ -358,7 +360,7 @@ actual fun networkInterfaces(): List<InterfaceInfo> {
                 val family = addr.pointed.sa_family.toInt()
                 if (family == AF_INET || family == AF_INET6) {
                     val buffer = allocArray<ByteVar>(NI_MAXHOST)
-                    val length = if (family == AF_INET) sizeOf<sockaddr_in>() else sizeOf<platform.posix.sockaddr_in6>()
+                    val length = if (family == AF_INET) sizeOf<sockaddr_in>() else sizeOf<sockaddr_in6>()
                     if (getnameinfo(addr, length.convert(), buffer, NI_MAXHOST.convert(), null, 0u, NI_NUMERICHOST) == 0) {
                         val text = buffer.toKString().substringBefore('%')
                         if (text.isNotBlank()) byName.getOrPut(name) { mutableListOf() }.add(text)

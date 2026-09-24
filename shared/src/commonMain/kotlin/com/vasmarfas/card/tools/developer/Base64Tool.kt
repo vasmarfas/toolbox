@@ -33,7 +33,7 @@ val base64Tool = Tool(
     id = "base64",
     category = ToolCategory.DEVELOPER,
     title = Res.string.base64_and_hex,
-    description = Res.string.encode_and_decode_base64_standard_or_url_saf,
+    description = Res.string.base64_description,
     icon = Icons.Filled.Code,
     keywords = listOf("base64", "hex", "encode", "decode", "binary", "url-safe", "кодирование", "декодирование"),
 ) { Base64Screen() }
@@ -92,7 +92,7 @@ private fun Base64Screen() {
             if (text != null) {
                 OutputCard(text)
             } else {
-                Text(Res.string.not_valid_utf_8_showing_a_hex_dump.str(), style = MaterialTheme.typography.bodyMedium)
+                Text(Res.string.base64_not_valid_utf_8.str(), style = MaterialTheme.typography.bodyMedium)
                 OutputCard(Base64Tools.hexDump(bytes))
             }
             KeyValueRow(Res.string.decoded_bytes.str(), bytes.size.toString(), copyable = false)

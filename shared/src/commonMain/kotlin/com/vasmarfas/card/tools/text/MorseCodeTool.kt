@@ -30,7 +30,7 @@ val morseCodeTool = Tool(
     id = "morse-code",
     category = ToolCategory.TEXT,
     title = Res.string.morse_code,
-    description = Res.string.text_morse_for_latin_and_cyrillic_letters_di,
+    description = Res.string.morse_code_description,
     icon = Icons.Filled.Sensors,
     keywords = listOf("morse", "telegraph", "dots", "dashes", "sos", "морзе", "телеграф", "точки", "тире"),
 ) { MorseCodeScreen() }
@@ -54,7 +54,7 @@ private fun MorseCodeScreen() {
             options = MorseAlphabet.entries,
             selected = alphabet,
             onSelect = { alphabet = it },
-            label = { if (it == MorseAlphabet.LATIN) Res.string.latin_2.str() else Res.string.cyrillic.str() },
+            label = { if (it == MorseAlphabet.LATIN) Res.string.morse_latin.str() else Res.string.cyrillic.str() },
         )
     }
     ToolInputField(
@@ -73,7 +73,7 @@ private fun MorseCodeScreen() {
     if (input.isNotBlank()) {
         OutputCard(output)
         ActionButton(
-            text = if (playing) Res.string.stop_3.str() else Res.string.play.str(),
+            text = if (playing) Res.string.stop_short.str() else Res.string.play.str(),
             icon = if (playing) Icons.Filled.Stop else Icons.Filled.PlayArrow,
             onClick = {
                 if (playing) {

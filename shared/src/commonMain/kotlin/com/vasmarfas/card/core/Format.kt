@@ -48,16 +48,41 @@ fun formatBytes(bytes: Long, binary: Boolean = true): String {
 }
 
 fun formatDurationMs(ms: Long): String {
-    if (ms < 1000) return "$ms ms"
+    val ru = appLang == Lang.RU
+    if (ms < 1000) return if (ru) "$ms мс" else "$ms ms"
     val totalSec = ms / 1000
     val h = totalSec / 3600
     val m = (totalSec % 3600) / 60
     val s = totalSec % 60
     return buildString {
-        if (h > 0) append(h).append("h ")
-        if (h > 0 || m > 0) append(m).append("m ")
-        append(s).append("s")
+        if (h > 0) append(h).append(if (ru) " ч " else "h ")
+        if (h > 0 || m > 0) append(m).append(if (ru) " мин " else "m ")
+        append(s).append(if (ru) " с" else "s")
     }
 }
 
 fun String.toDoubleLenient(): Double? = trim().replace(',', '.').replace(" ", "").toDoubleOrNull()
+
+fun formatCount(n: Int): String {
+    val point = if (appLang == Lang.RU) ',' else '.'
+    fun short(value: Int, unit: Int, suffix: Char): String {
+        val tenths = (value + unit / 20) / (unit / 10)
+        return if (tenths < 100 && tenths % 10 != 0) "${tenths / 10}$point${tenths % 10}$suffix" else "${(value + unit / 2) / unit}$suffix"
+    }
+    return when {
+        n < 1_000 -> n.toString()
+        n < 999_500 -> short(n, 1_000, 'K')
+        else -> short(n, 1_000_000, 'M')
+    }
+}
+
+fun parseCount(text: String?): Int? {
+    val t = text?.trim()?.removeSuffix("+")?.replace(',', '.')?.takeIf { it.isNotEmpty() } ?: return null
+    val multiplier = when (t.last().uppercaseChar()) {
+        'K' -> 1_000
+        'M' -> 1_000_000
+        else -> 1
+    }
+    val number = (if (multiplier == 1) t else t.dropLast(1)).toDoubleOrNull() ?: return null
+    return (number * multiplier).roundToLong().toInt()
+}

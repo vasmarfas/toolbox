@@ -7,10 +7,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.AppPermission
+import com.vasmarfas.card.core.InterfaceInfo
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.currentPlatform
 import com.vasmarfas.card.core.ensurePermission
@@ -31,7 +33,7 @@ val networkInterfacesTool = Tool(
     id = "network-interfaces",
     category = ToolCategory.NETWORK,
     title = Res.string.network_interfaces,
-    description = Res.string.interfaces_with_ipv4_ipv6_addresses_mac_mtu,
+    description = Res.string.network_interfaces_description,
     icon = Icons.Filled.SettingsEthernet,
     keywords = listOf("ifconfig", "ipconfig", "wifi", "ssid", "gateway", "dns", "mac", "интерфейсы", "адреса"),
     platforms = PlatformKind.native,
@@ -43,13 +45,13 @@ private fun NetworkInterfacesScreen() {
     var refresh by remember { mutableStateOf(0) }
     var permission by remember { mutableStateOf(hasPermission(AppPermission.LOCATION)) }
     val scope = rememberCoroutineScope()
-    val interfaces = remember(refresh) { networkInterfaces() }
+    val interfaces by produceState(emptyList<InterfaceInfo>(), refresh) { value = networkInterfaces() }
     val wifi = remember(refresh, permission) { wifiDetails() }
 
     if (currentPlatform == PlatformKind.ANDROID) {
         ResultCard(title = Res.string.connection.str()) {
             if (!permission) {
-                Text(Res.string.ssid_and_bssid_require_the_location_permissi.str(), style = MaterialTheme.typography.bodySmall)
+                Text(Res.string.iface_ssid_and_bssid_require.str(), style = MaterialTheme.typography.bodySmall)
                 ActionButton(text = Res.string.grant_permission.str(), onClick = { scope.launch { permission = ensurePermission(AppPermission.LOCATION); refresh++ } })
             }
             wifi.forEach { (k, v) -> if (v.isNotBlank()) KeyValueRow(k, v, mono = k in setOf("BSSID", "Addresses", "DNS", "Gateway")) }

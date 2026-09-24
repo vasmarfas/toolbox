@@ -15,19 +15,19 @@ enum class Ingredient(val title: StringResource, val density: Double) {
     OIL(Res.string.vegetable_oil, 0.92),
 }
 
-enum class CookingUnit(val title: StringResource, val symbol: String, val ml: Double?, val grams: Double?) {
-    CUP_US(Res.string.cup_us_240_ml, "cup", 240.0, null),
-    GRAM(Res.string.gram, "g", null, 1.0),
-    ML(Res.string.millilitre, "ml", 1.0, null),
-    TSP(Res.string.teaspoon_5_ml, "tsp", 5.0, null),
-    TBSP(Res.string.tablespoon_15_ml, "tbsp", 15.0, null),
-    CUP_METRIC(Res.string.cup_metric_250_ml, "cup", 250.0, null),
-    GLASS_RU(Res.string.glass_200_ml, "glass", 200.0, null),
-    FL_OZ(Res.string.fluid_ounce_us, "fl oz", 29.5735, null),
-    LITRE(Res.string.litre, "l", 1000.0, null),
-    KG(Res.string.kilogram, "kg", null, 1000.0),
-    OZ(Res.string.ounce, "oz", null, 28.349523),
-    LB(Res.string.pound, "lb", null, 453.59237),
+enum class CookingUnit(val title: StringResource, val symbol: StringResource, val ml: Double?, val grams: Double?) {
+    CUP_US(Res.string.cup_us_240_ml, Res.string.unit_cup, 240.0, null),
+    GRAM(Res.string.gram, Res.string.unit_g, null, 1.0),
+    ML(Res.string.millilitre, Res.string.ml, 1.0, null),
+    TSP(Res.string.teaspoon_5_ml, Res.string.unit_tsp, 5.0, null),
+    TBSP(Res.string.tablespoon_15_ml, Res.string.unit_tbsp, 15.0, null),
+    CUP_METRIC(Res.string.cup_metric_250_ml, Res.string.unit_cup, 250.0, null),
+    GLASS_RU(Res.string.glass_200_ml, Res.string.cooking_symbol_glass, 200.0, null),
+    FL_OZ(Res.string.fluid_ounce_us, Res.string.cooking_symbol_fl_oz, 29.5735, null),
+    LITRE(Res.string.litre, Res.string.unit_l, 1000.0, null),
+    KG(Res.string.kilogram, Res.string.unit_kg, null, 1000.0),
+    OZ(Res.string.ounce, Res.string.cooking_symbol_oz, null, 28.349523),
+    LB(Res.string.pound, Res.string.unit_lb, null, 453.59237),
 }
 
 class OvenSetting(val mark: String, val celsius: Int, val fahrenheit: Int, val description: StringResource)

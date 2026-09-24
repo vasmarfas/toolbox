@@ -24,7 +24,7 @@ val stringEscapeTool = Tool(
     id = "string-escape",
     category = ToolCategory.DEVELOPER,
     title = Res.string.string_escape,
-    description = Res.string.escape_and_unescape_strings_for_json_java_ko,
+    description = Res.string.string_escape_description,
     icon = Icons.Filled.FormatQuote,
     keywords = listOf("escape", "unescape", "quote", "json", "html", "sql", "shell", "экранирование", "кавычки", "спецсимволы"),
 ) { StringEscapeScreen() }
@@ -54,7 +54,7 @@ private fun StringEscapeScreen() {
         if (direction == EscapeDirection.ESCAPE) StringEscapes.escape(input, target) else StringEscapes.unescape(input, target)
     }
     if (output == null) {
-        ErrorText(Res.string.cannot_unescape_malformed_escape_sequence.str())
+        ErrorText(Res.string.escape_cannot_unescape_malformed.str())
         return
     }
     OutputCard(output)

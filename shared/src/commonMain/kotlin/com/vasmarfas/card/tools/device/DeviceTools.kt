@@ -4,13 +4,14 @@ import com.vasmarfas.card.tools.Tool
 
 val deviceTools: List<Tool> = listOf(
     deviceInfoTool,
+    screenTestTool,
     batteryTool,
     displayInfoTool,
-    screenTestTool,
-    screenLightTool,
     touchTesterTool,
+    keyboardTesterTool,
+    screenLightTool,
     vibrationTool,
-    clipboardTool,
     benchmarkTool,
     stressTestTool,
+    clipboardTool,
 )

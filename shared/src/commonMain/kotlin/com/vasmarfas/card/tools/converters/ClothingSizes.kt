@@ -1,10 +1,6 @@
 package com.vasmarfas.card.tools.converters
 
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.men_s_clothing
-import com.vasmarfas.card.resources.men_s_shoes
-import com.vasmarfas.card.resources.women_s_clothing
-import com.vasmarfas.card.resources.women_s_shoes
+import com.vasmarfas.card.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 class SizeTable(val title: StringResource, val columns: List<String>, val rows: List<List<String>>) {
@@ -12,9 +8,9 @@ class SizeTable(val title: StringResource, val columns: List<String>, val rows: 
 
     fun lookup(column: Int, value: String): List<List<String>> = rows.filter { it[column] == value }
 
-    fun lines(): List<String> {
-        val widths = columns.indices.map { c -> (rows.map { it[c].length } + columns[c].length).max() + 2 }
-        return listOf(columns.mapIndexed { c, name -> name.padEnd(widths[c]) }.joinToString("")) +
+    fun lines(header: List<String> = columns): List<String> {
+        val widths = columns.indices.map { c -> (rows.map { it[c].length } + header[c].length).max() + 2 }
+        return listOf(header.mapIndexed { c, name -> name.padEnd(widths[c]) }.joinToString("")) +
             rows.map { row -> row.mapIndexed { c, cell -> cell.padEnd(widths[c]) }.joinToString("") }
     }
 }

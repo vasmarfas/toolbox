@@ -49,7 +49,7 @@ val gradientGeneratorTool = Tool(
     id = "gradient-generator",
     category = ToolCategory.DESIGN,
     title = Res.string.gradient_generator,
-    description = Res.string.two_to_four_stops_an_angle_and_linear_or_rad,
+    description = Res.string.gradient_generator_description,
     icon = Icons.Filled.Gradient,
     keywords = listOf("gradient", "css", "brush", "linear", "radial", "градиент", "переход", "фон"),
     expandable = true,
@@ -67,7 +67,7 @@ private fun GradientGeneratorScreen() {
             ToolInputField(
                 value = value,
                 onValueChange = { stops[index] = it },
-                label = "${Res.string.stop_2.str()} ${index + 1}",
+                label = "${Res.string.gradient_stop.str()} ${index + 1}",
                 modifier = Modifier.weight(1f),
                 isError = parsed[index] == null,
                 monospace = true,

@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.secureRandomBytes
 import com.vasmarfas.card.core.str
@@ -37,7 +36,7 @@ val macLookupTool = Tool(
     id = "mac-lookup",
     category = ToolCategory.NETWORK,
     title = Res.string.mac_address_lookup,
-    description = Res.string.vendor_oui_lookup_address_format_conversion,
+    description = Res.string.mac_lookup_description,
     icon = Icons.Filled.Memory,
     keywords = listOf("oui", "vendor", "manufacturer", "производитель", "мак", "адрес"),
 ) { MacLookupScreen() }
@@ -62,7 +61,7 @@ object MacAddress {
 
 @Composable
 private fun MacLookupScreen() {
-    val notFoundUnregisteredOrRandomizedText = Res.string.not_found_unregistered_or_randomized.str()
+    val notFoundUnregisteredOrRandomizedText = Res.string.mac_not_found_unregistered.str()
     var input by rememberSaveable { mutableStateOf("4C:5E:0C:12:34:56") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -108,10 +107,10 @@ private fun MacLookupScreen() {
     error?.let { ErrorText(it) }
     if (hex != null) {
         ResultCard {
-            KeyValueRow("Colon", MacAddress.colon(hex))
-            KeyValueRow("Hyphen", MacAddress.hyphen(hex))
-            KeyValueRow("Cisco", MacAddress.dotted(hex))
-            KeyValueRow("Plain", hex)
+            KeyValueRow(Res.string.mac_format_colon.str(), MacAddress.colon(hex))
+            KeyValueRow(Res.string.mac_format_hyphen.str(), MacAddress.hyphen(hex))
+            KeyValueRow(Res.string.mac_format_cisco.str(), MacAddress.dotted(hex))
+            KeyValueRow(Res.string.mac_format_plain.str(), hex)
             KeyValueRow("OUI", hex.substring(0, 6))
             KeyValueRow(
                 Res.string.bits.str(),

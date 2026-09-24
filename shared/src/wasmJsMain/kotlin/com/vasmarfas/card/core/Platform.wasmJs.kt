@@ -18,7 +18,7 @@ private fun jsHardwareConcurrency(): Int = js("(navigator.hardwareConcurrency ||
 
 private fun jsDeviceMemory(): Double = js("(navigator.deviceMemory || 0)")
 
-private fun jsScreenSize(): String = js("(screen.width + 'x' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x')")
+private fun jsScreenSize(): String = js("(screen.width + 'x' + screen.height + ' @' + Math.round((window.devicePixelRatio || 1) * 100) / 100 + 'x')")
 
 private fun jsLanguage(): String = js("(navigator.language || 'en')")
 

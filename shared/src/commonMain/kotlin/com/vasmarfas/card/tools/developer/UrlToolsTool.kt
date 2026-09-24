@@ -47,7 +47,7 @@ val urlToolsTool = Tool(
     id = "url-tools",
     category = ToolCategory.DEVELOPER,
     title = Res.string.url_tools,
-    description = Res.string.percent_encode_and_decode_split_a_url_into_s,
+    description = Res.string.url_tools_description,
     icon = Icons.Filled.Link,
     keywords = listOf("url", "uri", "encode", "decode", "percent", "query", "punycode", "idn", "parse", "урл", "ссылка", "кодирование", "запрос"),
 ) { UrlToolsScreen() }
@@ -75,7 +75,7 @@ private fun EncodeSection() {
         Res.string.encode_as_component_also.str(),
         component,
         { component = it },
-        description = Res.string.off_keep_url_delimiters_encode_only_unsafe_c.str(),
+        description = Res.string.url_off_keep_url_delimiters.str(),
     )
     if (component) SwitchRow(Res.string.space_as_form_encoding.str(), spaceAsPlus, { spaceAsPlus = it })
     if (input.isNotEmpty()) OutputCard(if (component) UrlCodec.encodeComponent(input, spaceAsPlus) else UrlCodec.encodeFull(input))

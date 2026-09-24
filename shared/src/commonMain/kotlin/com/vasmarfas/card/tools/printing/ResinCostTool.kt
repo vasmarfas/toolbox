@@ -30,7 +30,7 @@ val resinCostTool = Tool(
     id = "resin-cost",
     category = ToolCategory.PRINTING,
     title = Res.string.resin_print_cost,
-    description = Res.string.msla_print_cost_resin_with_support_waste_ipa,
+    description = Res.string.resin_cost_description,
     icon = Icons.Filled.ViewInAr,
     keywords = listOf("resin", "msla", "sla", "lcd", "ipa", "cost", "смола", "фотополимер", "изопропанол", "себестоимость"),
 ) { ResinCostScreen() }
@@ -50,7 +50,7 @@ private fun ResinCostScreen() {
     var kwhText by rememberSaveable { mutableStateOf("6") }
 
     Text(
-        text = Res.string.for_msla_lcd_printers_the_resin_volume_comes.str(),
+        text = Res.string.resin_for_msla_lcd_printers.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -118,14 +118,14 @@ private fun ResinCostScreen() {
             NumberField(
                 value = hoursText,
                 onValueChange = { hoursText = it },
-                label = Res.string.hours_2.str(),
+                label = Res.string.hours_field.str(),
                 modifier = Modifier.weight(1f),
                 isError = hoursText.toDoubleLenient() == null,
             )
             NumberField(
                 value = minutesText,
                 onValueChange = { minutesText = it },
-                label = Res.string.minutes_2.str(),
+                label = Res.string.minutes_field.str(),
                 modifier = Modifier.weight(1f),
                 isError = minutesText.toDoubleLenient() == null,
             )
@@ -136,7 +136,7 @@ private fun ResinCostScreen() {
                 onValueChange = { powerText = it },
                 label = Res.string.printer_power.str(),
                 modifier = Modifier.weight(1f),
-                suffix = Res.string.w.str(),
+                suffix = Res.string.unit_w.str(),
                 isError = powerText.toDoubleLenient() == null,
             )
             NumberField(
@@ -154,7 +154,7 @@ private fun ResinCostScreen() {
         glovesText, glovePriceText, hoursText, minutesText, powerText, kwhText,
     ).map { it.toDoubleLenient() }
     if (values.any { it == null || it < 0 } || values[0]!! <= 0) {
-        ErrorText(Res.string.fill_in_every_field_with_non_negative_number.str())
+        ErrorText(Res.string.resin_fill_in_every_field.str())
         return
     }
     val hours = values[7]!! + values[8]!! / 60.0
@@ -177,7 +177,7 @@ private fun ResinCostScreen() {
         KeyValueRow(Res.string.gloves.str(), cost.gloves.fmt(2, grouping = true))
         KeyValueRow(
             Res.string.electricity.str(),
-            "${cost.energy.fmt(2, grouping = true)} · ${cost.energyKwh.fmt(3)} ${Res.string.kwh.str()}",
+            "${cost.energy.fmt(2, grouping = true)} · ${cost.energyKwh.fmt(3)} ${Res.string.unit_kwh.str()}",
         )
         KeyValueRow(Res.string.total_per_model.str(), cost.total.fmt(2, grouping = true))
         KeyValueRow(Res.string.per_millilitre.str(), (cost.total / cost.resinMl).fmt(3))

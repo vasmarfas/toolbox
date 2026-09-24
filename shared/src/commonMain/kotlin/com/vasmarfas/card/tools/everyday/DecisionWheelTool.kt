@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,14 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
-import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 import kotlin.random.Random
@@ -35,15 +33,15 @@ val decisionWheelTool = Tool(
     id = "decision-wheel",
     category = ToolCategory.EVERYDAY,
     title = Res.string.decision_wheel,
-    description = Res.string.random_pick_from_your_own_list_of_options_wi,
-    icon = Icons.Filled.RotateRight,
+    description = Res.string.decision_wheel_description,
+    icon = Icons.AutoMirrored.Filled.RotateRight,
     keywords = listOf("random", "pick", "wheel", "choice", "lottery", "случайный выбор", "колесо", "жребий", "рандом"),
 ) { DecisionWheelScreen() }
 
 @Composable
 private fun DecisionWheelScreen() {
-    val initialOptions = Res.string.pizza_sushi_burgers_pasta.str()
-    var text by rememberSaveable { mutableStateOf(initialOptions) }
+    var edited by rememberSaveable { mutableStateOf<String?>(null) }
+    val text = edited ?: Res.string.pizza_sushi_burgers_pasta.str()
     var highlighted by remember { mutableStateOf(0) }
     var spinning by remember { mutableStateOf(false) }
     var spinSeq by remember { mutableStateOf(0) }
@@ -70,13 +68,13 @@ private fun DecisionWheelScreen() {
 
     ToolInputField(
         value = text,
-        onValueChange = { text = it },
+        onValueChange = { edited = it },
         label = Res.string.options_one_per_line.str(),
         singleLine = false,
         minLines = 4,
     )
     if (options.size < 2) {
-        ErrorText(Res.string.add_at_least_two_options.str())
+        Text(Res.string.add_at_least_two_options.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     ChoiceChips(
         options = options,
@@ -88,7 +86,7 @@ private fun DecisionWheelScreen() {
         text = Res.string.spin.str(),
         onClick = { spinSeq++ },
         enabled = options.size >= 2 && !spinning,
-        icon = Icons.Filled.RotateRight,
+        icon = Icons.AutoMirrored.Filled.RotateRight,
         modifier = Modifier.fillMaxWidth(),
     )
     ResultCard {

@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.NetCapabilities
 import com.vasmarfas.card.core.PingReply
@@ -52,7 +51,7 @@ val pingTool = Tool(
     id = "ping",
     category = ToolCategory.NETWORK,
     title = Res.string.ping,
-    description = Res.string.icmp_tcp_or_http_ping_reply_times_packet_los,
+    description = Res.string.ping_description,
     icon = Icons.Filled.NetworkPing,
     keywords = listOf("icmp", "latency", "rtt", "packet loss", "reachability", "доступность", "задержка", "потери"),
     expandable = true,
@@ -60,7 +59,7 @@ val pingTool = Tool(
 
 private enum class PingMode(val title: String) { ICMP("ICMP"), TCP("TCP"), HTTP("HTTP") }
 
-private val timedOut = Res.string.timeout_2
+private val timedOut = Res.string.ping_timeout
 
 @Composable
 private fun PingScreen() {
@@ -109,22 +108,22 @@ private fun PingScreen() {
         }
     }
 
-    ToolInputField(value = host, onValueChange = { host = it }, label = NetStrings.host.str(), keyboardType = KeyboardType.Uri, monospace = true)
+    ToolInputField(value = host, onValueChange = { host = it }, label = Res.string.host_or_ip_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
     if (modes.size > 1) SegmentedChoice(options = modes, selected = mode, onSelect = { mode = it }, label = { it.title })
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (mode == PingMode.TCP) NumberField(value = port, onValueChange = { port = it }, label = NetStrings.port.str(), modifier = Modifier.weight(1f))
-        NumberField(value = count, onValueChange = { count = it }, label = NetStrings.count.str(), modifier = Modifier.weight(1f))
+        if (mode == PingMode.TCP) NumberField(value = port, onValueChange = { port = it }, label = Res.string.port.str(), modifier = Modifier.weight(1f))
+        NumberField(value = count, onValueChange = { count = it }, label = Res.string.count.str(), modifier = Modifier.weight(1f))
         NumberField(value = interval, onValueChange = { interval = it }, label = Res.string.interval_ms.str(), modifier = Modifier.weight(1f))
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = NetStrings.start.str(), onClick = ::start, enabled = !running)
-        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(NetStrings.stop.str()) }
+        ActionButton(text = Res.string.start.str(), onClick = ::start, enabled = !running)
+        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(Res.string.stop_short.str()) }
     }
     if (!NetCapabilities.icmpPing) {
         val note = if (NetCapabilities.tcp) {
-            Res.string.icmp_is_not_available_here_tcp_ping_measures.str()
+            Res.string.ping_icmp_is_not_available.str()
         } else {
-            NetStrings.jvmOnlyNote.str() + " " + Res.string.http_ping_measures_a_head_request_round_trip.str()
+            Res.string.net_browser_has_no_sockets.str() + " " + Res.string.ping_http_ping_measures.str()
         }
         Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -133,18 +132,18 @@ private fun PingScreen() {
         val lost = replies.count { it.timeMs == null }
         ResultCard(title = Res.string.statistics.str()) {
             PingChart(replies)
-            KeyValueRow("${NetStrings.sent.str()} / ${NetStrings.received.str()} / ${NetStrings.lost.str()}", "${replies.size} / ${replies.size - lost} / $lost (${(lost * 100.0 / replies.size).fmt(0)}%)", copyable = false)
+            KeyValueRow("${Res.string.sent.str()} / ${Res.string.received.str()} / ${Res.string.lost.str()}", "${replies.size} / ${replies.size - lost} / $lost (${(lost * 100.0 / replies.size).fmt(0)}%)", copyable = false)
             if (times.isNotEmpty()) {
                 val avg = times.average()
                 val jitter = if (times.size > 1) sqrt(times.sumOf { (it - avg) * (it - avg) } / times.size) else 0.0
-                KeyValueRow("${NetStrings.min.str()} / ${NetStrings.avg.str()} / ${NetStrings.max.str()}", "${times.min().fmt(1)} / ${avg.fmt(1)} / ${times.max().fmt(1)} ms", copyable = false)
-                KeyValueRow("Jitter (σ)", "${jitter.fmt(1)} ms", copyable = false)
+                KeyValueRow("${Res.string.min_2.str()} / ${Res.string.avg.str()} / ${Res.string.max.str()}", "${times.min().fmt(1)} / ${avg.fmt(1)} / ${times.max().fmt(1)} ${Res.string.unit_ms.str()}", copyable = false)
+                KeyValueRow("${Res.string.jitter.str()} (σ)", "${jitter.fmt(1)} ${Res.string.unit_ms.str()}", copyable = false)
             }
         }
         ResultCard(title = Res.string.replies.str()) {
             TableBlock {
                 replies.asReversed().forEach { r ->
-                    val text = if (r.timeMs != null) "${r.timeMs.fmt(1)} ms" + (r.ttl?.let { " · TTL $it" } ?: "") + (r.from?.let { " · $it" } ?: "")
+                    val text = if (r.timeMs != null) "${r.timeMs.fmt(1)} ${Res.string.unit_ms.str()}" + (r.ttl?.let { " · TTL $it" } ?: "") + (r.from?.let { " · $it" } ?: "")
                     else (r.error ?: timedOut.str())
                     TableRow(listOf("#${r.sequence}", text), weights = listOf(0.4f, 4f))
                 }
@@ -160,6 +159,7 @@ fun PingChart(replies: List<PingReply>) {
     val lost = MaterialTheme.colorScheme.error
     val shown = replies.toList()
     val max = shown.mapNotNull { it.timeMs }.maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
+    val ms = Res.string.unit_ms.str()
     InteractiveChart(
         series = listOf(
             ChartSeries(
@@ -167,12 +167,12 @@ fun PingChart(replies: List<PingReply>) {
                 color = bar,
                 points = shown.map { (it.timeMs ?: max).toFloat() },
                 colorAt = { if (shown[it].timeMs == null) lost else bar },
-                tooltip = { index -> shown[index].timeMs?.let { "${it.fmt(1)} ms" } ?: timedOutText },
+                tooltip = { index -> shown[index].timeMs?.let { "${it.fmt(1)} $ms" } ?: timedOutText },
             ),
         ),
         modifier = Modifier.height(140.dp),
         xLabel = { "#${shown[it].sequence}" },
-        yFormat = { "${it.toDouble().fmt(1)} ms" },
+        yFormat = { "${it.toDouble().fmt(1)} $ms" },
         kind = ChartKind.BAR,
     )
 }

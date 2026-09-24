@@ -1,6 +1,6 @@
 package com.vasmarfas.card.tools.developer
 
-import com.vasmarfas.card.resources.english
+import com.vasmarfas.card.resources.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

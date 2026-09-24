@@ -66,7 +66,7 @@ private fun BloodPressureScreen() {
             onValueChange = { systolicText = it },
             label = Res.string.systolic.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm_hg.str(),
+            suffix = Res.string.unit_mmhg.str(),
             isError = systolicText.trim().toIntOrNull().let { it == null || it !in 50..300 },
         )
         NumberField(
@@ -74,7 +74,7 @@ private fun BloodPressureScreen() {
             onValueChange = { diastolicText = it },
             label = Res.string.diastolic.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm_hg.str(),
+            suffix = Res.string.unit_mmhg.str(),
             isError = diastolicText.trim().toIntOrNull().let { it == null || it !in 30..200 },
         )
     }
@@ -99,12 +99,12 @@ private fun BloodPressureScreen() {
     ResultCard {
         KeyValueRow(
             Res.string.pulse_pressure.str(),
-            "${BloodPressure.pulsePressure(systolic, diastolic)} ${Res.string.mm_hg.str()}",
+            "${BloodPressure.pulsePressure(systolic, diastolic)} ${Res.string.unit_mmhg.str()}",
             copyable = false,
         )
         KeyValueRow(
             Res.string.mean_arterial_pressure.str(),
-            "${BloodPressure.meanArterial(systolic, diastolic).fmt(1)} ${Res.string.mm_hg.str()}",
+            "${BloodPressure.meanArterial(systolic, diastolic).fmt(1)} ${Res.string.unit_mmhg.str()}",
             copyable = false,
         )
     }

@@ -7,10 +7,8 @@ import kotlin.test.assertFails
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * profile.json is edited remotely while older builds are still installed, so the file and the app
- * can drift apart in either direction. These cases pin down what each kind of drift does.
- */
+// profile.json is edited remotely while older builds are still installed, so the file and the app can
+// drift apart either way. These cases pin down what each kind of drift does
 class ProfileCompatibilityTest {
     private val minimal = """
         {

@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
@@ -35,7 +34,7 @@ val diceRollerTool = Tool(
     id = "dice-roller",
     category = ToolCategory.EVERYDAY,
     title = Res.string.dice_roller,
-    description = Res.string.d4_to_d100_notation_like_2d6_3_coin_flip_and,
+    description = Res.string.dice_roller_description,
     icon = Icons.Filled.Casino,
     keywords = listOf("dice", "d20", "roll", "coin", "rpg", "кубик", "кости", "бросок", "монета", "d6"),
 ) { DiceRollerScreen() }
@@ -68,7 +67,7 @@ private fun DiceRollerScreen() {
         isError = expr == null,
         monospace = true,
     )
-    if (expr == null) ErrorText(Res.string.use_ndm_with_optional_modifiers_e_g_2d6_3.str())
+    if (expr == null) ErrorText(Res.string.dice_use_ndm_with_optional.str())
     ChoiceChips(
         options = listOf(4, 6, 8, 10, 12, 20, 100),
         selected = null,

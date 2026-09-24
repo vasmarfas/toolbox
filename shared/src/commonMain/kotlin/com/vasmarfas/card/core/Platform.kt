@@ -2,11 +2,7 @@ package com.vasmarfas.card.core
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.android
-import com.vasmarfas.card.resources.desktop
-import com.vasmarfas.card.resources.ios
-import com.vasmarfas.card.resources.web
+import com.vasmarfas.card.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 enum class PlatformKind(val title: StringResource) {
@@ -35,17 +31,13 @@ data class PlatformInfo(
 
 expect fun platformInfo(): PlatformInfo
 
-/** Hardware thread count. The browser reports one even when more exist, see [parallelWorkers]. */
+// the browser reports one even when more exist, see parallelWorkers
 expect fun cpuCoreCount(): Int
 
-/**
- * Threads a background workload can actually occupy. Everywhere but the browser that is the core
- * count; Kotlin/Wasm has no worker pool behind `Dispatchers.Default`, so extra coroutines there
- * take turns on the one thread and only add scheduling overhead.
- */
+// Kotlin/Wasm has no worker pool behind Dispatchers.Default, extra coroutines there take turns on
+// the one thread and only add scheduling overhead
 val parallelWorkers: Int get() = if (currentPlatform == PlatformKind.WEB) 1 else cpuCoreCount()
 
-/** Host the page is served from, or null where there is no address bar. */
 expect fun siteHost(): String?
 
 expect fun openUrl(url: String)

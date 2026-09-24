@@ -20,7 +20,6 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.calculators.Sex
 import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -32,7 +31,7 @@ val bodyMetricsTool = Tool(
     id = "body-metrics",
     category = ToolCategory.FITNESS,
     title = Res.string.body_metrics,
-    description = Res.string.waist_to_height_and_waist_to_hip_ratios_body,
+    description = Res.string.body_metrics_description,
     icon = Icons.Filled.Accessibility,
     keywords = listOf("waist", "hip", "ffmi", "lean body mass", "bsa", "du bois", "талия", "бёдра", "сухая масса", "площадь тела"),
 ) { BodyMetricsScreen() }
@@ -56,9 +55,9 @@ private fun BodyMetricsScreen() {
         NumberField(
             value = heightText,
             onValueChange = { heightText = it },
-            label = Res.string.height_2.str(),
+            label = Res.string.body_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.cm.str(),
+            suffix = Res.string.unit_cm.str(),
             isError = heightText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -66,7 +65,7 @@ private fun BodyMetricsScreen() {
             onValueChange = { weightText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = weightText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -76,7 +75,7 @@ private fun BodyMetricsScreen() {
             onValueChange = { waistText = it },
             label = Res.string.waist.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.cm.str(),
+            suffix = Res.string.unit_cm.str(),
             isError = waistText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -84,7 +83,7 @@ private fun BodyMetricsScreen() {
             onValueChange = { hipText = it },
             label = Res.string.hips.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.cm.str(),
+            suffix = Res.string.unit_cm.str(),
             isError = hipText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -105,7 +104,7 @@ private fun BodyMetricsScreen() {
     if (height == null || height <= 0 || weight == null || weight <= 0 || waist == null || waist <= 0 ||
         hip == null || hip <= 0 || (bodyFatText.isNotBlank() && (bodyFat == null || bodyFat < 0 || bodyFat >= 70))
     ) {
-        ErrorText(Res.string.all_measurements_must_be_positive_body_fat_b.str())
+        ErrorText(Res.string.body_all_measurements.str())
         return
     }
 
@@ -115,7 +114,7 @@ private fun BodyMetricsScreen() {
         KeyValueRow(Res.string.waist_to_height.str(), "${whtr.fmt(3)} · ${BodyMetrics.waistToHeightNote(whtr).str()}", mono = false)
         KeyValueRow(Res.string.waist_to_hip.str(), "${whr.fmt(3)} · ${BodyMetrics.waistToHipNote(sex, whr).str()}", mono = false)
         Text(
-            text = Res.string.waist_to_height_under_0_5_is_the_simplest_si.str(),
+            text = Res.string.body_waist_to_height_under.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -124,7 +123,7 @@ private fun BodyMetricsScreen() {
         KeyValueRow("Du Bois", "${BodyMetrics.bsaDuBois(weight, height).fmt(3)} m²")
         KeyValueRow("Mosteller", "${BodyMetrics.bsaMosteller(weight, height).fmt(3)} m²")
         Text(
-            text = Res.string.bsa_is_what_drug_and_infusion_dosages_are_sc.str(),
+            text = Res.string.body_bsa_is_what_drug.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -136,17 +135,17 @@ private fun BodyMetricsScreen() {
         SimpleTable(
             header = listOf(
                 Res.string.formula.str(),
-                Res.string.lean_mass_2.str(),
+                Res.string.body_lean_mass.str(),
                 Res.string.fat.str(),
             ),
             rows = leans.map {
-                listOf(it.name, "${it.value.fmt(1)} ${Res.string.kg.str()}", "${((weight - it.value) / weight * 100).fmt(1)} %")
+                listOf(it.name, "${it.value.fmt(1)} ${Res.string.unit_kg.str()}", "${((weight - it.value) / weight * 100).fmt(1)} %")
             },
             weights = listOf(1f, 1.2f, 1f),
             mono = false,
         )
         Text(
-            text = Res.string.boer_is_the_general_purpose_one_james_overes.str(),
+            text = Res.string.body_boer_is_the_general.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -154,7 +153,7 @@ private fun BodyMetricsScreen() {
     ResultCard("FFMI") {
         KeyValueRow(
             Res.string.lean_mass_used.str(),
-            "${leanForFfmi.fmt(1)} ${Res.string.kg.str()} · " +
+            "${leanForFfmi.fmt(1)} ${Res.string.unit_kg.str()} · " +
                 (if (bodyFat != null) Res.string.from_body_fat.str() else "Boer"),
             mono = false,
         )
@@ -167,7 +166,7 @@ private fun BodyMetricsScreen() {
             copyable = false,
         )
         Text(
-            text = Res.string.normalization_scales_ffmi_to_a_height_of_1_8.str(),
+            text = Res.string.body_normalization_scales_ffmi.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

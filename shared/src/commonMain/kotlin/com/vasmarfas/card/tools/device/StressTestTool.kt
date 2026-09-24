@@ -40,6 +40,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 val stressTestTool = Tool(
     id = "stress-test",
@@ -112,7 +113,7 @@ private fun StressTestScreen() {
         selected = autoStop,
         onSelect = { autoStop = it },
         label = {
-            if (it == 0) Res.string.auto_stop_off.str() else Res.string.minutes_short.str().replace("%d", it.toString())
+            if (it == 0) Res.string.auto_stop_off.str() else stringResource(Res.string.minutes_short, it)
         },
         modifier = Modifier.fillMaxWidth(),
     )

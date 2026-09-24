@@ -1,6 +1,5 @@
 package com.vasmarfas.card.tools.fitness
 
-import com.vasmarfas.card.tools.calculators.Sex
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals

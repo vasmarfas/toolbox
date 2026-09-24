@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>vasmarfas — личный сайт и бесплатный мультитул на 151 инструмент</title>
-    <meta name="description" content="Личный сайт Василия (vasmarfas) и бесплатный мультитул: 151 инструмент для сети, расчётов, текста, разработки и датчиков. Без рекламы и регистрации.">
+    <title>vasmarfas — Android и Kotlin Multiplatform разработчик</title>
+    <meta name="description" content="Василий (vasmarfas), Android и Kotlin Multiplatform разработчик, системный и сетевой инженер: проекты, статьи на Хабре, резюме. И бесплатный мультитул на @TOOLS_RU@ для фото, видео, документов, сети и расчётов, без рекламы и регистрации.">
     <meta name="keywords" content="vasmarfas, мультитул, сетевые инструменты, калькулятор подсетей, пинг, трассировка, DNS, конвертер единиц, Android developer, Kotlin Multiplatform">
     <meta name="author" content="vasmarfas">
     <meta name="theme-color" content="#fff9ef" media="(prefers-color-scheme: light)">
@@ -19,8 +19,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="vasmarfas — личный сайт и бесплатный мультитул">
-    <meta property="og:description" content="151 инструмент в 13 категориях: сеть, конвертеры, калькуляторы, текст, разработчику, безопасность, цвет, время, датчики, быт, 3D-печать, спорт. Плюс проекты, резюме и статьи.">
+    <meta property="og:title" content="vasmarfas — Android и Kotlin Multiplatform разработчик">
+    <meta property="og:description" content="Проекты, статьи на Хабре и резюме Android и Kotlin Multiplatform разработчика. И бесплатный мультитул: @TOOLS_RU@ @CATEGORIES_RU@, от фото и PDF до сети и 3D-печати.">
     <meta property="og:url" content="https://vasmarfas.com/">
     <meta property="og:image" content="https://vasmarfas.com/og-image.png">
     <meta property="og:image:width" content="1200">
@@ -30,11 +30,37 @@
     <meta property="og:locale" content="ru_RU">
     <meta property="og:locale:alternate" content="en_US">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="vasmarfas — личный сайт и бесплатный мультитул">
-    <meta name="twitter:description" content="151 инструмент в 13 категориях: сеть, конвертеры, калькуляторы, текст, разработчику, безопасность, цвет, время, датчики, быт, 3D-печать, спорт.">
+    <meta name="twitter:title" content="vasmarfas — Android и Kotlin Multiplatform разработчик">
+    <meta name="twitter:description" content="Проекты, статьи на Хабре и резюме Android и Kotlin Multiplatform разработчика. И бесплатный мультитул: @TOOLS_RU@ @CATEGORIES_RU@, от фото и PDF до сети и 3D-печати.">
     <meta name="twitter:image" content="https://vasmarfas.com/og-image.png">
     <link rel="preload" href="app.js" as="script">
+    <!-- wasm hints -->
+    <script>
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem("settings.lang"); } catch (e) {}
+            var ru = saved ? saved === "ru" : /^ru/i.test(navigator.language || "");
+            var link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "fetch";
+            link.crossOrigin = "anonymous";
+            link.href = "composeResources/com.vasmarfas.card.resources/" + (ru ? "values-ru" : "values") + "/strings.commonMain.cvr";
+            document.head.appendChild(link);
+        })();
+    </script>
     <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "mediabunny": "./vendor/mediabunny.min.mjs",
+        "mediabunny-mp3": "./vendor/mediabunny-mp3-encoder.min.mjs"
+      }
+    }
+    </script>
+    <script>
+        // Media and PDF modules come in on first use; webpack must not see these imports.
+        window.vasmarfasImport = function (name) { return import("./" + name); };
+    </script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -75,7 +101,7 @@
           "image": "https://vasmarfas.com/og-image.png",
           "inLanguage": ["ru", "en"],
           "isAccessibleForFree": true,
-          "description": "Бесплатный мультитул: 151 инструмент в 13 категориях. Расчёты идут на устройстве, рекламы и регистрации нет.",
+          "description": "Бесплатный мультитул: @TOOLS_RU@ @CATEGORIES_RU@. Расчёты идут на устройстве, рекламы и регистрации нет.",
           "featureList": [
             "Сеть",
             "Конвертеры",
@@ -115,50 +141,147 @@
                 measurementId: "G-9PBF7QDFHD"
             };
             var sdk = "https://www.gstatic.com/firebasejs/12.19.0/";
-            var metricaId = "";
-            var loaded = false;
+            var metricaId = 112719808;
+            // Firebase keeps its data abroad, so the Russian mirror runs on Metrica alone.
+            var withFirebase = !/\.ru$/i.test(location.hostname);
+            var started = false;
             var firebase = null;
+            var pending = withFirebase ? [] : null;
+            var pageUrl = location.href;
+            var pages = 0;
 
-            function loadMetrica(id) {
-                window.ym = window.ym || function () { (window.ym.a = window.ym.a || []).push(arguments); };
-                window.ym.l = 1 * new Date();
-                var s = document.createElement("script");
-                s.async = 1;
-                s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
-                document.head.appendChild(s);
-                window.ym(id, "init", {
-                    ssr: true,
-                    webvisor: true,
-                    clickmap: true,
-                    referrer: document.referrer,
-                    url: location.href,
-                    accurateTrackBounce: true,
-                    trackLinks: true
-                });
+            window.ym = window.ym || function () { (window.ym.a = window.ym.a || []).push(arguments); };
+            window.ym.l = 1 * new Date();
+            var tag = document.createElement("script");
+            tag.async = 1;
+            tag.src = "https://mc.yandex.ru/metrika/tag.js?id=" + metricaId;
+            document.head.appendChild(tag);
+            // Webvisor records neither canvas nor shadow DOM, and the click map drops the fragment and folds every
+            // screen into one, so both stay off. The first page view is the landing one, later ones come from page().
+            window.ym(metricaId, "init", {
+                ssr: true,
+                webvisor: false,
+                clickmap: false,
+                referrer: document.referrer,
+                url: location.href,
+                accurateTrackBounce: true,
+                trackLinks: true
+            });
+
+            // Metrica draws goal parameters as a tree, so an event goes in as its name, then each value in turn.
+            function tree(name, params) {
+                var values = Object.keys(params).map(function (key) { return String(params[key]); });
+                var node = values.length ? values.pop() : 1;
+                while (values.length) {
+                    var level = {};
+                    level[values.pop()] = node;
+                    node = level;
+                }
+                var root = {};
+                root[name] = node;
+                return root;
             }
 
             function loadFirebase() {
                 import(sdk + "firebase-app.js").then(function (appModule) {
                     return import(sdk + "firebase-analytics.js").then(function (analyticsModule) {
                         var app = appModule.initializeApp(firebaseConfig);
-                        firebase = { analytics: analyticsModule.getAnalytics(app), log: analyticsModule.logEvent };
+                        firebase = {
+                            analytics: analyticsModule.getAnalytics(app),
+                            log: analyticsModule.logEvent,
+                            setProperties: analyticsModule.setUserProperties
+                        };
+                        pending.forEach(function (call) { call(); });
+                        pending = null;
                     });
-                }).catch(function () { firebase = null; });
+                }).catch(function () { firebase = null; pending = null; });
             }
 
+            function toFirebase(call) {
+                if (firebase) call();
+                else if (pending && pending.length < 200) pending.push(call);
+            }
+
+            // The canvas has no elements to click on, but Compose keeps an accessibility tree with the label and role of
+            // everything on screen. A tap is matched to the smallest node under it. Tool screens are left out: their
+            // buttons can carry what the person typed, and so can text fields anywhere.
+            var a11yRoot = null;
+            var press = null;
+
+            function accessibilityRoot() {
+                if (a11yRoot && a11yRoot.isConnected) return a11yRoot;
+                a11yRoot = null;
+                var all = document.body.getElementsByTagName("*");
+                for (var i = 0; i < all.length && !a11yRoot; i++) {
+                    if (all[i].shadowRoot) a11yRoot = all[i].shadowRoot.getElementById("cmp_a11y_root");
+                }
+                return a11yRoot;
+            }
+
+            function clickedLabel(x, y) {
+                var root = accessibilityRoot();
+                if (!root) return null;
+                var hit = null;
+                var area = Infinity;
+                var nodes = root.getElementsByTagName("*");
+                for (var i = 0; i < nodes.length; i++) {
+                    var r = nodes[i].getBoundingClientRect();
+                    if (!r.width || !r.height || x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+                    if (r.width * r.height < area) {
+                        hit = nodes[i];
+                        area = r.width * r.height;
+                    }
+                }
+                for (var node = hit; node && node !== root; node = node.parentElement) {
+                    var role = node.getAttribute("role");
+                    if (role === "textbox") return null;
+                    if (["button", "link", "tab", "checkbox", "radio", "switch"].indexOf(role) >= 0) {
+                        var text = (node.innerText || node.textContent || "").split("\n")[0].replace(/\s+/g, " ").trim();
+                        return (text || node.getAttribute("aria-label") || "").slice(0, 60) || null;
+                    }
+                }
+                return null;
+            }
+
+            document.addEventListener("pointerdown", function (e) {
+                press = e.isPrimary && e.button === 0 ? { x: e.clientX, y: e.clientY, at: Date.now() } : null;
+            }, true);
+            document.addEventListener("pointerup", function (e) {
+                var start = press;
+                press = null;
+                if (!start || Math.abs(e.clientX - start.x) > 10 || Math.abs(e.clientY - start.y) > 10 || Date.now() - start.at > 800) return;
+                var screen = location.hash.replace(/^#\/?/, "") || "home";
+                if (screen.indexOf("tools/") === 0) return;
+                var label = clickedLabel(e.clientX, e.clientY);
+                if (!label) return;
+                var params = {};
+                params[screen] = label;
+                window.ym(metricaId, "reachGoal", "ui_click", { ui_click: params });
+            }, true);
+
             return {
-                start: function (metrica) {
-                    metricaId = metrica || "";
-                    if (loaded) return;
-                    loaded = true;
-                    if (metricaId) loadMetrica(metricaId);
-                    loadFirebase();
+                start: function () {
+                    if (started) return;
+                    started = true;
+                    if (withFirebase) loadFirebase();
+                },
+                page: function (path, title) {
+                    var url = location.origin + location.pathname + path;
+                    pages++;
+                    if (pages > 1) window.ym(metricaId, "hit", url, { title: title, referer: pageUrl });
+                    pageUrl = url;
                 },
                 event: function (name, paramsJson) {
                     var params = {};
                     try { params = JSON.parse(paramsJson); } catch (e) {}
-                    if (metricaId && window.ym) window.ym(metricaId, "reachGoal", name, params);
-                    if (firebase) firebase.log(firebase.analytics, name, params);
+                    if (name !== "screen_view") window.ym(metricaId, "reachGoal", name, tree(name, params));
+                    toFirebase(function () { firebase.log(firebase.analytics, name, params); });
+                },
+                property: function (name, value) {
+                    var props = {};
+                    props[name] = value;
+                    window.ym(metricaId, "userParams", props);
+                    toFirebase(function () { firebase.setProperties(firebase.analytics, props); });
                 }
             };
         })();
@@ -166,45 +289,28 @@
 </head>
 <body>
 <noscript><div><img src="https://mc.yandex.ru/watch/112719808" style="position:absolute; left:-9999px;" alt=""></div></noscript>
-<div id="splash" role="status" aria-live="polite">
-    <div class="splash-card">
-        <svg class="splash-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M66 121L186 241.625L66 362.25" fill="none" stroke="currentColor" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/><rect x="236" y="341" width="210" height="50" rx="25" fill="currentColor"/></svg>
-        <h1 class="splash-name">vasmarfas</h1>
-        <p class="splash-title">Android / Kotlin Multiplatform разработчик · системный и сетевой инженер</p>
-        <div class="splash-links">
-            <a href="https://t.me/vasmarfas">Telegram</a>
-            <a href="https://github.com/vasmarfas">GitHub</a>
-            <a href="https://habr.com/ru/users/vasmarfas/">Хабр</a>
-            <a href="mailto:admin@vasmarfas.com">Почта</a>
-            <a href="https://resume.vasmarfas.ru/">Резюме (PDF)</a>
-            <a href="download.html">Скачать приложение</a>
+<div id="splash">
+    <div class="splash-top">
+        <div class="splash-row">
+            <svg class="splash-mark" viewBox="0 0 100 100" aria-hidden="true"><mask id="splash-cut"><path d="M38 25 V20 Q38 14 44 14 H56 Q62 14 62 20 V25" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="12" y="25" width="76" height="61" rx="11" fill="#fff"/><rect x="12" y="39" width="76" height="3.5"/><circle cx="22" cy="32" r="2.6"/><circle cx="30" cy="32" r="2.6"/><circle cx="38" cy="32" r="2.6"/><path d="M28 53 L40 62.5 L28 72" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M62 76 L62 58" stroke="#000" stroke-width="8" stroke-linecap="round"/><g transform="translate(62 55) rotate(-90)"><circle r="8.5"/><rect y="-3.25" width="9.5" height="6.5" fill="#fff"/></g></mask><rect width="100" height="100" fill="currentColor" mask="url(#splash-cut)"/></svg>
+            <span class="splash-name">vasmarfas</span>
+            <p class="splash-note" role="status" aria-live="polite"><span id="splash-note">Загружаю приложение…</span> <span class="splash-percent" id="splash-percent" aria-hidden="true"></span></p>
         </div>
         <div class="splash-progress" aria-hidden="true"><div class="splash-bar"></div></div>
-        <p class="splash-note" id="splash-note">Загружаю приложение…</p>
-        <p class="splash-about">Личный сайт: проекты, резюме и статьи. И бесплатный мультитул — 151 инструмент, всё считается прямо в браузере, без рекламы и регистрации. Тот же набор есть приложением для Android, iOS, Windows, macOS и Linux.</p>
-        <p class="splash-cats">Категории инструментов: сеть (пинг, трассировка, сканер портов и сети, DNS, whois, калькулятор подсетей), конвертеры, калькуляторы, текст, разработчику (JSON, Base64, JWT, регулярные выражения, cron), безопасность, цвет и дизайн, время, измерения и датчики (компас, уровень, шумомер, линейка), устройство, быт, 3D-печать, спорт и здоровье.</p>
-        <noscript><p class="splash-note">Сайт работает как приложение на WebAssembly и требует включённого JavaScript. Список магазинов и файлов установки открывается без него: <a href="download.html">страница загрузки</a>.</p></noscript>
     </div>
+    <noscript><style>.splash-note, .splash-progress { display: none; }</style><p class="splash-noscript">Полная версия сайта работает на WebAssembly и требует JavaScript. Приложения для телефона и компьютера: <a href="download.html">страница загрузки</a>.</p></noscript>
+    <!-- profile -->
 </div>
 <script>
     (function () {
         var ru = /^ru/i.test(navigator.language || "") || /\.ru$/i.test(location.hostname);
         if (!ru) {
             document.documentElement.lang = "en";
-            document.title = "vasmarfas — personal site and a free toolbox of 151 tools";
+            document.title = "vasmarfas — Android and Kotlin Multiplatform developer";
             var meta = document.querySelector('meta[name="description"]');
-            if (meta) meta.setAttribute("content", "Personal site of Vasilii (vasmarfas) and a free toolbox: 151 tools for networking, conversion, text, development and sensors. No ads, no sign-up.");
-            var t = {
-                ".splash-name": "vasmarfas",
-                ".splash-title": "Android / Kotlin Multiplatform developer · systems and network engineer",
-                "#splash-note": "Loading the app…",
-                ".splash-about": "Personal site: projects, résumé and articles. Plus a free toolbox: 151 tools that run right in the browser, with no ads and no sign-up. The same set ships as an app for Android, iOS, Windows, macOS and Linux.",
-                ".splash-cats": "Tool categories: network (ping, traceroute, port and LAN scanners, DNS, whois, subnet calculator), converters, calculators, text, developer (JSON, Base64, JWT, regular expressions, cron), security, colour and design, time, measure and sensors (compass, bubble level, sound meter, ruler), device, everyday, 3D printing, sport and health."
-            };
-            for (var sel in t) { var el = document.querySelector(sel); if (el) el.textContent = t[sel]; }
-            var links = document.querySelectorAll(".splash-links a");
-            var names = ["Telegram", "GitHub", "Habr", "Email", "CV (PDF)", "Get the app"];
-            for (var i = 0; i < links.length && i < names.length; i++) links[i].textContent = names[i];
+            if (meta) meta.setAttribute("content", "Vasilii (vasmarfas), Android and Kotlin Multiplatform developer, systems and network engineer: projects, Habr articles, résumé. And a free toolbox of @TOOLS_EN@ for photo, video, documents, networking and calculations, with no ads and no sign-up.");
+            var note = document.getElementById("splash-note");
+            if (note) note.textContent = "Loading the app…";
         }
         var mailDomain = /\.ru$/i.test(location.hostname) ? "vasmarfas.ru" : "vasmarfas.com";
         var mailLinks = document.querySelectorAll('a[href^="mailto:"]');
@@ -225,6 +331,48 @@
             var bar = document.querySelector(".splash-progress");
             if (bar) bar.remove();
             return;
+        }
+        var sizes = window.vasmarfasWasmSizes || {};
+        var expected = 0;
+        for (var file in sizes) expected += sizes[file];
+        var progress = document.querySelector(".splash-progress");
+        var fill = document.querySelector(".splash-bar");
+        var percent = document.getElementById("splash-percent");
+        if (expected > 0 && window.ReadableStream && progress && fill && percent) {
+            progress.classList.add("determinate");
+            var received = 0;
+            var nativeFetch = window.fetch;
+            window.fetch = function (resource) {
+                var request = nativeFetch.apply(this, arguments);
+                var url = typeof resource === "string" ? resource : resource instanceof URL ? resource.href : resource.url;
+                if (!sizes[url.split("?")[0].split("/").pop()]) return request;
+                return request.then(function (response) {
+                    if (!response.ok || !response.body) return response;
+                    var reader = response.body.getReader();
+                    var counted = new ReadableStream({
+                        pull: function (controller) {
+                            return reader.read().then(function (step) {
+                                if (step.done) {
+                                    controller.close();
+                                    return;
+                                }
+                                received += step.value.byteLength;
+                                var share = Math.min(1, received / expected);
+                                fill.style.transform = "scaleX(" + share.toFixed(3) + ")";
+                                percent.textContent = Math.floor(share * 100) + (ru ? " %" : "%");
+                                if (share >= 1) {
+                                    var note = document.getElementById("splash-note");
+                                    if (note) note.textContent = ru ? "Запускаю…" : "Starting…";
+                                    percent.textContent = "";
+                                }
+                                controller.enqueue(step.value);
+                            });
+                        },
+                        cancel: function (reason) { return reader.cancel(reason); }
+                    });
+                    return new Response(counted, { status: response.status, statusText: response.statusText, headers: response.headers });
+                });
+            };
         }
         var s = document.createElement("script");
         s.src = "app.js";

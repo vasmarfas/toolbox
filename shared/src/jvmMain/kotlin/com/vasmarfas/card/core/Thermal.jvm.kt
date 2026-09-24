@@ -2,11 +2,8 @@ package com.vasmarfas.card.core
 
 import java.io.File
 
-/**
- * Linux publishes sensors under /sys/class/hwmon in millidegrees, which is readable without
- * privileges. Windows needs WMI through a driver that normal processes cannot load, and macOS
- * needs the private SMC interface, so on both this reports nothing rather than a made-up figure.
- */
+// Linux has sensors under /sys/class/hwmon in millidegrees, readable without privileges. Windows needs
+// WMI through a driver normal processes cannot load and macOS the private SMC, so both report nothing
 private val hwmonRoot = File("/sys/class/hwmon")
 
 private fun hwmonSensors(): List<Pair<File, String>> = hwmonRoot.listFiles().orEmpty()

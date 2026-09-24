@@ -32,7 +32,7 @@ val temperatureTowerTool = Tool(
     id = "temperature-tower",
     category = ToolCategory.PRINTING,
     title = Res.string.temperature_tower,
-    description = Res.string.segment_plan_for_a_temperature_tower_with_ma,
+    description = Res.string.temperature_tower_description,
     icon = Icons.Filled.Thermostat,
     keywords = listOf("temperature tower", "calibration", "m104", "m109", "layer change", "башня", "температура", "калибровка", "смена слоя"),
 ) { TemperatureTowerScreen() }
@@ -97,7 +97,7 @@ private fun TemperatureTowerScreen() {
             onValueChange = { firstLayerText = it },
             label = Res.string.first_layer_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = firstLayerText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -105,7 +105,7 @@ private fun TemperatureTowerScreen() {
             onValueChange = { layerText = it },
             label = Res.string.layer_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = layerText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -119,7 +119,7 @@ private fun TemperatureTowerScreen() {
     if (start == null || step == null || step == 0 || layers == null || layers <= 0 ||
         segments == null || segments !in 2..30 || firstLayer == null || firstLayer <= 0 || layer == null || layer <= 0
     ) {
-        ErrorText(Res.string.check_the_values_2_30_segments_non_zero_step.str())
+        ErrorText(Res.string.tower_check_the_values_2.str())
         return
     }
 
@@ -130,16 +130,16 @@ private fun TemperatureTowerScreen() {
             Res.string.temperature_range.str(),
             "${plan.minOf { it.temperature }} — ${plan.maxOf { it.temperature }} °C",
         )
-        KeyValueRow(Res.string.total_height.str(), "${plan.last().zEnd.fmt(2)} ${Res.string.mm.str()}")
+        KeyValueRow(Res.string.total_height.str(), "${plan.last().zEnd.fmt(2)} ${Res.string.unit_mm.str()}")
         KeyValueRow(Res.string.total_layers.str(), plan.last().lastLayer.toString())
         KeyValueRow(Res.string.bed.str(), "${material.bedC.first}–${material.bedC.last} °C")
     }
-    ResultCard(Res.string.segments_2.str()) {
+    ResultCard(Res.string.tower_segments.str()) {
         SimpleTable(
             header = listOf(
                 "#",
-                Res.string.layers_2.str(),
-                "Z, ${Res.string.mm.str()}",
+                Res.string.tower_layers.str(),
+                "Z, ${Res.string.unit_mm.str()}",
                 "°C",
             ),
             rows = plan.map {

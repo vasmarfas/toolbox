@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -18,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.LanHost
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.icmpPing
 import com.vasmarfas.card.core.networkInterfaces
@@ -45,7 +45,7 @@ val lanScannerTool = Tool(
     id = "lan-scanner",
     category = ToolCategory.NETWORK,
     title = Res.string.lan_scanner,
-    description = Res.string.find_live_hosts_in_your_subnet_with_ping_and,
+    description = Res.string.lan_scanner_description,
     icon = Icons.Filled.Devices,
     keywords = listOf("network scan", "devices", "arp", "subnet", "hosts", "устройства", "сеть", "кто в сети"),
     platforms = PlatformKind.native,
@@ -53,7 +53,7 @@ val lanScannerTool = Tool(
 
 private val probePorts = listOf(80, 443, 22, 445, 8080, 8291, 62078, 5000)
 
-private fun localSubnetGuess(): String {
+private suspend fun localSubnetGuess(): String {
     val candidates = networkInterfaces().filter { it.isUp && !it.isLoopback }.flatMap { it.addresses }
         .filter { it.contains('.') }
         .mapNotNull { a ->
@@ -70,7 +70,8 @@ private fun localSubnetGuess(): String {
 @Composable
 private fun LanScannerScreen() {
     val enterASubnetOf20OrSmallerText = Res.string.enter_a_subnet_of_20_or_smaller.str()
-    var subnet by rememberSaveable { mutableStateOf(localSubnetGuess()) }
+    var subnet by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(Unit) { if (subnet.isEmpty()) subnet = localSubnetGuess() }
     val hosts = remember { mutableStateListOf<LanHost>() }
     var running by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(0) }
@@ -124,16 +125,16 @@ private fun LanScannerScreen() {
 
     ToolInputField(value = subnet, onValueChange = { subnet = it }, label = Res.string.subnet.str(), keyboardType = KeyboardType.Uri, monospace = true)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = NetStrings.start.str(), onClick = ::start, enabled = !running)
-        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(NetStrings.stop.str()) }
-        TextButton(onClick = { subnet = localSubnetGuess() }) { Text(Res.string.detect.str()) }
+        ActionButton(text = Res.string.start.str(), onClick = ::start, enabled = !running)
+        if (running) TextButton(onClick = { job?.cancel(); running = false }) { Text(Res.string.stop_short.str()) }
+        TextButton(onClick = { scope.launch { subnet = localSubnetGuess() } }) { Text(Res.string.detect.str()) }
     }
     error?.let { ErrorText(it) }
-    if (running) LoadingRow("${NetStrings.scanning.str()} $done / $total")
+    if (running) LoadingRow("${Res.string.scanning.str()} $done / $total")
     if (hosts.isNotEmpty() || (!running && total > 0)) {
         ResultCard(title = "${hosts.size} " + Res.string.hosts.str()) {
             TableBlock {
-                TableRow(listOf("Address", "Name", "Ports", "ms"), header = true, weights = listOf(1.4f, 2f, 1.6f, 0.6f))
+                TableRow(listOf(Res.string.address.str(), Res.string.name.str(), Res.string.open_ports.str(), Res.string.unit_ms.str()), header = true, weights = listOf(1.4f, 2f, 1.6f, 0.6f))
                 hosts.sortedBy { Ipv4.parse(it.address) ?: 0 }.forEach { h ->
                     TableRow(
                         listOf(h.address, h.hostname ?: "", h.openPorts.joinToString(",") { p -> WellKnownPorts.service(p)?.let { s -> "$p $s" } ?: p.toString() }, h.timeMs.toString()),

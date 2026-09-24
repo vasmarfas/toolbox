@@ -61,7 +61,6 @@ actual fun setSystemBarsHidden(hidden: Boolean) {
 
 actual fun setSystemBarsDark(dark: Boolean) = Unit
 
-
 private fun requestBrowserFullscreen(): Unit = js("{ var e = document.documentElement; if (e.requestFullscreen) e.requestFullscreen(); }")
 
 private fun exitBrowserFullscreen(): Unit = js("{ if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); }")

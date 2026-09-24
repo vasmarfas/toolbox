@@ -29,7 +29,7 @@ val oneRepMaxTool = Tool(
     id = "one-rep-max",
     category = ToolCategory.FITNESS,
     title = Res.string.one_rep_max,
-    description = Res.string.s_1rm_from_a_working_set_by_six_formulas_with,
+    description = Res.string.one_rep_max_description,
     icon = Icons.Filled.Scale,
     keywords = listOf("1rm", "one rep max", "epley", "brzycki", "strength", "рм", "разовый максимум", "эпли", "сила", "проценты"),
 ) { OneRepMaxScreen() }
@@ -45,7 +45,7 @@ private fun OneRepMaxScreen() {
             onValueChange = { weightText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = weightText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -66,15 +66,15 @@ private fun OneRepMaxScreen() {
     val weight = weightText.toDoubleLenient()
     val reps = repsText.trim().toIntOrNull()
     if (weight == null || weight <= 0 || reps == null || reps < 1 || reps > 30) {
-        ErrorText(Res.string.weight_above_zero_reps_from_1_to_30.str())
+        ErrorText(Res.string.one_rep_weight_above_zero_reps.str())
         return
     }
 
     val results = OneRepMax.all(weight, reps)
     val average = OneRepMax.average(weight, reps)
     ResultCard(Res.string.estimated_1rm.str()) {
-        KeyValueRow(Res.string.average_3.str(), "${average.fmt(1)} ${Res.string.kg.str()}")
-        KeyValueRow(Res.string.spread.str(), "${results.minOf { it.second }.fmt(1)} — ${results.maxOf { it.second }.fmt(1)} ${Res.string.kg.str()}")
+        KeyValueRow(Res.string.one_rep_average.str(), "${average.fmt(1)} ${Res.string.unit_kg.str()}")
+        KeyValueRow(Res.string.spread.str(), "${results.minOf { it.second }.fmt(1)} — ${results.maxOf { it.second }.fmt(1)} ${Res.string.unit_kg.str()}")
         SimpleTable(
             header = listOf(Res.string.formula.str(), "1RM", "%"),
             rows = results.map { (name, value) ->
@@ -86,7 +86,7 @@ private fun OneRepMaxScreen() {
     }
     if (reps > 12) {
         ErrorText(
-            Res.string.above_12_reps_every_formula_drifts_use_a_set.str(),
+            Res.string.one_rep_above_12_reps_every.str(),
         )
     }
     ResultCard(Res.string.training_weights.str()) {

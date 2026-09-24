@@ -1,5 +1,6 @@
 package com.vasmarfas.card.tools.text
 
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -249,25 +250,116 @@ class CiphersTest {
 class TextDiffTest {
     @Test
     fun identicalTextsAreFullySimilar() {
-        val result = TextDiff.diffLines("a\nb", "a\nb")
-        assertEquals(0, result.added)
-        assertEquals(0, result.removed)
+        val result = TextDiff.diff("a\nb", "a\nb")
+        assertTrue(result.identical)
         assertEquals(100.0, result.similarity, 0.001)
+        assertEquals("", TextDiff.patch(result))
     }
 
     @Test
-    fun detectsAddedAndRemoved() {
-        val result = TextDiff.diffLines("a\nb\nc", "a\nx\nc")
-        assertEquals(1, result.added)
-        assertEquals(1, result.removed)
-        assertEquals(listOf(DiffKind.EQUAL, DiffKind.REMOVED, DiffKind.ADDED, DiffKind.EQUAL), result.lines.map { it.kind })
+    fun editedLineIsChangedNotRemovedAndAdded() {
+        val result = TextDiff.diff("a\nb\nc", "a\nx\nc")
+        assertEquals(listOf(DiffKind.EQUAL, DiffKind.CHANGED, DiffKind.EQUAL), result.rows.map { it.kind })
+        assertEquals(1, result.changed)
+        assertEquals(0, result.added)
+        assertEquals(0, result.removed)
     }
 
     @Test
     fun emptySideIsAllAdded() {
-        val result = TextDiff.diffLines("", "a\nb")
+        val result = TextDiff.diff("", "a\nb")
         assertEquals(2, result.added)
         assertEquals(0, result.removed)
+        assertEquals(listOf(1, 2), result.rows.map { it.newNumber })
+    }
+
+    @Test
+    fun insertionNextToAnEditPairsTheSimilarLine() {
+        val result = TextDiff.diff("a\nhello world\nz", "a\nsomething new\nhello there world\nz")
+        assertEquals(listOf(DiffKind.EQUAL, DiffKind.ADDED, DiffKind.CHANGED, DiffKind.EQUAL), result.rows.map { it.kind })
+        val changed = result.rows[2]
+        assertEquals("hello world", changed.oldText)
+        assertEquals("hello there world", changed.newText)
+        assertEquals(2, changed.oldNumber)
+        assertEquals(3, changed.newNumber)
+    }
+
+    @Test
+    fun inlineSpansCoverOnlyTheChangedWords() {
+        val (old, new) = TextDiff.inlineSpans("val x = 1", "val x = 42")
+        assertEquals(listOf(8..8), old)
+        assertEquals(listOf(8..9), new)
+        val (removed, added) = TextDiff.inlineSpans("one two three", "one three")
+        assertEquals("two ", "one two three".substring(removed.single()))
+        assertTrue(added.isEmpty())
+    }
+
+    @Test
+    fun whitespaceAndCaseCanBeIgnored() {
+        assertTrue(TextDiff.diff("a  b\n  c", "a b\nc", DiffOptions(ignoreWhitespace = true)).identical)
+        assertTrue(TextDiff.diff("Hello", "hELLO", DiffOptions(ignoreCase = true)).identical)
+        assertEquals(1, TextDiff.diff("Hello", "hELLO").changed)
+    }
+
+    @Test
+    fun trailingNewlineAndCrLfDoNotCountAsChanges() {
+        assertTrue(TextDiff.diff("a\r\nb\r\n", "a\nb").identical)
+    }
+
+    @Test
+    fun patchUsesUnifiedFormat() {
+        val old = (1..10).joinToString("\n") { "line $it" }
+        val new = old.replace("line 5", "line five").replace("line 10", "line 10\nline 11")
+        val expected = listOf(
+            "--- original",
+            "+++ modified",
+            "@@ -2,9 +2,10 @@",
+            " line 2",
+            " line 3",
+            " line 4",
+            "-line 5",
+            "+line five",
+            " line 6",
+            " line 7",
+            " line 8",
+            " line 9",
+            " line 10",
+            "+line 11",
+        ).joinToString("\n", postfix = "\n")
+        assertEquals(expected, TextDiff.patch(TextDiff.diff(old, new)))
+    }
+
+    @Test
+    fun myersFindsALongestCommonSubsequence() {
+        val random = Random(7)
+        repeat(300) {
+            val a = IntArray(random.nextInt(0, 30)) { random.nextInt(0, 4) }
+            val b = IntArray(random.nextInt(0, 30)) { random.nextInt(0, 4) }
+            val (removed, added) = Myers.marks(a, b)
+            val keptA = a.filterIndexed { i, _ -> !removed[i] }
+            val keptB = b.filterIndexed { i, _ -> !added[i] }
+            assertEquals(keptA, keptB)
+            assertEquals(lcsLength(a, b), keptA.size)
+        }
+    }
+
+    @Test
+    fun largeInputsStayFast() {
+        val old = (1..20_000).joinToString("\n") { "row $it" }
+        val new = (1..20_000).joinToString("\n") { if (it % 997 == 0) "edited $it" else "row $it" }
+        val result = TextDiff.diff(old, new)
+        assertEquals(20, result.changed)
+        assertEquals(0, result.added + result.removed)
+    }
+
+    private fun lcsLength(a: IntArray, b: IntArray): Int {
+        val dp = Array(a.size + 1) { IntArray(b.size + 1) }
+        for (i in a.indices.reversed()) {
+            for (j in b.indices.reversed()) {
+                dp[i][j] = if (a[i] == b[j]) dp[i + 1][j + 1] + 1 else maxOf(dp[i + 1][j], dp[i][j + 1])
+            }
+        }
+        return dp[0][0]
     }
 }
 

@@ -21,7 +21,7 @@ val findReplaceTool = Tool(
     id = "find-replace",
     category = ToolCategory.TEXT,
     title = Res.string.find_and_replace,
-    description = Res.string.replace_text_with_case_insensitive_whole_wor,
+    description = Res.string.find_replace_description,
     icon = Icons.Filled.FindReplace,
     keywords = listOf("find", "replace", "search", "regex", "substitute", "найти", "заменить", "поиск", "регулярное выражение"),
 ) { FindReplaceScreen() }

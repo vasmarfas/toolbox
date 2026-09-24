@@ -32,7 +32,7 @@ val waterAndMacrosTool = Tool(
     id = "water-and-macros",
     category = ToolCategory.FITNESS,
     title = Res.string.macros_and_meals,
-    description = Res.string.calorie_target_from_your_tdee_and_goal_prote,
+    description = Res.string.water_and_macros_description,
     icon = Icons.Filled.Restaurant,
     keywords = listOf("macros", "protein", "carbs", "fat", "cutting", "bulking", "meals", "макросы", "белок", "углеводы", "жиры", "сушка", "набор"),
 ) { WaterAndMacrosScreen() }
@@ -51,7 +51,7 @@ private fun WaterAndMacrosScreen() {
         value = tdeeText,
         onValueChange = { tdeeText = it },
         label = Res.string.daily_calories_tdee.str(),
-        suffix = Res.string.kcal.str(),
+        suffix = Res.string.unit_kcal.str(),
         isError = tdeeText.toDoubleLenient().let { it == null || it <= 0 },
         supportingText = Res.string.take_it_from_the_bmi_body_tool.str(),
     )
@@ -78,7 +78,7 @@ private fun WaterAndMacrosScreen() {
             onValueChange = { weightText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = weightText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -88,7 +88,7 @@ private fun WaterAndMacrosScreen() {
             onValueChange = { proteinText = it },
             label = Res.string.protein_per_kg.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.g.str(),
+            suffix = Res.string.unit_g.str(),
             isError = proteinText.toDoubleLenient().let { it == null || it < 0 || it > 5 },
         )
         NumberField(
@@ -96,7 +96,7 @@ private fun WaterAndMacrosScreen() {
             onValueChange = { fatText = it },
             label = Res.string.fat_per_kg.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.g.str(),
+            suffix = Res.string.unit_g.str(),
             isError = fatText.toDoubleLenient().let { it == null || it < 0 || it > 4 },
         )
     }
@@ -117,7 +117,7 @@ private fun WaterAndMacrosScreen() {
         fat == null || fat < 0 || fat > 4
     ) {
         ErrorText(
-            Res.string.check_the_values_shift_within_60_protein_up.str(),
+            Res.string.macros_check_the_values_shift.str(),
         )
         return
     }
@@ -125,18 +125,18 @@ private fun WaterAndMacrosScreen() {
     val split = Macros.split(tdee, percent, weight, protein, fat)
     if (split.carbsKcal < 0) {
         ErrorText(
-            Res.string.protein_and_fat_alone_exceed_the_calorie_tar.str(),
+            Res.string.macros_protein_and_fat_alone.str(),
         )
         return
     }
     ResultCard(Res.string.daily_target.str()) {
-        KeyValueRow(Res.string.calories.str(), "${split.targetKcal.fmt(0, grouping = true)} ${Res.string.kcal.str()}")
-        KeyValueRow(Res.string.difference_from_tdee.str(), "${(split.targetKcal - tdee).fmt(0)} ${Res.string.kcal.str()}")
+        KeyValueRow(Res.string.calories.str(), "${split.targetKcal.fmt(0, grouping = true)} ${Res.string.unit_kcal.str()}")
+        KeyValueRow(Res.string.difference_from_tdee.str(), "${(split.targetKcal - tdee).fmt(0)} ${Res.string.unit_kcal.str()}")
         SimpleTable(
             header = listOf(
                 Res.string.macro.str(),
-                Res.string.g.str(),
-                Res.string.kcal.str(),
+                Res.string.unit_g.str(),
+                Res.string.unit_kcal.str(),
                 "%",
             ),
             rows = listOf(
@@ -152,10 +152,10 @@ private fun WaterAndMacrosScreen() {
         SimpleTable(
             header = listOf(
                 "#",
-                Res.string.kcal.str(),
-                "${Res.string.protein.str()}, ${Res.string.g.str()}",
-                "${Res.string.fat.str()}, ${Res.string.g.str()}",
-                "${Res.string.carbs.str()}, ${Res.string.g.str()}",
+                Res.string.unit_kcal.str(),
+                "${Res.string.protein.str()}, ${Res.string.unit_g.str()}",
+                "${Res.string.fat.str()}, ${Res.string.unit_g.str()}",
+                "${Res.string.carbs.str()}, ${Res.string.unit_g.str()}",
             ),
             rows = Macros.mealShares(meals).mapIndexed { index, share ->
                 listOf(
@@ -170,7 +170,7 @@ private fun WaterAndMacrosScreen() {
         )
     }
     Text(
-        text = Res.string.water_is_not_part_of_this_the_water_intake_t.str(),
+        text = Res.string.macros_water_is_not_part.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

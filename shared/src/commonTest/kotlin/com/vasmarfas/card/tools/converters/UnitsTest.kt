@@ -30,4 +30,13 @@ class UnitsTest {
         assertEquals("0.3333", (1.0 / 3).fmtSig(4))
         assertEquals("0", 0.0.fmtSig())
     }
+
+    @Test
+    fun readableFormatting() {
+        assertEquals("1 000 000 000", 1e9.fmtReadable().text)
+        assertEquals("-12 345.678", (-12345.678).fmtReadable().text)
+        assertEquals("1234.5", 1234.5.fmtReadable().text)
+        assertEquals("6.6845871 × 10-12", 6.6845871e-12.fmtReadable().text)
+        assertEquals("1 × 1020", 1e20.fmtReadable().text)
+    }
 }

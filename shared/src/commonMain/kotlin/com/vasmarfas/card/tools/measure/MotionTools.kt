@@ -43,7 +43,7 @@ val accelerometerTool = Tool(
     id = "accelerometer",
     category = ToolCategory.MEASURE,
     title = Res.string.accelerometer_and_vibration,
-    description = Res.string.live_x_y_z_acceleration_chart_magnitude_peak,
+    description = Res.string.accelerometer_description,
     icon = Icons.Filled.Vibration,
     keywords = listOf("g-force", "vibration", "seismograph", "shake", "вибрация", "сейсмограф", "ускорение"),
     platforms = PlatformKind.mobileAndWeb,
@@ -79,7 +79,7 @@ val magnetometerTool = Tool(
     id = "magnetometer",
     category = ToolCategory.MEASURE,
     title = Res.string.magnetometer_and_metal_detector,
-    description = Res.string.magnetic_field_strength_in_t_per_axis_with_a,
+    description = Res.string.magnetometer_description,
     icon = Icons.Filled.Sensors,
     keywords = listOf("magnetic", "metal detector", "tesla", "emf", "металл", "магнит", "поле"),
     platforms = PlatformKind.mobileAndWeb,
@@ -110,7 +110,7 @@ private fun MagnetometerScreen() {
             KeyValueRow(Res.string.baseline.str(), baseline?.let { "${it.toDouble().fmt(1)} µT" } ?: "…", copyable = false)
             KeyValueRow(Res.string.deviation.str(), delta?.let { "${it.toDouble().fmt(1)} µT" } ?: "…", copyable = false)
             Text(
-                Res.string.earth_s_field_is_25_65_t_bring_the_top_of_th.str(),
+                Res.string.motion_earth_s_field.str(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -123,7 +123,7 @@ val lightMeterTool = Tool(
     id = "light-meter",
     category = ToolCategory.MEASURE,
     title = Res.string.light_meter,
-    description = Res.string.ambient_illuminance_in_lux_from_the_light_se,
+    description = Res.string.light_meter_description,
     icon = Icons.Filled.WbSunny,
     keywords = listOf("lux", "illuminance", "brightness", "ev", "люкс", "освещённость", "яркость"),
     platforms = PlatformKind.mobileAndWeb,
@@ -159,7 +159,7 @@ private fun lightReference(lux: Double): StringResource = when {
     lux < 100 -> Res.string.living_room_lighting
     lux < 300 -> Res.string.office_minimum_300_lx_recommended
     lux < 500 -> Res.string.good_office_reading_light
-    lux < 1000 -> Res.string.bright_workshop_overcast_day_indoors
+    lux < 1000 -> Res.string.motion_bright_workshop_overcast
     lux < 10_000 -> Res.string.daylight_shade
     lux < 50_000 -> Res.string.overcast_to_bright_daylight
     else -> Res.string.direct_sunlight
@@ -169,7 +169,7 @@ val barometerTool = Tool(
     id = "barometer",
     category = ToolCategory.MEASURE,
     title = Res.string.barometer_and_altimeter,
-    description = Res.string.atmospheric_pressure_in_hpa_and_mmhg_trend_c,
+    description = Res.string.barometer_description,
     icon = Icons.Filled.Compress,
     keywords = listOf("pressure", "altitude", "hpa", "mmhg", "weather", "давление", "высота", "погода"),
     platforms = PlatformKind.mobile,
@@ -196,7 +196,7 @@ private fun BarometerScreen() {
         ResultCard {
             KeyValueRow("mmHg", (hpa * 0.750062).fmt(1), copyable = false)
             KeyValueRow("inHg", (hpa * 0.02953).fmt(2), copyable = false)
-            KeyValueRow(Res.string.barometric_altitude.str(), "${altitude.fmt(0)} m", copyable = false)
+            KeyValueRow(Res.string.barometric_altitude.str(), "${altitude.fmt(0)} ${Res.string.unit_m.str()}", copyable = false)
             val first = history.firstOrNull()?.x?.toDouble()
             if (first != null) KeyValueRow(Res.string.change_since_start.str(), "${(hpa - first).fmt(2)} hPa", copyable = false)
         }
@@ -207,7 +207,7 @@ val pedometerTool = Tool(
     id = "pedometer",
     category = ToolCategory.MEASURE,
     title = Res.string.pedometer,
-    description = Res.string.steps_from_the_hardware_step_counter_since_t,
+    description = Res.string.pedometer_description,
     icon = Icons.AutoMirrored.Filled.DirectionsWalk,
     keywords = listOf("steps", "walking", "distance", "calories", "шаги", "ходьба", "расстояние"),
     platforms = PlatformKind.mobile,
@@ -219,7 +219,7 @@ private fun PedometerScreen() {
     var stride by rememberSaveable { mutableStateOf("75") }
     var weight by rememberSaveable { mutableStateOf("75") }
     if (!permission) {
-        Text(Res.string.step_counting_needs_the_activity_recognition.str())
+        Text(Res.string.motion_step_counting_needs.str())
         val scope = rememberCoroutineScope()
         ActionButton(text = Res.string.grant_permission.str(), onClick = { scope.launch { permission = ensurePermission(AppPermission.ACTIVITY_RECOGNITION) } })
         return
@@ -233,8 +233,8 @@ private fun PedometerScreen() {
         val kg = weight.toDoubleOrNull() ?: 75.0
         Text("$steps", style = MaterialTheme.typography.displayLarge)
         ResultCard {
-            KeyValueRow(Res.string.distance.str(), "${(steps * strideM / 1000).fmt(2)} km", copyable = false)
-            KeyValueRow(Res.string.calories.str(), "${(steps * strideM / 1000 * kg * 0.9).fmt(0)} kcal", copyable = false)
+            KeyValueRow(Res.string.distance.str(), "${(steps * strideM / 1000).fmt(2)} ${Res.string.unit_km.str()}", copyable = false)
+            KeyValueRow(Res.string.calories.str(), "${(steps * strideM / 1000 * kg * 0.9).fmt(0)} ${Res.string.unit_kcal.str()}", copyable = false)
             KeyValueRow(Res.string.total_since_reboot.str(), reading.x.toInt().toString(), copyable = false)
         }
         NumberField(value = stride, onValueChange = { stride = it }, label = Res.string.stride_length_cm.str())

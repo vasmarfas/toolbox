@@ -32,7 +32,7 @@ data class Milestones(
     val sysadminSince: Int = 2018,
 )
 
-/** `url` empty falls back to the bundled picture; `active` false hides the avatar entirely. */
+// empty url falls back to the bundled picture, active = false hides the avatar
 @Serializable
 data class Avatar(
     val url: String = "",
@@ -51,7 +51,7 @@ data class Link(
 data class Project(
     val id: String,
     val name: String,
-    /** Where the project's numbers come from; only "github" carries a star count today. */
+    // only "github" carries a star count so far
     val source: String = "",
     val tagline: Tr,
     val description: Tr,
@@ -61,6 +61,8 @@ data class Project(
     val year: String = "",
     val featured: Boolean = false,
     val stars: Int? = null,
+    // as the store prints them, e.g. 10K+. Google Play has no public API for it, the number is copied by hand
+    val downloads: String? = null,
     val status: Tr? = null,
 )
 
@@ -79,6 +81,7 @@ data class Resume(
     val version: Int = 1,
     val updated: String = "",
     val summary: Tr? = null,
+    val pdf: String? = null,
     val skills: List<SkillGroup> = emptyList(),
     val experience: List<Experience> = emptyList(),
     val education: List<Education> = emptyList(),

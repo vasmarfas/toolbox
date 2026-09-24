@@ -30,7 +30,7 @@ val ciphersTool = Tool(
     id = "ciphers",
     category = ToolCategory.TEXT,
     title = Res.string.classic_ciphers,
-    description = Res.string.caesar_with_brute_force_rot13_rot47_atbash_v,
+    description = Res.string.ciphers_description,
     icon = Icons.Filled.Lock,
     keywords = listOf("cipher", "caesar", "rot13", "rot47", "atbash", "vigenere", "encrypt", "decrypt", "шифр", "цезарь", "виженер", "атбаш"),
 ) { CiphersScreen() }

@@ -47,7 +47,7 @@ val workoutBuilderTool = Tool(
     id = "workout-builder",
     category = ToolCategory.FITNESS,
     title = Res.string.workout_builder,
-    description = Res.string.named_training_plans_with_sets_reps_or_durat,
+    description = Res.string.workout_builder_description,
     icon = Icons.Filled.FitnessCenter,
     keywords = listOf("workout", "plan", "sets", "reps", "volume", "gym", "тренировка", "план", "подходы", "повторы", "тоннаж", "зал"),
 ) { WorkoutBuilderScreen() }
@@ -55,7 +55,7 @@ val workoutBuilderTool = Tool(
 @Composable
 private fun WorkoutBuilderScreen() {
     val untitledText = Res.string.untitled.str()
-    val copy2Text = Res.string.copy_2.str()
+    val copy2Text = Res.string.workout_copy.str()
     val plans = remember { mutableStateListOf<WorkoutPlan>().apply { addAll(WorkoutPlans.load()) } }
     var selectedId by rememberSaveable { mutableStateOf(plans.firstOrNull()?.id ?: "") }
     var transfer by rememberSaveable { mutableStateOf("") }
@@ -84,7 +84,7 @@ private fun WorkoutBuilderScreen() {
     )
     if (plans.isEmpty()) {
         Text(
-            text = Res.string.no_plans_yet_create_one_and_add_exercises_to.str(),
+            text = Res.string.workout_no_plans_yet_create.str(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -172,7 +172,7 @@ private fun WorkoutBuilderScreen() {
             Res.string.estimated_duration.str(),
             formatDurationMs(WorkoutPlans.estimatedSeconds(plan) * 1000L),
         )
-        KeyValueRow(Res.string.total_volume.str(), "${WorkoutPlans.totalVolume(plan).fmt(1, grouping = true)} ${Res.string.kg.str()}")
+        KeyValueRow(Res.string.total_volume.str(), "${WorkoutPlans.totalVolume(plan).fmt(1, grouping = true)} ${Res.string.unit_kg.str()}")
     }
 
     ToolSection(Res.string.export_and_import.str()) {
@@ -210,7 +210,7 @@ private fun WorkoutBuilderScreen() {
             )
         }
         if (importError) {
-            ErrorText(Res.string.this_is_not_a_plan_exported_from_here.str())
+            ErrorText(Res.string.workout_is_not_a_plan.str())
         }
     }
 }
@@ -235,10 +235,10 @@ private fun ExerciseEditor(
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = { onMove(-1) }, enabled = position > 0) {
-                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Res.string.up_2.str())
+                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = Res.string.workout_up.str())
             }
             IconButton(onClick = { onMove(1) }, enabled = position < count - 1) {
-                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = Res.string.down_2.str())
+                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = Res.string.workout_down.str())
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Filled.Delete, contentDescription = Res.string.delete.str())
@@ -248,7 +248,7 @@ private fun ExerciseEditor(
             IntField(
                 value = exercise.sets,
                 onValueChange = { onChange(exercise.copy(sets = it)) },
-                label = Res.string.sets_2.str(),
+                label = Res.string.workout_sets.str(),
                 modifier = Modifier.weight(1f),
             )
             IntField(
@@ -273,7 +273,7 @@ private fun ExerciseEditor(
                 },
                 label = Res.string.weight.str(),
                 modifier = Modifier.weight(1f),
-                suffix = Res.string.kg.str(),
+                suffix = Res.string.unit_kg.str(),
                 isError = weightText.isNotBlank() && weightText.toDoubleLenient() == null,
             )
             IntField(

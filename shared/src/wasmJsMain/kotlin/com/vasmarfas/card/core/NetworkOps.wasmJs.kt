@@ -19,7 +19,7 @@ actual suspend fun reverseLookup(address: String): String? = null
 
 actual suspend fun wakeOnLan(mac: String, broadcast: String, port: Int): Boolean = false
 
-actual fun networkInterfaces(): List<InterfaceInfo> = emptyList()
+actual suspend fun networkInterfaces(): List<InterfaceInfo> = emptyList()
 
 actual suspend fun tlsHandshake(host: String, port: Int, timeoutMs: Int): TlsInfo = throw UnsupportedOperationException("unsupported")
 

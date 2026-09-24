@@ -1,6 +1,5 @@
 package com.vasmarfas.card.tools.fitness
 
-import com.vasmarfas.card.tools.calculators.Sex
 import kotlin.math.ln
 import kotlin.math.pow
 

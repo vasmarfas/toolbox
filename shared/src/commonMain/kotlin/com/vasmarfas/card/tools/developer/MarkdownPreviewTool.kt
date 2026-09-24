@@ -44,44 +44,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.openUrl
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.markdown_preview
-import com.vasmarfas.card.resources.preview
-import com.vasmarfas.card.resources.renders_headings_bold_and_italic_inline_code
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 
-private const val SAMPLE = """# Markdown preview
-
-Supports **bold**, *italic*, `code`, ~~strikethrough~~ and [links](https://kotlinlang.org).
-
-## Lists
-
-- first item
-- second item
-  - nested item
-
-1. step one
-2. step two
-
-> A blockquote.
-
-```kotlin
-fun main() {
-    println("Hello")
-}
-```
-
----
-"""
-
 val markdownPreviewTool = Tool(
     id = "markdown-preview",
     category = ToolCategory.DEVELOPER,
     title = Res.string.markdown_preview,
-    description = Res.string.renders_headings_bold_and_italic_inline_code,
+    description = Res.string.markdown_preview_description,
     icon = Icons.AutoMirrored.Filled.Article,
     keywords = listOf("markdown", "md", "preview", "render", "readme", "разметка", "просмотр", "предпросмотр"),
     expandable = true,
@@ -89,10 +62,11 @@ val markdownPreviewTool = Tool(
 
 @Composable
 private fun MarkdownPreviewScreen() {
-    var input by rememberSaveable { mutableStateOf(SAMPLE) }
+    var edited by rememberSaveable { mutableStateOf<String?>(null) }
+    val input = edited ?: Res.string.markdown_sample.str()
     ToolInputField(
         value = input,
-        onValueChange = { input = it },
+        onValueChange = { edited = it },
         label = "Markdown",
         singleLine = false,
         minLines = 8,

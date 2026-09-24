@@ -4,9 +4,9 @@ import com.vasmarfas.card.tools.Tool
 
 val securityTools: List<Tool> = listOf(
     passwordGeneratorTool,
+    randomGeneratorTool,
     passwordStrengthTool,
     pwnedCheckTool,
     totpTool,
-    randomGeneratorTool,
     checksumCompareTool,
 )

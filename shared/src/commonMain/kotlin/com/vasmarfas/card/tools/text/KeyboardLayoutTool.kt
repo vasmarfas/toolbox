@@ -23,7 +23,7 @@ val keyboardLayoutTool = Tool(
     id = "keyboard-layout",
     category = ToolCategory.TEXT,
     title = Res.string.keyboard_layout,
-    description = Res.string.repair_text_typed_in_the_wrong_layout_ycuken,
+    description = Res.string.keyboard_layout_description,
     icon = Icons.Filled.SwapHoriz,
     keywords = listOf("layout", "keyboard", "qwerty", "wrong layout", "ghbdtn", "раскладка", "клавиатура", "йцукен", "не та раскладка", "руддщ"),
 ) { KeyboardLayoutScreen() }
@@ -47,7 +47,7 @@ private fun KeyboardLayoutScreen() {
         placeholder = "ghbdtn · руддщ",
     )
     Text(
-        Res.string.russian_written_in_latin_letters_privet_priv.str(),
+        Res.string.layout_russian_written_in_latin.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

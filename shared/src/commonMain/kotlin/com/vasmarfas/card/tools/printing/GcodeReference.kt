@@ -14,71 +14,71 @@ object GcodeReference {
     val entries: List<GcodeEntry> = listOf(
         GcodeEntry(
             "G0 / G1", "X Y Z E F", "Marlin · Klipper",
-            Res.string.linear_move_g0_travel_g1_print_e_is_the_extr,
+            Res.string.gcode_linear_move_g0_travel,
         ),
         GcodeEntry(
             "G2 / G3", "X Y I J R F", "Marlin · Klipper",
-            Res.string.clockwise_counter_clockwise_arc_move_either,
+            Res.string.gcode_clockwise_counter_clockwise,
         ),
         GcodeEntry(
             "G4", "P S", "Marlin · Klipper",
-            Res.string.dwell_pause_for_p_milliseconds_or_s_seconds,
+            Res.string.gcode_dwell_pause_for_p,
         ),
         GcodeEntry(
             "G10 / G11", "", "Marlin",
-            Res.string.firmware_retract_and_recover_using_the_m207,
+            Res.string.gcode_firmware_retract_and_recover,
         ),
         GcodeEntry(
             "G28", "X Y Z", "Marlin · Klipper",
-            Res.string.home_the_listed_axes_with_no_arguments_homes,
+            Res.string.gcode_home_the_listed_axes,
         ),
         GcodeEntry(
             "G29", "", "Marlin",
-            Res.string.run_bed_levelling_and_build_the_mesh_abl_ubl,
+            Res.string.gcode_run_bed_levelling,
         ),
         GcodeEntry(
             "G90 / G91", "", "Marlin · Klipper",
-            Res.string.absolute_relative_positioning_for_all_axes,
+            Res.string.gcode_absolute_relative,
         ),
         GcodeEntry(
             "G92", "X Y Z E", "Marlin · Klipper",
-            Res.string.set_the_current_position_without_moving_g92,
+            Res.string.gcode_set_the_current_position,
         ),
         GcodeEntry(
             "M17 / M18", "X Y Z E", "Marlin",
-            Res.string.enable_disable_stepper_drivers_on_the_listed,
+            Res.string.gcode_enable_disable_stepper,
         ),
         GcodeEntry(
             "M82 / M83", "", "Marlin · Klipper",
-            Res.string.absolute_relative_extrusion_mode_for_the_e_a,
+            Res.string.gcode_absolute_relative_extrusion,
         ),
         GcodeEntry(
             "M84", "S", "Marlin · Klipper",
-            Res.string.disable_steppers_s_sets_the_idle_timeout_in,
+            Res.string.gcode_disable_steppers_s_sets,
         ),
         GcodeEntry(
             "M92", "X Y Z E", "Marlin",
-            Res.string.set_steps_per_millimetre_for_each_axis_store,
+            Res.string.gcode_set_steps_per_millimeter,
         ),
         GcodeEntry(
             "M104", "S T", "Marlin · Klipper",
-            Res.string.set_the_hotend_temperature_and_continue_with,
+            Res.string.gcode_set_the_hotend_temperature,
         ),
         GcodeEntry(
             "M105", "", "Marlin · Klipper",
-            Res.string.report_current_hotend_and_bed_temperatures,
+            Res.string.gcode_report_current_hotend,
         ),
         GcodeEntry(
             "M106 / M107", "S P", "Marlin · Klipper",
-            Res.string.part_cooling_fan_on_with_speed_s_0_255_fan_o,
+            Res.string.gcode_part_cooling_fan,
         ),
         GcodeEntry(
             "M109", "S R", "Marlin · Klipper",
-            Res.string.set_the_hotend_temperature_and_wait_s_waits,
+            Res.string.gcode_set_the_hotend_temperature_and,
         ),
         GcodeEntry(
             "M112", "", "Marlin · Klipper",
-            Res.string.emergency_stop_shuts_down_heaters_and_motors,
+            Res.string.gcode_emergency_stop_shuts_down,
         ),
         GcodeEntry(
             "M114", "", "Marlin · Klipper",
@@ -86,23 +86,23 @@ object GcodeReference {
         ),
         GcodeEntry(
             "M115", "", "Marlin · Klipper",
-            Res.string.report_firmware_version_and_capabilities,
+            Res.string.gcode_report_firmware_version,
         ),
         GcodeEntry(
             "M117", "", "Marlin",
-            Res.string.show_a_message_on_the_printer_display,
+            Res.string.gcode_show_a_message,
         ),
         GcodeEntry(
             "M140", "S", "Marlin · Klipper",
-            Res.string.set_the_bed_temperature_without_waiting,
+            Res.string.gcode_set_the_bed_temperature,
         ),
         GcodeEntry(
             "M190", "S R", "Marlin · Klipper",
-            Res.string.set_the_bed_temperature_and_wait_for_it,
+            Res.string.gcode_set_the_bed_temperature_and,
         ),
         GcodeEntry(
             "M201 / M204", "X Y Z E P T", "Marlin",
-            Res.string.maximum_acceleration_per_axis_print_and_trav,
+            Res.string.gcode_maximum_acceleration,
         ),
         GcodeEntry(
             "M203", "X Y Z E", "Marlin",
@@ -110,7 +110,7 @@ object GcodeReference {
         ),
         GcodeEntry(
             "M205", "X Y Z E J", "Marlin",
-            Res.string.jerk_per_axis_or_junction_deviation_with_j,
+            Res.string.gcode_jerk_per_axis,
         ),
         GcodeEntry(
             "M206", "X Y Z", "Marlin",
@@ -122,11 +122,11 @@ object GcodeReference {
         ),
         GcodeEntry(
             "M221", "S", "Marlin · Klipper",
-            Res.string.flow_extrusion_override_in_percent,
+            Res.string.gcode_flow_extrusion_override,
         ),
         GcodeEntry(
             "M300", "S P", "Marlin",
-            Res.string.beep_at_frequency_s_for_p_milliseconds,
+            Res.string.gcode_beep_at_frequency,
         ),
         GcodeEntry(
             "M301", "P I D", "Marlin",
@@ -134,83 +134,83 @@ object GcodeReference {
         ),
         GcodeEntry(
             "M303", "E S C U", "Marlin",
-            Res.string.pid_autotune_e0_hotend_e_1_bed_s_target_c_cy,
+            Res.string.gcode_pid_autotune_e0_hotend,
         ),
         GcodeEntry(
             "M500 / M501 / M502", "", "Marlin",
-            Res.string.save_settings_to_eeprom_load_them_reset_to_f,
+            Res.string.gcode_save_settings_to_eeprom,
         ),
         GcodeEntry(
             "M503", "", "Marlin",
-            Res.string.print_the_current_settings_as_g_code,
+            Res.string.gcode_print_the_current_settings,
         ),
         GcodeEntry(
             "M600", "X Y Z E L", "Marlin",
-            Res.string.filament_change_park_unload_and_wait_for_the,
+            Res.string.gcode_filament_change_park_unload,
         ),
         GcodeEntry(
             "M605", "S", "Marlin",
-            Res.string.idex_mode_full_control_duplication_or_mirror,
+            Res.string.gcode_idex_mode_full_control,
         ),
         GcodeEntry(
             "M851", "Z", "Marlin",
-            Res.string.z_probe_offset_relative_to_the_nozzle_negati,
+            Res.string.gcode_z_probe_offset_relative,
         ),
         GcodeEntry(
             "M900", "K", "Marlin",
-            Res.string.linear_advance_factor_k_the_marlin_equivalen,
+            Res.string.gcode_linear_advance_factor_k,
         ),
         GcodeEntry(
             "SET_PRESSURE_ADVANCE", "ADVANCE SMOOTH_TIME", "Klipper",
-            Res.string.set_pressure_advance_for_the_active_extruder,
+            Res.string.gcode_set_pressure_advance,
         ),
         GcodeEntry(
             "BED_MESH_CALIBRATE", "PROFILE METHOD", "Klipper",
-            Res.string.probe_the_bed_and_build_a_mesh_save_config_s,
+            Res.string.gcode_probe_the_bed,
         ),
         GcodeEntry(
             "BED_MESH_PROFILE", "LOAD SAVE REMOVE", "Klipper",
-            Res.string.load_save_or_delete_a_stored_bed_mesh_profil,
+            Res.string.gcode_load_save_or_delete,
         ),
         GcodeEntry(
             "PROBE_CALIBRATE", "", "Klipper",
-            Res.string.interactive_probe_z_offset_calibration_using,
+            Res.string.gcode_interactive_probe_z_offset,
         ),
         GcodeEntry(
             "SCREWS_TILT_CALCULATE", "", "Klipper",
-            Res.string.measure_the_bed_corners_and_report_how_far_t,
+            Res.string.gcode_measure_the_bed_corners,
         ),
         GcodeEntry(
             "QUAD_GANTRY_LEVEL", "", "Klipper",
-            Res.string.level_a_four_motor_gantry_voron_style_by_pro,
+            Res.string.gcode_level_a_four_motor,
         ),
         GcodeEntry(
             "Z_TILT_ADJUST", "", "Klipper",
-            Res.string.level_the_bed_with_independent_z_motors,
+            Res.string.gcode_level_the_bed,
         ),
         GcodeEntry(
             "TUNING_TOWER", "COMMAND PARAMETER START FACTOR BAND", "Klipper",
-            Res.string.sweep_a_parameter_over_z_height_the_standard,
+            Res.string.gcode_sweep_a_parameter_over,
         ),
         GcodeEntry(
             "SET_VELOCITY_LIMIT", "VELOCITY ACCEL SQUARE_CORNER_VELOCITY", "Klipper",
-            Res.string.temporarily_override_speed_acceleration_and,
+            Res.string.gcode_temporarily_override_speed,
         ),
         GcodeEntry(
             "SET_HEATER_TEMPERATURE", "HEATER TARGET", "Klipper",
-            Res.string.set_any_heater_by_name_including_a_chamber_h,
+            Res.string.gcode_set_any_heater,
         ),
         GcodeEntry(
             "FIRMWARE_RESTART", "", "Klipper",
-            Res.string.restart_the_firmware_and_clear_a_shutdown_st,
+            Res.string.gcode_restart_the_firmware,
         ),
         GcodeEntry(
             "SAVE_CONFIG", "", "Klipper",
-            Res.string.write_the_values_calibration_produced_into_p,
+            Res.string.gcode_write_the_values_calibration,
         ),
         GcodeEntry(
             "PAUSE / RESUME / CANCEL_PRINT", "", "Klipper",
-            Res.string.pause_resume_or_cancel_the_current_print_mac,
+            Res.string.gcode_pause_resume_or_cancel,
         ),
     )
 

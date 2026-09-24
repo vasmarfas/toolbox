@@ -13,9 +13,8 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ErrorText
-import com.vasmarfas.card.ui.components.KeyValueRow
-import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.TagChips
 import com.vasmarfas.card.ui.components.ToolInputField
 
@@ -23,7 +22,7 @@ val romanNumeralsTool = Tool(
     id = "roman-numerals",
     category = ToolCategory.CONVERTERS,
     title = Res.string.roman_numerals,
-    description = Res.string.arabic_to_roman_and_back_1_to_3999_with_stri,
+    description = Res.string.roman_numerals_description,
     icon = Icons.Filled.FormatListNumbered,
     keywords = listOf("roman", "numerals", "latin", "римские", "цифры", "mcmxc"),
 ) { RomanNumeralsScreen() }
@@ -50,15 +49,13 @@ private fun RomanNumeralsScreen() {
     )
     if (trimmed.isNotEmpty() && converted == null) {
         ErrorText(
-            if (arabic != null) Res.string.only_1_to_3999_can_be_written_in_roman_numer.str()
+            if (arabic != null) Res.string.roman_only_1_to_3999.str()
             else Res.string.not_a_valid_roman_numeral.str(),
         )
     }
     if (converted != null) {
-        ResultCard {
-            KeyValueRow(Res.string.roman.str(), converted.second)
-            KeyValueRow(Res.string.arabic.str(), converted.first.toString())
-        }
+        if (arabic != null) AnswerCard(converted.second, Res.string.roman.str())
+        else AnswerCard(converted.first.toString(), Res.string.arabic.str())
     }
     TagChips(Roman.symbols.filter { it.second.length == 1 }.map { "${it.second} = ${it.first}" })
 }

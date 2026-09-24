@@ -14,23 +14,23 @@ import org.jetbrains.compose.resources.StringResource
 enum class SpeedSourceKind(val label: StringResource, val note: StringResource) {
     CLOUDFLARE(
         Res.string.cloudflare_style,
-        Res.string.download_and_upload_via_down_and_up,
+        Res.string.speed_nearest_cloudflare_server,
     ),
     OPENSPEEDTEST(
         Res.string.openspeedtest,
-        Res.string.self_hosted_server_downloading_and_upload,
+        Res.string.speed_self_hosted_server,
     ),
     YANDEX(
         Res.string.yandex,
-        Res.string.measured_in_the_app_over_the_probes_issued_b,
+        Res.string.speed_measured_in_the_app,
     ),
     FILE(
         Res.string.direct_file_url,
-        Res.string.download_only_the_file_must_be_at_least_25_m,
+        Res.string.speed_download_only_the_file,
     ),
     BROWSER(
         Res.string.open_in_browser,
-        Res.string.the_measurement_runs_on_the_provider_s_page,
+        Res.string.speed_measurement_runs,
     ),
 }
 

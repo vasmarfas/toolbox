@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,13 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vasmarfas.card.core.AppleDisplay
+import com.vasmarfas.card.core.DisplayPanel
 import com.vasmarfas.card.core.Prefs
+import com.vasmarfas.card.core.appleCandidates
+import com.vasmarfas.card.core.appleDisplays
+import com.vasmarfas.card.core.appleScreen
+import com.vasmarfas.card.core.displayPanels
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.screenDpi
 import com.vasmarfas.card.core.screenPixels
@@ -46,6 +53,7 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ChoiceChips
+import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LocalChrome
 import com.vasmarfas.card.ui.components.NumberField
@@ -66,13 +74,14 @@ val rulerTool = Tool(
     id = "ruler",
     category = ToolCategory.MEASURE,
     title = Res.string.ruler,
-    description = Res.string.on_screen_ruler_in_centimetres_and_inches_ac,
+    description = Res.string.ruler_description,
     icon = Icons.Filled.Straighten,
     keywords = listOf("measure", "length", "cm", "inch", "calibrate", "измерить", "длина", "сантиметр", "калибровка"),
     expandable = true,
 ) { RulerScreen() }
 
 private const val PX_PER_MM_KEY = "ruler.pxPerMm"
+private const val SCREEN_KEY = "ruler.screen"
 
 private enum class RulerAxis(val title: StringResource) {
     ACROSS(Res.string.across_the_screen),
@@ -95,10 +104,8 @@ private val references = listOf(
     Reference(Res.string.a4_sheet_short_side, 210.0),
 )
 
-/**
- * Android reports a density bucket rather than the real panel dpi, so an uncalibrated ruler is off
- * by a few percent on most phones. The advertised diagonal is enough to recover the true value.
- */
+// Android reports a density bucket, not the panel dpi, so an uncalibrated ruler is off by a few percent
+// on most phones. The advertised diagonal is enough to recover the real value
 fun dpiFromDiagonal(widthPx: Int, heightPx: Int, diagonalInches: Double): Double? {
     if (widthPx <= 0 || heightPx <= 0 || diagonalInches <= 0.0) return null
     val w = widthPx.toDouble()
@@ -113,16 +120,56 @@ private fun defaultPxPerMm(): Float {
     return dpi / 25.4f
 }
 
+private class ScreenModel(val key: String, val label: String, val pxPerMm: Float)
+
+private class ScreenModels(val apple: Boolean, val all: List<ScreenModel>, val matching: List<ScreenModel>) {
+    val auto: Float? get() = matching.map { it.pxPerMm }.distinct().singleOrNull()
+}
+
+@Composable
+private fun rememberScreenModels(pixels: Pair<Int, Int>?): ScreenModels {
+    val density = LocalDensity.current.density
+    val apple = remember { appleScreen() }
+    var panels by remember { mutableStateOf(emptyList<DisplayPanel>()) }
+    LaunchedEffect(Unit) { panels = displayPanels() }
+    return remember(apple, panels, pixels, density) {
+        if (apple != null) {
+            fun AppleDisplay.model(): ScreenModel {
+                val twin = appleDisplays.count { it.name == name } > 1
+                val label = (if (twin) "$name, ${diagonalInches.fmt(1)}\"" else name) + " · $ppi ppi"
+                return ScreenModel("${identifiers.first()}:$widthPx", label, (pxPerInch(density, apple.nativeScale ?: nativeScale) / 25.4).toFloat())
+            }
+            ScreenModels(true, appleDisplays.map { it.model() }, appleCandidates(apple, pixels, density).map { it.model() })
+        } else {
+            val (w, h) = pixels ?: (0 to 0)
+            val fits = panels.filter { minOf(it.widthPx, it.heightPx) == minOf(w, h) && maxOf(it.widthPx, it.heightPx) == maxOf(w, h) }
+            fun DisplayPanel.model() = ScreenModel(
+                "$name:${widthMm}x$heightMm",
+                "$name · ${diagonalInches.fmt(1)}\" · $widthPx × $heightPx",
+                (maxOf(w, h).takeIf { it > 0 } ?: maxOf(widthPx, heightPx)).toFloat() / maxOf(widthMm, heightMm),
+            )
+            ScreenModels(false, panels.map { it.model() }, fits.map { it.model() })
+        }
+    }
+}
+
 @Composable
 private fun RulerScreen() {
+    val detected = remember { screenPixels() }
+    val models = rememberScreenModels(detected)
     val fallback = defaultPxPerMm()
-    var pxPerMm by rememberSaveable { mutableStateOf(Prefs.store.get(PX_PER_MM_KEY)?.toFloatOrNull() ?: fallback) }
-    var calibrating by rememberSaveable { mutableStateOf(Prefs.store.get(PX_PER_MM_KEY) == null) }
+    var saved by rememberSaveable { mutableStateOf(Prefs.store.get(PX_PER_MM_KEY)?.toFloatOrNull()) }
+    var chosen by rememberSaveable { mutableStateOf(Prefs.store.get(SCREEN_KEY)) }
+    val pxPerMm = saved ?: models.auto ?: fallback
+    val model = models.all.firstOrNull { it.key == chosen } ?: models.matching.firstOrNull()?.takeIf { saved == null && models.auto != null }
+    var calibrating by rememberSaveable { mutableStateOf(saved == null && models.auto == null) }
+    LaunchedEffect(models.auto) {
+        if (saved == null && models.auto != null) calibrating = false
+    }
     var mode by rememberSaveable { mutableStateOf(CalibrationMode.OBJECT) }
     var referenceIndex by rememberSaveable { mutableStateOf(0) }
     var axis by rememberSaveable { mutableStateOf(RulerAxis.ACROSS) }
     var measured by remember { mutableStateOf<Float?>(null) }
-    val detected = remember { screenPixels() }
     var widthPx by rememberSaveable { mutableStateOf(detected?.first?.toString() ?: "") }
     var heightPx by rememberSaveable { mutableStateOf(detected?.second?.toString() ?: "") }
     var diagonal by rememberSaveable { mutableStateOf("") }
@@ -135,12 +182,46 @@ private fun RulerScreen() {
     val majorStyle = MaterialTheme.typography.titleMedium.copy(color = onSurface, fontSize = 18.sp)
     val vertical = chrome.immersive || axis == RulerAxis.ALONG
 
-    fun save(value: Float) {
-        pxPerMm = value.coerceIn(1f, 40f)
-        Prefs.store.put(PX_PER_MM_KEY, pxPerMm.toString())
+    fun save(value: Float, screen: String? = null) {
+        val scale = value.coerceIn(1f, 40f)
+        saved = scale
+        chosen = screen
+        Prefs.store.put(PX_PER_MM_KEY, scale.toString())
+        if (screen == null) Prefs.store.remove(SCREEN_KEY) else Prefs.store.put(SCREEN_KEY, screen)
+    }
+
+    fun reset() {
+        saved = null
+        chosen = null
+        Prefs.store.remove(PX_PER_MM_KEY)
+        Prefs.store.remove(SCREEN_KEY)
     }
 
     if (!chrome.immersive) {
+        if (models.all.isNotEmpty()) {
+            DropdownChoice(
+                options = listOf<ScreenModel?>(null) + models.all,
+                selected = model,
+                onSelect = { picked ->
+                    if (picked == null) {
+                        reset()
+                    } else {
+                        save(picked.pxPerMm, picked.key)
+                        calibrating = false
+                    }
+                },
+                label = if (models.apple) Res.string.model.str() else Res.string.monitor.str(),
+                text = { it?.label ?: Res.string.not_chosen.str() },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val hint = when {
+                chosen != null || saved != null -> null
+                models.matching.isEmpty() -> Res.string.screen_model_unknown.str()
+                models.auto == null -> Res.string.several_models_fit_this_screen.str()
+                else -> null
+            }
+            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
         SegmentedChoice(
             options = RulerAxis.entries,
             selected = axis,
@@ -151,7 +232,7 @@ private fun RulerScreen() {
             Res.string.calibration.str(),
             calibrating,
             { calibrating = it },
-            description = Res.string.match_the_outline_to_a_real_object_or_enter.str(),
+            description = Res.string.ruler_match_the_outline.str(),
         )
     }
 
@@ -183,7 +264,7 @@ private fun RulerScreen() {
             Slider(value = pxPerMm, onValueChange = { save(it) }, valueRange = 2f..24f)
         } else {
             Text(
-                Res.string.the_system_often_reports_a_rounded_dpi_enter.str(),
+                Res.string.ruler_system_often_reports.str(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -214,8 +295,8 @@ private fun RulerScreen() {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = { save(pxPerMm - 0.05f) }) { Text("−0.05") }
             TextButton(onClick = { save(pxPerMm + 0.05f) }) { Text("+0.05") }
-            TextButton(onClick = { save(fallback) }) { Text(Res.string.reset.str()) }
-            TextButton(onClick = { calibrating = false }) { Text(Res.string.done_2.str()) }
+            TextButton(onClick = { reset() }) { Text(Res.string.reset.str()) }
+            TextButton(onClick = { calibrating = false }) { Text(Res.string.done.str()) }
         }
     }
 
@@ -246,7 +327,7 @@ private fun RulerScreen() {
         ) {
             val mm = measured?.div(pxPerMm)
             Text(
-                text = mm?.let { "${(it / 10).toDouble().fmt(2)} cm · ${(it / 25.4).fmt(2)} in" }
+                text = mm?.let { "${(it / 10).toDouble().fmt(2)} ${Res.string.unit_cm.str()} · ${(it / 25.4).fmt(2)} in" }
                     ?: Res.string.drag_across_the_ruler.str(),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.End,
@@ -260,16 +341,20 @@ private fun RulerScreen() {
     ResultCard {
         KeyValueRow(
             Res.string.measured.str(),
-            measured?.let { "${(it / pxPerMm).toDouble().fmt(1)} mm" } ?: "—",
+            measured?.let { "${(it / pxPerMm).toDouble().fmt(1)} ${Res.string.unit_mm.str()}" } ?: "—",
             copyable = false,
         )
         KeyValueRow(Res.string.scale.str(), "${pxPerMm.toDouble().fmt(2)} px/mm · ${(pxPerMm * 25.4).fmt(0)} dpi", copyable = false)
-        KeyValueRow(
-            Res.string.detected_by_the_system.str(),
-            screenDpi()?.let { "${it.toDouble().fmt(0)} dpi" } ?: Res.string.unknown_calibrate_manually.str(),
-            mono = false,
-            copyable = false,
-        )
+        if (model != null) {
+            KeyValueRow(if (models.apple) Res.string.model.str() else Res.string.monitor.str(), model.label, mono = false, copyable = false)
+        } else {
+            KeyValueRow(
+                Res.string.detected_by_the_system.str(),
+                screenDpi()?.let { "${it.toDouble().fmt(0)} dpi" } ?: Res.string.unknown_calibrate_manually.str(),
+                mono = false,
+                copyable = false,
+            )
+        }
         detected?.let {
             KeyValueRow(Res.string.screen.str(), "${it.first} × ${it.second} px", copyable = false)
         }
@@ -357,7 +442,7 @@ val protractorTool = Tool(
     id = "protractor",
     category = ToolCategory.MEASURE,
     title = Res.string.protractor,
-    description = Res.string.measure_an_angle_on_screen_drag_two_arms_aro,
+    description = Res.string.protractor_description,
     icon = Icons.Filled.Timeline,
     keywords = listOf("angle", "degrees", "угол", "градусы"),
     expandable = true,

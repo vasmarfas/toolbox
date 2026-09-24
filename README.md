@@ -9,26 +9,32 @@ codebase builds the site on WebAssembly ([vasmarfas.com](https://vasmarfas.com),
 
 ## What is inside
 
-A card page with contacts, projects, articles and a CV, and a catalogue of offline tools in 13
-categories with search, favourites and recents. Anything that can be computed locally runs
-everywhere; sockets and sensors run where the OS provides them, and the catalogue marks each tool
-with the platforms it supports.
+A card page with contacts, projects, articles and a CV, and a catalogue of offline tools in 18
+categories with search and recents. In the apps the first tab is Home: on first start two questions
+about what you do and what you are into put the matching tools there, and the site keeps favourites
+instead. Anything that can be computed locally runs everywhere. Sockets and sensors run where the OS
+provides them, and the catalogue marks each tool with the platforms it supports.
 
 | Category | Examples |
 |---|---|
-| Network | ping (ICMP/TCP/HTTP), traceroute, port and LAN scanners, DNS over HTTPS and UDP, whois/RDAP, subnet calculator, HTTP requests, TLS certificates, speed test, Wake-on-LAN, interfaces and Wi-Fi |
-| Converters | units, number bases, data sizes, currencies, cooking measures, clothing sizes, numbers to words, Roman numerals |
-| Calculators | scientific and programmer, percentages, tips, discounts and VAT, loans, compound interest, BMI, fuel, Ohm's law, resistors, LEDs, wire gauge, aspect ratios |
-| Text | case, counters, lines, find and replace, transliteration, Morse, ciphers, diff, cleanup, Unicode, ASCII |
-| Developer | JSON, Base64, URL and punycode, JWT, UUID, hashes and HMAC, regex, cron, chmod, HTTP codes, MIME, CSV, escaping, semver, Markdown |
+| Measure and sensors | ruler, bubble level, compass, protractor, GPS and speedometer, light meter, pedometer, metal detector, accelerometer, barometer |
+| Calculators | scientific, percentages, fractions with the working shown, renovation (wallpaper, paint, laminate, tiles), tire size |
+| Converters | units, cooking measures, clothing sizes, data sizes, numbers to words, Roman numerals, number bases |
+| Money | currencies, cryptocurrencies, loans, discounts and VAT, tips, expense splitting, unit price, compound interest, fuel cost, electricity cost |
+| Photo, video and audio | image converter and compressor, photo editor, video converter, multitrack video editor, audio converter and editor, GIF maker, photo metadata, frame from video |
+| Documents and PDF | document converter (DOCX, ODT, EPUB, FB2, HTML, Markdown, RTF), images to PDF, merging, page editing, PDF to images and text, removing a password, ZIP |
+| Time | stopwatch, timer with Pomodoro, chess clock, world clock, date and age calculators, event countdowns, calendar, sunrise and sunset, working hours, Unix time |
+| Everyday | dice, decision wheel, team splitter, tally counter, notepad, number checker (cards, IBAN, INN, SNILS, OGRN, bank accounts, IMEI, ISBN, EAN, VIN) |
+| Text | counters, case, diff, find and replace, transliteration, keyboard layout, cleanup, mojibake fixer, line tools, lorem ipsum, Morse, phonetic alphabet, ciphers, Unicode, ASCII |
+| Sport and health | workout timer and builder, breathing exercise, BMI, body metrics, calorie burn, pace, water, macros, sleep, heart-rate zones, one-rep max, blood pressure, caffeine, blood alcohol, VO2 max, HbA1c, reaction time |
+| Sound | sound meter, tone and noise generators, metronome, spectrum analyzer, tuner |
+| Color and design | QR and barcodes, color converter, palettes and a palette from a photo, gradients, contrast, Material 3 scheme, typography, CSS units, aspect ratio, paper sizes |
 | Security | password generator and strength, breach check (HIBP k-anonymity), TOTP, random data, checksum comparison |
-| Colour and design | colour converter, palettes, contrast, Material 3 schemes, gradients, QR and barcodes, typography, CSS units |
-| Time | stopwatch, timers and Pomodoro, date maths, Unix time, world clock, sunrise and sunset, calendar, working hours |
-| Measure and sensors | compass, level, accelerometer, magnetometer, lux meter, barometer, pedometer, GPS, ruler, protractor, sound meter, tone generator, spectrum analyzer, metronome |
-| Device | device info, battery, display, screen test, brightness and torch, touch tester, vibration, clipboard, benchmarks, stress test |
-| Everyday | unit price, expense splitting, water, sleep, decision wheel, dice, counters, notepad, countdown |
-| 3D printing | print and resin cost, filament length and weight, layer and extrusion width, E-steps and flow, shrinkage, temperature tower, time estimate, G-code cheatsheet |
-| Sport and health | workout plans, interval timer, one-rep max, pace, heart rate zones, calorie burn, body metrics, macros, blood pressure, HbA1c, VO2 max, caffeine, blood alcohol |
+| Device | device info, screen test, battery, display, touch and keyboard testers, screen light and torch, vibration, benchmarks, stress test, clipboard |
+| Developer | JSON, Base64, hashes and HMAC, UUID, programmer calculator, floating-point inspector, regex tester and builder, URL and punycode, JWT, Markdown, CSV, cron, HTTP codes, escaping, chmod, semver, MIME |
+| Network | speed test, my IP, ping (ICMP/TCP/HTTP), DNS over HTTPS and UDP, whois/RDAP, traceroute, port and LAN scanners, Wake-on-LAN, subnet calculator and splitter, HTTP requests, TLS certificates, public DNS, interfaces and Wi-Fi, UPnP/Bonjour, MAC lookup, port reference |
+| Electronics | Ohm's law, resistor color code, LED resistor, voltage divider, battery life, wire gauge |
+| 3D printing | print and resin cost, filament length and weight, time estimate, layer and nozzle, E-steps and flow, temperature tower, shrinkage, G-code cheat sheet |
 
 Texts come in Russian and English and switch instantly. The card content is data rather than code:
 `profile.json` and `resume.json` ship inside the app and are refreshed from the network at startup,

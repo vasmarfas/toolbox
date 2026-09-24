@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.NetCapabilities
 import com.vasmarfas.card.core.currentEpochMillis
 import com.vasmarfas.card.core.str
@@ -52,7 +51,7 @@ val dnsLookupTool = Tool(
     id = "dns-lookup",
     category = ToolCategory.NETWORK,
     title = Res.string.dns_lookup,
-    description = Res.string.a_aaaa_mx_txt_ns_soa_srv_caa_ptr_and_more_vi,
+    description = Res.string.dns_lookup_description,
     icon = Icons.Filled.Dns,
     keywords = listOf("dig", "nslookup", "resolve", "domain", "mx", "txt", "ptr", "днс", "домен", "doh", "rfc 8484"),
 ) { DnsLookupScreen() }
@@ -139,27 +138,27 @@ private fun DnsLookupScreen() {
     }
     if (!NetCapabilities.udp) {
         Text(
-            Res.string.browser_build_only_dns_over_https_resolvers.str(),
+            Res.string.dns_browser_build_only_dns.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = NetStrings.lookup.str(), onClick = ::run, enabled = !state.loading, icon = Icons.Filled.Search)
+        ActionButton(text = Res.string.lookup.str(), onClick = ::run, enabled = !state.loading, icon = Icons.Filled.Search)
         TextButton(onClick = ::runCompare, enabled = !state.loading) { Text(Res.string.compare_resolvers.str()) }
     }
     if (state.loading) LoadingRow()
     state.error?.let { ErrorText(it) }
     state.result?.let { result ->
         val response = result.response
-        ResultCard(title = "${response.rcodeName} · ${state.elapsedMs} ms" + (if (response.authoritative) " · AD" else "") + (if (response.truncated) " · TC" else "")) {
+        ResultCard(title = "${response.rcodeName} · ${state.elapsedMs} ${Res.string.unit_ms.str()}" + (if (response.authoritative) " · AD" else "") + (if (response.truncated) " · TC" else "")) {
             KeyValueRow(
                 Res.string.resolved_via.str(),
                 result.endpoint + (result.flavour?.let { " · ${it.label.str()}" } ?: ""),
                 copyable = false,
             )
             if (response.answers.isEmpty()) {
-                Text(NetStrings.noResults.str(), style = MaterialTheme.typography.bodyMedium)
+                Text(Res.string.no_results.str(), style = MaterialTheme.typography.bodyMedium)
             } else {
                 RecordTable(response.answers)
             }
@@ -176,14 +175,14 @@ private fun DnsLookupScreen() {
             results.forEach { (label, result) ->
                 val text = result.fold(
                     onSuccess = { resp -> resp.answers.joinToString("\n") { "${it.typeName} ${it.data} (TTL ${it.ttl})" }.ifEmpty { resp.rcodeName } },
-                    onFailure = { it.message ?: Res.string.error_3.str() },
+                    onFailure = { it.message ?: Res.string.dns_error.str() },
                 )
                 KeyValueRow(label, text)
             }
             val distinct = results.mapNotNull { it.second.getOrNull()?.answers?.map { a -> a.data }?.sorted() }.distinct()
             Text(
                 if (distinct.size <= 1) Res.string.all_resolvers_agree.str()
-                else Res.string.resolvers_return_different_answers_propagati.str(),
+                else Res.string.dns_resolvers_return_different.str(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -214,11 +213,11 @@ private fun CustomResolverSection(resolvers: List<CustomResolver>, onChange: (Li
 
     ToolSection(Res.string.custom_doh_resolvers.str()) {
         Text(
-            Res.string.json_api_name_and_rfc_8484_wire_format_dns_a.str(),
+            Res.string.dns_json_api_name.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        ToolInputField(value = name, onValueChange = { name = it }, label = Res.string.name_2.str())
+        ToolInputField(value = name, onValueChange = { name = it }, label = Res.string.item_name.str())
         ToolInputField(
             value = url,
             onValueChange = { url = it },
@@ -275,7 +274,7 @@ private fun CustomResolverSection(resolvers: List<CustomResolver>, onChange: (Li
 @Composable
 private fun RecordTable(records: List<DnsRecord>) {
     TableBlock {
-        TableRow(listOf("Name", "Type", "TTL", "Data"), header = true, weights = listOf(2f, 0.8f, 0.8f, 3f))
+        TableRow(listOf(Res.string.name.str(), Res.string.type.str(), "TTL", Res.string.data.str()), header = true, weights = listOf(2f, 0.8f, 0.8f, 3f))
         records.forEach { r ->
             TableRow(listOf(r.name, r.typeName, r.ttl.toString(), r.data), weights = listOf(2f, 0.8f, 0.8f, 3f))
         }

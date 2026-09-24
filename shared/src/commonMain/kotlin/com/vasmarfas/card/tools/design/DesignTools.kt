@@ -3,13 +3,16 @@ package com.vasmarfas.card.tools.design
 import com.vasmarfas.card.tools.Tool
 
 val designTools: List<Tool> = listOf(
+    qrGeneratorTool,
     colorConverterTool,
     colorPaletteTool,
+    imagePaletteTool,
+    gradientGeneratorTool,
+    barcodeGeneratorTool,
     contrastCheckerTool,
     materialSchemeTool,
-    gradientGeneratorTool,
-    qrGeneratorTool,
-    barcodeGeneratorTool,
     typographyScaleTool,
     cssUnitsTool,
+    aspectRatioTool,
+    paperSizesTool,
 )

@@ -42,7 +42,7 @@ val locationTool = Tool(
     id = "gps-location",
     category = ToolCategory.MEASURE,
     title = Res.string.gps_and_speedometer,
-    description = Res.string.coordinates_in_several_formats_accuracy_alti,
+    description = Res.string.gps_location_description,
     icon = Icons.Filled.GpsFixed,
     keywords = listOf("location", "coordinates", "speed", "altitude", "latitude", "longitude", "координаты", "скорость", "высота", "геолокация"),
     platforms = PlatformKind.mobileAndWeb,
@@ -82,7 +82,7 @@ private fun LocationScreen() {
         return
     }
     if (!permission) {
-        Text(Res.string.location_access_is_needed_to_read_gps.str())
+        Text(Res.string.gps_location_access_is_needed.str())
         ActionButton(text = Res.string.grant_permission.str(), onClick = { scope.launch { permission = ensurePermission(AppPermission.LOCATION) } })
         return
     }
@@ -104,15 +104,15 @@ private fun LocationScreen() {
         return
     }
     val speedKmh = (f.speed ?: 0.0) * 3.6
-    Text("${speedKmh.fmt(1)} km/h", style = MaterialTheme.typography.displayLarge)
+    Text("${speedKmh.fmt(1)} ${Res.string.unit_kmh.str()}", style = MaterialTheme.typography.displayLarge)
     ResultCard {
         KeyValueRow(Res.string.latitude_longitude.str(), "${f.latitude.fmt(6)}, ${f.longitude.fmt(6)}")
         KeyValueRow("DMS", "${Geo.dms(f.latitude, 'N', 'S')} ${Geo.dms(f.longitude, 'E', 'W')}")
-        KeyValueRow(Res.string.accuracy.str(), f.accuracy?.let { "±${it.fmt(0)} m" } ?: "—", copyable = false)
-        KeyValueRow(Res.string.altitude.str(), f.altitude?.let { "${it.fmt(0)} m" } ?: "—", copyable = false)
+        KeyValueRow(Res.string.accuracy.str(), f.accuracy?.let { "±${it.fmt(0)} ${Res.string.unit_m.str()}" } ?: "—", copyable = false)
+        KeyValueRow(Res.string.altitude.str(), f.altitude?.let { "${it.fmt(0)} ${Res.string.unit_m.str()}" } ?: "—", copyable = false)
         KeyValueRow(Res.string.bearing.str(), f.bearing?.let { "${it.fmt(0)}°" } ?: "—", copyable = false)
-        KeyValueRow(Res.string.max_speed.str(), "${maxSpeed.fmt(1)} km/h", copyable = false)
-        KeyValueRow(Res.string.distance_3.str(), if (distance > 1000) "${(distance / 1000).fmt(2)} km" else "${distance.fmt(0)} m", copyable = false)
+        KeyValueRow(Res.string.max_speed.str(), "${maxSpeed.fmt(1)} ${Res.string.unit_kmh.str()}", copyable = false)
+        KeyValueRow(Res.string.gps_distance.str(), if (distance > 1000) "${(distance / 1000).fmt(2)} ${Res.string.unit_km.str()}" else "${distance.fmt(0)} ${Res.string.unit_m.str()}", copyable = false)
         KeyValueRow(Res.string.provider.str(), f.provider, mono = false, copyable = false)
         TextButton(onClick = { openUrl("https://www.openstreetmap.org/?mlat=${f.latitude}&mlon=${f.longitude}#map=16/${f.latitude}/${f.longitude}") }) {
             Text(Res.string.open_in_openstreetmap.str())

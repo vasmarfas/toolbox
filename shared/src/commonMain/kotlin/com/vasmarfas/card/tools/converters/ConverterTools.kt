@@ -4,11 +4,10 @@ import com.vasmarfas.card.tools.Tool
 
 val converterTools: List<Tool> = listOf(
     unitConverterTool,
-    currencyConverterTool,
-    numberBaseTool,
+    cookingConverterTool,
+    clothingSizesTool,
     dataSizeTool,
     numberToWordsTool,
     romanNumeralsTool,
-    cookingConverterTool,
-    clothingSizesTool,
+    numberBaseTool,
 )

@@ -5,11 +5,11 @@ import com.vasmarfas.card.tools.Tool
 val printingTools: List<Tool> = listOf(
     printCostTool,
     filamentLengthWeightTool,
+    printTimeEstimateTool,
     layerSettingsTool,
     flowAndEstepsTool,
-    shrinkageScaleTool,
     temperatureTowerTool,
+    shrinkageScaleTool,
     resinCostTool,
-    printTimeEstimateTool,
     gcodeCheatsheetTool,
 )

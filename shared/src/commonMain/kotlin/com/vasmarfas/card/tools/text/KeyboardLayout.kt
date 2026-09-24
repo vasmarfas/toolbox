@@ -1,9 +1,6 @@
 package com.vasmarfas.card.tools.text
 
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.auto
-import com.vasmarfas.card.resources.to_qwerty
-import com.vasmarfas.card.resources.to_ycuken
+import com.vasmarfas.card.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 enum class LayoutDirection(val title: StringResource) {

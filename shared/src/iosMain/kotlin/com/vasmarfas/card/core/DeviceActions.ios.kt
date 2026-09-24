@@ -11,9 +11,7 @@ import platform.Foundation.timeZoneWithName
 import platform.UIKit.UIApplication
 import platform.UIKit.UIUserInterfaceStyle
 
-actual fun playTone(frequencyHz: Double, durationMs: Int, volume: Float) {
-    AudioServicesPlaySystemSound(1057u)
-}
+actual fun playTone(frequencyHz: Double, durationMs: Int, volume: Float) = ClickPlayer.play(frequencyHz, durationMs, volume)
 
 actual fun vibrate(durationMs: Int) {
     AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)

@@ -31,7 +31,7 @@ val layerSettingsTool = Tool(
     id = "layer-settings",
     category = ToolCategory.PRINTING,
     title = Res.string.layer_and_nozzle,
-    description = Res.string.sane_layer_height_and_extrusion_width_for_a,
+    description = Res.string.layer_settings_description,
     icon = Icons.Filled.Layers,
     keywords = listOf("layer height", "nozzle", "extrusion width", "first layer", "слой", "сопло", "ширина экструзии", "первый слой"),
 ) { LayerSettingsScreen() }
@@ -46,7 +46,7 @@ private fun LayerSettingsScreen() {
         options = commonNozzles,
         selected = nozzleText.toDoubleLenient(),
         onSelect = { nozzleText = it.fmt(2) },
-        label = { "${it.fmt(2)} ${Res.string.mm.str()}" },
+        label = { "${it.fmt(2)} ${Res.string.unit_mm.str()}" },
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         NumberField(
@@ -54,7 +54,7 @@ private fun LayerSettingsScreen() {
             onValueChange = { nozzleText = it },
             label = Res.string.nozzle_diameter.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = nozzleText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -62,7 +62,7 @@ private fun LayerSettingsScreen() {
             onValueChange = { layerText = it },
             label = Res.string.layer_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = layerText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -70,7 +70,7 @@ private fun LayerSettingsScreen() {
         value = heightText,
         onValueChange = { heightText = it },
         label = Res.string.model_height.str(),
-        suffix = Res.string.mm.str(),
+        suffix = Res.string.unit_mm.str(),
         isError = heightText.toDoubleLenient().let { it == null || it < 0 },
     )
 
@@ -78,7 +78,7 @@ private fun LayerSettingsScreen() {
     val layer = layerText.toDoubleLenient()
     val height = heightText.toDoubleLenient()
     if (nozzle == null || nozzle <= 0 || layer == null || layer <= 0 || height == null || height < 0) {
-        ErrorText(Res.string.nozzle_and_layer_must_be_greater_than_zero.str())
+        ErrorText(Res.string.layer_nozzle_and_layer.str())
         return
     }
 
@@ -86,20 +86,20 @@ private fun LayerSettingsScreen() {
     ResultCard(Res.string.recommended.str()) {
         KeyValueRow(
             Res.string.layer_height_range.str(),
-            "${advice.minLayer.fmt(3)} — ${advice.maxLayer.fmt(3)} ${Res.string.mm.str()}",
+            "${advice.minLayer.fmt(3)} — ${advice.maxLayer.fmt(3)} ${Res.string.unit_mm.str()}",
         )
-        KeyValueRow(Res.string.extrusion_width.str(), "${advice.recommendedWidth.fmt(2)} ${Res.string.mm.str()}")
+        KeyValueRow(Res.string.extrusion_width.str(), "${advice.recommendedWidth.fmt(2)} ${Res.string.unit_mm.str()}")
         KeyValueRow(
             Res.string.width_range.str(),
-            "${advice.minWidth.fmt(2)} — ${advice.maxWidth.fmt(2)} ${Res.string.mm.str()}",
+            "${advice.minWidth.fmt(2)} — ${advice.maxWidth.fmt(2)} ${Res.string.unit_mm.str()}",
         )
-        KeyValueRow(Res.string.first_layer_height.str(), "${advice.firstLayerHeight.fmt(2)} ${Res.string.mm.str()}")
-        KeyValueRow(Res.string.first_layer_width.str(), "${advice.firstLayerWidth.fmt(2)} ${Res.string.mm.str()}")
+        KeyValueRow(Res.string.first_layer_height.str(), "${advice.firstLayerHeight.fmt(2)} ${Res.string.unit_mm.str()}")
+        KeyValueRow(Res.string.first_layer_width.str(), "${advice.firstLayerWidth.fmt(2)} ${Res.string.unit_mm.str()}")
         KeyValueRow(Res.string.layer_nozzle.str(), "${(layer / nozzle * 100).fmt(1)} %")
     }
     ResultCard(Res.string.for_this_model.str()) {
         KeyValueRow(Res.string.layers.str(), advice.layerCount.toString())
-        KeyValueRow(Res.string.real_height.str(), "${advice.exactHeight.fmt(3)} ${Res.string.mm.str()}")
+        KeyValueRow(Res.string.real_height.str(), "${advice.exactHeight.fmt(3)} ${Res.string.unit_mm.str()}")
     }
     advice.warnings.forEach { ErrorText(it.str()) }
     ResultCard(Res.string.layer_height_limits_per_nozzle.str()) {

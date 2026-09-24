@@ -21,17 +21,16 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.network.SimpleTable
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
-import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
-import com.vasmarfas.card.ui.components.ResultCard
 
 val caffeineTool = Tool(
     id = "caffeine-decay",
     category = ToolCategory.FITNESS,
     title = Res.string.caffeine,
-    description = Res.string.caffeine_description,
+    description = Res.string.caffeine_decay_description,
     icon = Icons.Filled.Coffee,
     keywords = listOf(
         "caffeine", "coffee", "half-life", "sleep", "espresso", "energy drink",
@@ -53,7 +52,7 @@ private fun CaffeineScreen() {
             onValueChange = { doseText = it },
             label = Res.string.dose.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mg.str(),
+            suffix = Res.string.unit_mg.str(),
             isError = doseText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -61,7 +60,7 @@ private fun CaffeineScreen() {
             onValueChange = { halfLifeText = it },
             label = Res.string.half_life.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.h.str(),
+            suffix = Res.string.unit_h.str(),
             isError = halfLifeText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -69,13 +68,13 @@ private fun CaffeineScreen() {
         options = servings,
         selected = doseText.trim().toIntOrNull(),
         onSelect = { doseText = it.toString() },
-        label = { "$it ${Res.string.mg.str()}" },
+        label = { "$it ${Res.string.unit_mg.str()}" },
     )
     NumberField(
         value = thresholdText,
         onValueChange = { thresholdText = it },
         label = Res.string.sleep_threshold.str(),
-        suffix = Res.string.mg.str(),
+        suffix = Res.string.unit_mg.str(),
         modifier = Modifier.fillMaxWidth(),
         isError = thresholdText.toDoubleLenient().let { it == null || it <= 0 },
     )
@@ -89,17 +88,14 @@ private fun CaffeineScreen() {
     }
 
     val until = Caffeine.hoursUntil(dose, threshold, halfLife)
-    ResultCard {
-        KeyValueRow(
-            Res.string.down_to_threshold.str(),
-            if (until == null) Res.string.already_below.str() else "${until.fmt(1)} ${Res.string.h.str()}",
-            copyable = false,
-        )
-    }
+    AnswerCard(
+        if (until == null) Res.string.already_below.str() else "${until.fmt(1)} ${Res.string.unit_h.str()}",
+        Res.string.down_to_threshold.str(),
+    )
     SimpleTable(
         header = listOf(Res.string.hours.str(), Res.string.remaining.str()),
         rows = listOf(0, 2, 4, 6, 8, 10, 12).map { hour ->
-            listOf("$hour", "${Caffeine.remainingMg(dose, hour.toDouble(), halfLife).fmt(0)} ${Res.string.mg.str()}")
+            listOf("$hour", "${Caffeine.remainingMg(dose, hour.toDouble(), halfLife).fmt(0)} ${Res.string.unit_mg.str()}")
         },
     )
     Text(

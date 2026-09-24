@@ -33,18 +33,18 @@ val typographyScaleTool = Tool(
     id = "typography-scale",
     category = ToolCategory.DESIGN,
     title = Res.string.typography_scale,
-    description = Res.string.every_material_3_text_style_with_its_size_li,
+    description = Res.string.typography_scale_description,
     icon = Icons.Filled.TextFormat,
     keywords = listOf("typography", "type scale", "font size", "line height", "modular scale", "типографика", "шкала", "кегль", "интерлиньяж"),
 ) { TypographyScaleScreen() }
 
 @Composable
 private fun TypographyScaleScreen() {
-    val initialSample = Res.string.the_quick_brown_fox_jumps.str()
-    var sample by rememberSaveable { mutableStateOf(initialSample) }
+    var edited by rememberSaveable { mutableStateOf<String?>(null) }
+    val sample = edited ?: Res.string.the_quick_brown_fox_jumps.str()
     ToolInputField(
         value = sample,
-        onValueChange = { sample = it },
+        onValueChange = { edited = it },
         label = Res.string.sample_text.str(),
     )
     val t = MaterialTheme.typography
@@ -79,12 +79,12 @@ private fun TypographyScaleScreen() {
             options = ScaleRatio.entries,
             selected = ratio,
             onSelect = { ratio = it },
-            label = Res.string.ratio_2.str(),
+            label = Res.string.type_scale_ratio.str(),
             text = { "${it.label} · ${it.value}" },
         )
         val base = baseText.toDoubleLenient()
         if (base == null || base <= 0) {
-            ErrorText(Res.string.base_size_must_be_greater_than_zero.str())
+            ErrorText(Res.string.type_scale_base_size.str())
         } else {
             val steps = remember(base, ratio) { ModularScale.steps(base, ratio.value) }
             ResultCard {

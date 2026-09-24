@@ -1,0 +1,28 @@
+package com.vasmarfas.card.tools.money
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class CompoundInterestTest {
+    @Test
+    fun yearlyWithoutContributions() {
+        val rows = CompoundInterest.grow(1000.0, 10.0, 2, Compounding.YEARLY, 0.0)
+        assertEquals(2, rows.size)
+        assertEquals(1100.0, rows[0].balance, 1e-9)
+        assertEquals(1210.0, rows[1].balance, 1e-9)
+        assertEquals(210.0, rows[1].interest, 1e-9)
+    }
+
+    @Test
+    fun monthlyCompounding() {
+        val rows = CompoundInterest.grow(1000.0, 10.0, 2, Compounding.MONTHLY, 0.0)
+        assertEquals(1220.39, rows[1].balance, 0.01)
+    }
+
+    @Test
+    fun contributionsAreCounted() {
+        val rows = CompoundInterest.grow(0.0, 0.0, 1, Compounding.MONTHLY, 100.0)
+        assertEquals(1200.0, rows[0].contributed, 1e-9)
+        assertEquals(1200.0, rows[0].balance, 1e-9)
+    }
+}

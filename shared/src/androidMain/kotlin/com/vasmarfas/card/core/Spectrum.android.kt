@@ -33,19 +33,23 @@ actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
     }
     if (record.state != AudioRecord.STATE_INITIALIZED) return@flow
     record.startRecording()
-    val pcm = ShortArray(fftSize)
+    val hop = minOf(fftSize, SpectrumHop)
+    val pcm = ShortArray(hop)
     val samples = FloatArray(fftSize)
+    var collected = 0
     try {
         while (currentCoroutineContext().isActive) {
             var filled = 0
-            while (filled < fftSize) {
-                val read = record.read(pcm, filled, fftSize - filled)
+            while (filled < hop) {
+                val read = record.read(pcm, filled, hop - filled)
                 if (read <= 0) break
                 filled += read
             }
-            if (filled < fftSize) break
-            for (i in 0 until fftSize) samples[i] = pcm[i] / 32768f
-            emit(SpectrumFrame(Fft.magnitudesDb(samples), sampleRate))
+            if (filled < hop) break
+            samples.copyInto(samples, 0, hop, fftSize)
+            for (i in 0 until hop) samples[fftSize - hop + i] = pcm[i] / 32768f
+            collected = minOf(fftSize, collected + hop)
+            if (collected == fftSize) emit(SpectrumFrame(Fft.magnitudesDb(samples), sampleRate))
         }
     } finally {
         record.stop()

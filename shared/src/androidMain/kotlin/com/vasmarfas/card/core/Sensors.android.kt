@@ -19,6 +19,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Bundle
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.view.WindowManager
@@ -124,7 +125,7 @@ actual fun locationFlow(): Flow<LocationFix> = callbackFlow {
         }
 
         @Deprecated("Deprecated in Java")
-        override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) = Unit
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
         override fun onProviderEnabled(provider: String) = Unit
         override fun onProviderDisabled(provider: String) = Unit
     }
@@ -249,6 +250,10 @@ actual fun screenDpi(): Float? = AppContextHolder.context.resources.displayMetri
 actual fun screenPixels(): Pair<Int, Int>? = AppContextHolder.context.resources.displayMetrics.let {
     it.widthPixels to it.heightPixels
 }
+
+actual fun appleScreen(): AppleScreen? = null
+
+actual suspend fun displayPanels(): List<DisplayPanel> = emptyList()
 
 actual fun microphoneSupported(): Boolean = true
 

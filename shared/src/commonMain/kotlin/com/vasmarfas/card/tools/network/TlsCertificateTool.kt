@@ -37,7 +37,7 @@ val tlsCertificateTool = Tool(
     id = "tls-certificate",
     category = ToolCategory.NETWORK,
     title = Res.string.tls_certificate,
-    description = Res.string.connect_to_a_host_show_the_negotiated_protoc,
+    description = Res.string.tls_certificate_description,
     icon = Icons.Filled.Lock,
     keywords = listOf("ssl", "https", "certificate", "expiry", "x509", "сертификат", "срок", "https"),
     platforms = PlatformKind.jvm,
@@ -66,8 +66,8 @@ private fun TlsCertificateScreen() {
     }
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ToolInputField(value = host, onValueChange = { host = it }, label = NetStrings.host.str(), modifier = Modifier.weight(3f), keyboardType = KeyboardType.Uri, monospace = true)
-        NumberField(value = port, onValueChange = { port = it }, label = NetStrings.port.str(), modifier = Modifier.weight(1f))
+        ToolInputField(value = host, onValueChange = { host = it }, label = Res.string.host_or_ip_address.str(), modifier = Modifier.weight(3f), keyboardType = KeyboardType.Uri, monospace = true)
+        NumberField(value = port, onValueChange = { port = it }, label = Res.string.port.str(), modifier = Modifier.weight(1f))
     }
     ActionButton(text = Res.string.check.str(), onClick = ::check, enabled = !loading)
     if (loading) LoadingRow()
@@ -86,14 +86,14 @@ private fun TlsCertificateScreen() {
         }
         tls.chain.forEachIndexed { index, cert ->
             ResultCard(title = if (index == 0) Res.string.leaf_certificate.str() else Res.string.intermediate_root.str() + " #$index") {
-                KeyValueRow("Subject", cert.subject, mono = false)
-                KeyValueRow("Issuer", cert.issuer, mono = false)
+                KeyValueRow(Res.string.cert_subject.str(), cert.subject, mono = false)
+                KeyValueRow(Res.string.cert_issuer.str(), cert.issuer, mono = false)
                 KeyValueRow(Res.string.valid_from.str(), cert.notBefore)
                 KeyValueRow(Res.string.valid_until.str(), cert.notAfter)
                 if (cert.subjectAltNames.isNotEmpty()) KeyValueRow("SAN", cert.subjectAltNames.joinToString("\n"))
                 KeyValueRow(Res.string.public_key.str(), cert.publicKey, mono = false)
                 KeyValueRow(Res.string.signature.str(), cert.signatureAlgorithm, mono = false)
-                KeyValueRow("Serial", cert.serial)
+                KeyValueRow(Res.string.cert_serial.str(), cert.serial)
                 KeyValueRow("SHA-256", cert.sha256)
                 KeyValueRow("SHA-1", cert.sha1)
             }

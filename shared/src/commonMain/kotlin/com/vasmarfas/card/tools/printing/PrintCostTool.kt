@@ -32,7 +32,7 @@ val printCostTool = Tool(
     id = "print-cost",
     category = ToolCategory.PRINTING,
     title = Res.string.print_cost,
-    description = Res.string.filament_electricity_failed_prints_and_marku,
+    description = Res.string.print_cost_description,
     icon = Icons.Filled.Calculate,
     keywords = listOf("3d print", "filament", "cost", "price", "fdm", "spool", "себестоимость", "пруток", "катушка", "цена печати"),
 ) { PrintCostScreen() }
@@ -64,7 +64,7 @@ private fun PrintCostScreen() {
         options = filamentDiameters,
         selected = diameter,
         onSelect = { diameter = it },
-        label = { "${it.fmt(2)} ${Res.string.mm.str()}" },
+        label = { "${it.fmt(2)} ${Res.string.unit_mm.str()}" },
     )
     SegmentedChoice(
         options = AmountMode.entries,
@@ -80,7 +80,7 @@ private fun PrintCostScreen() {
             value = weightText,
             onValueChange = { weightText = it },
             label = Res.string.model_weight.str(),
-            suffix = Res.string.g.str(),
+            suffix = Res.string.unit_g.str(),
             isError = weight == null || weight <= 0,
         )
     } else {
@@ -88,7 +88,7 @@ private fun PrintCostScreen() {
             value = lengthText,
             onValueChange = { lengthText = it },
             label = Res.string.filament_length.str(),
-            suffix = Res.string.m.str(),
+            suffix = Res.string.unit_m.str(),
             isError = length == null || length <= 0,
         )
     }
@@ -108,7 +108,7 @@ private fun PrintCostScreen() {
             onValueChange = { spoolText = it },
             label = Res.string.spool_net_weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.g.str(),
+            suffix = Res.string.unit_g.str(),
             isError = spool == null || spool <= 0,
         )
     }
@@ -118,14 +118,14 @@ private fun PrintCostScreen() {
             NumberField(
                 value = hoursText,
                 onValueChange = { hoursText = it },
-                label = Res.string.hours_2.str(),
+                label = Res.string.hours_field.str(),
                 modifier = Modifier.weight(1f),
                 isError = hoursText.toDoubleLenient() == null,
             )
             NumberField(
                 value = minutesText,
                 onValueChange = { minutesText = it },
-                label = Res.string.minutes_2.str(),
+                label = Res.string.minutes_field.str(),
                 modifier = Modifier.weight(1f),
                 isError = minutesText.toDoubleLenient() == null,
             )
@@ -136,7 +136,7 @@ private fun PrintCostScreen() {
                 onValueChange = { powerText = it },
                 label = Res.string.printer_power.str(),
                 modifier = Modifier.weight(1f),
-                suffix = Res.string.w.str(),
+                suffix = Res.string.unit_w.str(),
                 isError = powerText.toDoubleLenient() == null,
             )
             NumberField(
@@ -181,7 +181,7 @@ private fun PrintCostScreen() {
         hours == null || minutes == null || power == null || kwh == null ||
         failure == null || failure < 0 || failure >= 100 || markup == null || markup < 0
     ) {
-        ErrorText(Res.string.fill_in_the_fields_failure_rate_below_100_al.str())
+        ErrorText(Res.string.print_cost_fill_in_the_fields.str())
         return
     }
 
@@ -189,15 +189,15 @@ private fun PrintCostScreen() {
     val metres = Filament.lengthM(grams, diameter, material.density)
     val cost = PrintEconomics.printCost(grams, price, totalHours, power, kwh, failure, markup)
     ResultCard(Res.string.material.str()) {
-        KeyValueRow(Res.string.weight.str(), "${grams.fmt(1)} ${Res.string.g.str()}")
-        KeyValueRow(Res.string.filament_length.str(), "${metres.fmt(2)} ${Res.string.m.str()}")
-        KeyValueRow(Res.string.volume.str(), "${(grams / material.density).fmt(2)} cm³")
+        KeyValueRow(Res.string.weight.str(), "${grams.fmt(1)} ${Res.string.unit_g.str()}")
+        KeyValueRow(Res.string.filament_length.str(), "${metres.fmt(2)} ${Res.string.unit_m.str()}")
+        KeyValueRow(Res.string.volume.str(), "${(grams / material.density).fmt(2)} ${Res.string.unit_cm3.str()}")
         KeyValueRow(Res.string.share_of_a_spool.str(), "${(grams / spool * 100).fmt(1)} %")
         KeyValueRow(Res.string.prints_per_spool.str(), (spool / grams).fmt(1))
     }
     ResultCard(Res.string.cost.str()) {
         KeyValueRow(Res.string.filament.str(), cost.material.fmt(2, grouping = true))
-        KeyValueRow(Res.string.electricity.str(), "${cost.energy.fmt(2, grouping = true)} · ${cost.energyKwh.fmt(3)} ${Res.string.kwh.str()}")
+        KeyValueRow(Res.string.electricity.str(), "${cost.energy.fmt(2, grouping = true)} · ${cost.energyKwh.fmt(3)} ${Res.string.unit_kwh.str()}")
         KeyValueRow(Res.string.without_failures.str(), cost.beforeFailures.fmt(2, grouping = true))
         KeyValueRow(Res.string.total_cost.str(), cost.total.fmt(2, grouping = true))
         KeyValueRow(Res.string.per_gram.str(), cost.perGram.fmt(3))

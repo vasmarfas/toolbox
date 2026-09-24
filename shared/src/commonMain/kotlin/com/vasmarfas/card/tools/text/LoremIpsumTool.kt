@@ -10,12 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.count
-import com.vasmarfas.card.resources.lorem_ipsum
-import com.vasmarfas.card.resources.placeholder_text_by_paragraphs_sentences_or
-import com.vasmarfas.card.resources.regenerate
-import com.vasmarfas.card.resources.start_with_the_classic_opening
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
@@ -27,7 +22,7 @@ val loremIpsumTool = Tool(
     id = "lorem-ipsum",
     category = ToolCategory.TEXT,
     title = Res.string.lorem_ipsum,
-    description = Res.string.placeholder_text_by_paragraphs_sentences_or,
+    description = Res.string.lorem_ipsum_description,
     icon = Icons.AutoMirrored.Filled.Article,
     keywords = listOf("lorem", "ipsum", "placeholder", "filler", "dummy text", "рыба", "заполнитель", "текст"),
 ) { LoremIpsumScreen() }

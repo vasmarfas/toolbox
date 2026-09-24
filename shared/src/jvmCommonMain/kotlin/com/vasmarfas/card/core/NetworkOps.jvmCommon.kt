@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
@@ -22,6 +21,7 @@ import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
@@ -130,22 +130,21 @@ actual suspend fun wakeOnLan(mac: String, broadcast: String, port: Int): Boolean
     }.getOrDefault(false)
 }
 
-actual fun networkInterfaces(): List<InterfaceInfo> = runCatching {
-    NetworkInterface.getNetworkInterfaces().toList().map { nif ->
-        InterfaceInfo(
-            name = nif.name,
-            displayName = nif.displayName,
-            mac = runCatching { nif.hardwareAddress?.joinToString(":") { b -> (b.toInt() and 0xFF).toString(16).padStart(2, '0').uppercase() } }.getOrNull(),
-            addresses = nif.interfaceAddresses.map { ia ->
-                val address = ia.address.hostAddress?.substringBefore('%') ?: ""
-                if (ia.address is Inet4Address) "$address/${ia.networkPrefixLength}" else "$address/${ia.networkPrefixLength}"
-            },
-            isUp = runCatching { nif.isUp }.getOrDefault(false),
-            isLoopback = runCatching { nif.isLoopback }.getOrDefault(false),
-            mtu = runCatching { nif.mtu }.getOrDefault(0),
-        )
-    }
-}.getOrDefault(emptyList())
+actual suspend fun networkInterfaces(): List<InterfaceInfo> = withContext(Dispatchers.IO) {
+    runCatching {
+        NetworkInterface.getNetworkInterfaces().toList().map { nif ->
+            InterfaceInfo(
+                name = nif.name,
+                displayName = nif.displayName,
+                mac = runCatching { nif.hardwareAddress?.hexColon() }.getOrNull(),
+                addresses = nif.interfaceAddresses.map { ia -> "${ia.address.hostAddress?.substringBefore('%') ?: ""}/${ia.networkPrefixLength}" },
+                isUp = runCatching { nif.isUp }.getOrDefault(false),
+                isLoopback = runCatching { nif.isLoopback }.getOrDefault(false),
+                mtu = runCatching { nif.mtu }.getOrDefault(0),
+            )
+        }
+    }.getOrDefault(emptyList())
+}
 
 private fun ByteArray.hexColon(): String = joinToString(":") { (it.toInt() and 0xFF).toString(16).padStart(2, '0').uppercase() }
 
@@ -158,7 +157,7 @@ actual suspend fun tlsHandshake(host: String, port: Int, timeoutMs: Int): TlsInf
     socket.use {
         runCatching {
             val params = it.sslParameters
-            params.serverNames = listOf(javax.net.ssl.SNIHostName(host))
+            params.serverNames = listOf(SNIHostName(host))
             it.sslParameters = params
         }
         it.startHandshake()

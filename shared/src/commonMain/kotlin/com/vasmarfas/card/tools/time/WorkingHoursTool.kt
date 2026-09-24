@@ -39,7 +39,7 @@ val workingHoursTool = Tool(
     id = "working-hours",
     category = ToolCategory.TIME,
     title = Res.string.working_hours,
-    description = Res.string.sum_of_shifts_with_breaks_total_in_hours_and,
+    description = Res.string.working_hours_description,
     icon = Icons.Filled.WorkHistory,
     keywords = listOf("hours", "shift", "timesheet", "overtime", "pay", "рабочие часы", "смена", "табель", "ставка"),
 ) { WorkingHoursScreen() }
@@ -58,7 +58,7 @@ private fun WorkingHoursScreen() {
                 ToolInputField(
                     value = shift.start,
                     onValueChange = { shifts[index] = shift.copy(start = it) },
-                    label = Res.string.start_2.str(),
+                    label = Res.string.shift_start.str(),
                     modifier = Modifier.weight(1f),
                     placeholder = "09:00",
                     isError = parseHhMm(shift.start) == null,
@@ -78,11 +78,16 @@ private fun WorkingHoursScreen() {
                     onValueChange = { shifts[index] = shift.copy(breakMinutes = it) },
                     label = Res.string.break_min.str(),
                     modifier = Modifier.weight(1f),
+                    suffix = Res.string.unit_min.str(),
                     isError = shift.breakMinutes.trim().ifEmpty { "0" }.toIntOrNull()?.takeIf { it >= 0 } == null,
                 )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = shift.minutes?.let { formatHm(it) } ?: "—",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "${Res.string.total.str()}: ${shift.minutes?.let { formatHm(it) } ?: "—"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = { shifts.removeAt(index) }, enabled = shifts.size > 1) {
                     Icon(Icons.Filled.Close, contentDescription = Res.string.remove.str())
@@ -99,7 +104,7 @@ private fun WorkingHoursScreen() {
 
     val minutes = shifts.map { it.minutes }
     if (minutes.any { it == null }) {
-        ErrorText(Res.string.check_the_times_hh_mm_break_in_whole_minutes.str())
+        ErrorText(Res.string.shift_check_the_times_hh.str())
     } else {
         val total = minutes.sumOf { it!! }
         val hours = WorkHours.decimalHours(total)

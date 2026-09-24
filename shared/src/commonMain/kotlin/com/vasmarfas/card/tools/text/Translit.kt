@@ -1,9 +1,6 @@
 package com.vasmarfas.card.tools.text
 
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.gost_7_79_2000_b
-import com.vasmarfas.card.resources.passport_icao
-import com.vasmarfas.card.resources.readable
+import com.vasmarfas.card.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 enum class TranslitScheme(val title: StringResource) {

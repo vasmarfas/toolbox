@@ -25,7 +25,7 @@ val checksumCompareTool = Tool(
     id = "checksum-compare",
     category = ToolCategory.SECURITY,
     title = Res.string.checksum_compare,
-    description = Res.string.compares_two_hashes_ignoring_case_spaces_and,
+    description = Res.string.checksum_compare_description,
     icon = Icons.AutoMirrored.Filled.CompareArrows,
     keywords = listOf("checksum", "hash", "compare", "verify", "integrity", "sha256", "md5", "контрольная сумма", "хеш", "сравнить", "целостность"),
 ) { ChecksumCompareScreen() }
@@ -86,14 +86,14 @@ private fun ChecksumCompareScreen() {
         )
         if (!hexOnly) {
             Text(
-                Res.string.one_of_the_values_contains_non_hex_character.str(),
+                Res.string.checksum_one_of_the_values.str(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         if (!match) {
             if (a.length != b.length) {
-                ErrorText(Res.string.the_lengths_differ_these_are_different_algor.str())
+                ErrorText(Res.string.checksum_lengths_differ_so_these.str())
             } else {
                 val index = a.indices.first { a[it] != b[it] }
                 ErrorText(Tr("First difference at position ${index + 1}: '${a[index]}' vs '${b[index]}'.", "Первое отличие в позиции ${index + 1}: «${a[index]}» против «${b[index]}».").str())

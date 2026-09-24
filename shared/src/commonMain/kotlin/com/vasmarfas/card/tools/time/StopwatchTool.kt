@@ -40,7 +40,7 @@ val stopwatchTool = Tool(
     id = "stopwatch",
     category = ToolCategory.TIME,
     title = Res.string.stopwatch,
-    description = Res.string.millisecond_stopwatch_with_laps_lap_time_and,
+    description = Res.string.stopwatch_description,
     icon = Icons.Filled.Timer,
     keywords = listOf("stopwatch", "lap", "timer", "секундомер", "круг", "отсечка"),
     expandable = true,
@@ -69,7 +69,7 @@ private fun StopwatchScreen() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         if (running) {
             ActionButton(
-                text = Res.string.stop_3.str(),
+                text = Res.string.stop_short.str(),
                 onClick = {
                     accumulated += currentEpochMillis() - startedAt
                     running = false
@@ -114,7 +114,7 @@ private fun StopwatchScreen() {
             Row(Modifier.fillMaxWidth()) {
                 Text("#", style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(0.5f))
                 Text(Res.string.lap.str(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
-                Text(Res.string.total_2.str(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+                Text(Res.string.total_all.str(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 splits.asReversed().forEach { lap ->

@@ -36,7 +36,7 @@ val numberBaseTool = Tool(
     id = "number-base",
     category = ToolCategory.CONVERTERS,
     title = Res.string.number_base_converter,
-    description = Res.string.any_base_from_2_to_36_numbers_of_any_length,
+    description = Res.string.number_base_description,
     icon = Icons.Filled.Numbers,
     keywords = listOf("binary", "hex", "octal", "radix", "base", "двоичное", "шестнадцатеричное", "восьмеричное", "основание"),
 ) { NumberBaseScreen() }

@@ -30,7 +30,7 @@ val printTimeEstimateTool = Tool(
     id = "print-time-estimate",
     category = ToolCategory.PRINTING,
     title = Res.string.print_time_estimate,
-    description = Res.string.rough_fdm_print_time_from_model_volume_layer,
+    description = Res.string.print_time_estimate_description,
     icon = Icons.Filled.Schedule,
     keywords = listOf("print time", "estimate", "infill", "walls", "speed", "время печати", "оценка", "заполнение", "стенки", "скорость"),
 ) { PrintTimeEstimateScreen() }
@@ -45,7 +45,7 @@ private fun PrintTimeEstimateScreen() {
     var wallsText by rememberSaveable { mutableStateOf("3") }
 
     Text(
-        text = Res.string.a_rough_estimate_typically_within_30_of_the.str(),
+        text = Res.string.print_time_rough_estimate.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -53,7 +53,7 @@ private fun PrintTimeEstimateScreen() {
         value = volumeText,
         onValueChange = { volumeText = it },
         label = Res.string.model_volume.str(),
-        suffix = "cm³",
+        suffix = Res.string.unit_cm3.str(),
         isError = volumeText.toDoubleLenient().let { it == null || it <= 0 },
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -62,7 +62,7 @@ private fun PrintTimeEstimateScreen() {
             onValueChange = { layerText = it },
             label = Res.string.layer_height.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = layerText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -70,7 +70,7 @@ private fun PrintTimeEstimateScreen() {
             onValueChange = { widthText = it },
             label = Res.string.extrusion_width.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.mm.str(),
+            suffix = Res.string.unit_mm.str(),
             isError = widthText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
@@ -80,7 +80,7 @@ private fun PrintTimeEstimateScreen() {
             onValueChange = { speedText = it },
             label = Res.string.print_speed.str(),
             modifier = Modifier.weight(1f),
-            suffix = "mm/s",
+            suffix = Res.string.unit_mm_s.str(),
             isError = speedText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -108,7 +108,7 @@ private fun PrintTimeEstimateScreen() {
     if (volume == null || volume <= 0 || layer == null || layer <= 0 || width == null || width <= 0 ||
         speed == null || speed <= 0 || infill == null || infill < 0 || infill > 100 || walls == null || walls < 1
     ) {
-        ErrorText(Res.string.check_the_values_infill_0_100_at_least_one_w.str())
+        ErrorText(Res.string.print_time_check_the_values_infill.str())
         return
     }
 
@@ -116,11 +116,11 @@ private fun PrintTimeEstimateScreen() {
     val plaGrams = estimate.materialCm3 * FilamentMaterial.PLA.density
     ResultCard {
         KeyValueRow(Res.string.estimated_time.str(), formatDurationMs((estimate.seconds * 1000).toLong()))
-        KeyValueRow(Res.string.material_volume.str(), "${estimate.materialCm3.fmt(2)} cm³")
-        KeyValueRow(Res.string.weight_in_pla.str(), "${plaGrams.fmt(1)} ${Res.string.g.str()}")
-        KeyValueRow(Res.string.filament_1_75.str(), "${Filament.lengthFromVolumeM(estimate.materialCm3, 1.75).fmt(2)} ${Res.string.m.str()}")
+        KeyValueRow(Res.string.material_volume.str(), "${estimate.materialCm3.fmt(2)} ${Res.string.unit_cm3.str()}")
+        KeyValueRow(Res.string.weight_in_pla.str(), "${plaGrams.fmt(1)} ${Res.string.unit_g.str()}")
+        KeyValueRow(Res.string.filament_1_75.str(), "${Filament.lengthFromVolumeM(estimate.materialCm3, 1.75).fmt(2)} ${Res.string.unit_m.str()}")
         KeyValueRow(Res.string.solid_fraction.str(), "${(estimate.solidFraction * 100).fmt(1)} %")
         KeyValueRow(Res.string.shell_share.str(), "${(estimate.shellFraction * 100).fmt(1)} %")
-        KeyValueRow(Res.string.effective_flow.str(), "${estimate.flowMm3S.fmt(2)} mm³/s")
+        KeyValueRow(Res.string.effective_flow.str(), "${estimate.flowMm3S.fmt(2)} ${Res.string.unit_mm3_s.str()}")
     }
 }

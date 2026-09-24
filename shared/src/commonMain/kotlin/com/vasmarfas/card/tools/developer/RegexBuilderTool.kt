@@ -47,7 +47,7 @@ val regexBuilderTool = Tool(
     id = "regex-builder",
     category = ToolCategory.DEVELOPER,
     title = Res.string.regex_builder,
-    description = Res.string.compose_a_pattern_from_blocks_with_quantifie,
+    description = Res.string.regex_builder_description,
     icon = Icons.AutoMirrored.Filled.CallSplit,
     keywords = listOf("regex", "regexp", "builder", "pattern", "generator", "library", "регулярка", "конструктор", "шаблон", "генератор", "библиотека"),
 ) { RegexBuilderScreen() }
@@ -96,7 +96,7 @@ private fun RegexBuilderScreen() {
     ToolInputField(
         value = sample,
         onValueChange = { sample = it },
-        label = Res.string.sample_text_2.str(),
+        label = Res.string.regex_sample_text.str(),
         singleLine = false,
         minLines = 3,
     )
@@ -115,7 +115,7 @@ private fun RegexBuilderScreen() {
                 )
                 if (test.matches.isNotEmpty()) {
                     MonoTable(
-                        listOf("#    Range        Match") +
+                        listOf("#    " + Res.string.regex_header_range.str().padEnd(13) + Res.string.regex_header_match.str()) +
                             test.matches.take(SHOWN_MATCHES).map { match ->
                                 "${(match.index + 1).toString().padEnd(5)}${"[${match.start}, ${match.end})".padEnd(13)}${match.value}"
                             },

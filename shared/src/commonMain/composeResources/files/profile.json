@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-09-18",
+  "updated": "2026-09-24",
   "person": {
     "name": {
       "en": "Vasilii",
@@ -68,6 +68,14 @@
       }
     },
     {
+      "type": "channel",
+      "url": "https://t.me/vasmarfas_channel",
+      "label": {
+        "en": "Telegram channel",
+        "ru": "Telegram-канал"
+      }
+    },
+    {
       "type": "email",
       "url": "mailto:admin@vasmarfas.com",
       "label": {
@@ -77,7 +85,7 @@
     },
     {
       "type": "googleplay",
-      "url": "https://play.google.com/store/apps/dev?id=vasmarfas",
+      "url": "https://play.google.com/store/apps/developer?id=vasmarfas",
       "label": {
         "en": "Google Play",
         "ru": "Google Play"
@@ -85,7 +93,7 @@
     },
     {
       "type": "support",
-      "url": "https://boosty.to/vasmarfas/donate",
+      "url": "https://github.com/vasmarfas/toolbox/blob/master/SUPPORT.md",
       "label": {
         "en": "Support",
         "ru": "Поддержать"
@@ -115,7 +123,7 @@
       ],
       "platforms": [
         "Android",
-        "Meta Quest"
+        "VR"
       ],
       "links": [
         {
@@ -171,7 +179,8 @@
       ],
       "year": "2024–2026",
       "featured": true,
-      "stars": 90
+      "stars": 90,
+      "downloads": "10K+"
     },
     {
       "id": "smsnode",
@@ -214,6 +223,10 @@
             "en": "Backend",
             "ru": "Бэкенд"
           }
+        },
+        {
+          "type": "googleplay",
+          "url": "https://play.google.com/store/apps/details?id=com.vasmarfas.smsnode"
         },
         {
           "type": "habr",
@@ -328,7 +341,7 @@
       "links": [
         {
           "type": "github",
-          "url": "https://github.com/vasmarfas/vasmarfas"
+          "url": "https://github.com/vasmarfas/toolbox"
         },
         {
           "type": "website",
@@ -373,6 +386,10 @@
           "url": "https://dotadiviner.com"
         },
         {
+          "type": "googleplay",
+          "url": "https://play.google.com/store/apps/details?id=ru.vasmarfas.dotadivinerapp"
+        },
+        {
           "type": "telegram",
           "url": "https://t.me/DotaDivinerBot",
           "label": {
@@ -382,7 +399,8 @@
         }
       ],
       "year": "2023–2026",
-      "featured": true
+      "featured": true,
+      "downloads": "1K+"
     }
   ],
   "articles": [
@@ -393,7 +411,7 @@
       },
       "url": "https://habr.com/ru/articles/1081702/",
       "date": "2026-09-13",
-      "views": "10K",
+      "views": "11K",
       "summary": {
         "en": "Three repositories around a GoIP-8 and FreePBX: SMSNodeBackend, SMSNode and SIPgram.",
         "ru": "Три репозитория вокруг GoIP-8 и FreePBX: SMSNodeBackend, SMSNode и SIPgram."
@@ -455,7 +473,7 @@
   "downloads": [
     {
       "type": "github",
-      "url": "https://github.com/vasmarfas/vasmarfas/releases",
+      "url": "https://github.com/vasmarfas/toolbox/releases",
       "label": {
         "en": "GitHub Releases (Windows, macOS, Linux, Android)",
         "ru": "GitHub Releases (Windows, macOS, Linux, Android)"

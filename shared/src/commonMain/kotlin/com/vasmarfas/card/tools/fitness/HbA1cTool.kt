@@ -27,7 +27,7 @@ val hba1cTool = Tool(
     id = "hba1c-glucose",
     category = ToolCategory.FITNESS,
     title = Res.string.hba1c,
-    description = Res.string.hba1c_description,
+    description = Res.string.hba1c_glucose_description,
     icon = Icons.Filled.Bloodtype,
     keywords = listOf(
         "hba1c", "a1c", "glucose", "diabetes", "ifcc", "dcct", "eag",

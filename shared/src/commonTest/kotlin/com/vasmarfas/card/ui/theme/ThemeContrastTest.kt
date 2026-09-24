@@ -52,7 +52,7 @@ class ThemeContrastTest {
         val failures = mutableListOf<String>()
         schemes().forEach { (name, dark, scheme) ->
             val status = statusColors(dark)
-            listOf("good" to status.good, "warn" to status.warn, "bad" to status.bad).forEach { (role, color) ->
+            listOf("good" to status.good, "warn" to status.warn, "bad" to status.bad, "info" to status.info).forEach { (role, color) ->
                 val ratio = contrast(color, scheme.surface)
                 if (ratio < 4.5) {
                     failures += "$name ${if (dark) "dark" else "light"} $role = ${(ratio * 100).toInt() / 100.0}"

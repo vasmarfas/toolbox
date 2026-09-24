@@ -27,7 +27,7 @@ val cronParserTool = Tool(
     id = "cron-parser",
     category = ToolCategory.DEVELOPER,
     title = Res.string.cron_parser,
-    description = Res.string.explains_a_5_field_cron_expression_in_plain,
+    description = Res.string.cron_parser_description,
     icon = Icons.Filled.Schedule,
     keywords = listOf("cron", "crontab", "schedule", "job", "timer", "расписание", "крон", "планировщик"),
 ) { CronParserScreen() }
@@ -41,7 +41,7 @@ private fun CronParserScreen() {
     ToolInputField(
         value = input,
         onValueChange = { input = it },
-        label = Res.string.expression_minute_hour_day_month_weekday.str(),
+        label = Res.string.cron_expression_minute_hour_day.str(),
         placeholder = "*/15 9-18 * * mon-fri",
         isError = input.isNotBlank() && expr == null,
         monospace = true,
@@ -63,10 +63,10 @@ private fun CronParserScreen() {
     }
     ResultCard {
         KeyValueRow(Res.string.meaning.str(), Cron.describe(expr, lang), mono = false)
-        KeyValueRow(Res.string.minutes_2.str(), expr.minute.values.sorted().joinToString(","), copyable = false)
-        KeyValueRow(Res.string.hours_2.str(), expr.hour.values.sorted().joinToString(","), copyable = false)
+        KeyValueRow(Res.string.minutes_field.str(), expr.minute.values.sorted().joinToString(","), copyable = false)
+        KeyValueRow(Res.string.hours_field.str(), expr.hour.values.sorted().joinToString(","), copyable = false)
         KeyValueRow(Res.string.days_of_month.str(), expr.dayOfMonth.values.sorted().joinToString(","), copyable = false)
-        KeyValueRow(Res.string.months_2.str(), expr.month.values.sorted().joinToString(","), copyable = false)
+        KeyValueRow(Res.string.months_field.str(), expr.month.values.sorted().joinToString(","), copyable = false)
         KeyValueRow(Res.string.days_of_week_0_sunday.str(), expr.dayOfWeek.values.sorted().joinToString(","), copyable = false)
     }
     ResultCard(Res.string.next_runs_local_time.str()) {

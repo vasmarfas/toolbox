@@ -11,12 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.ascii_table
-import com.vasmarfas.card.resources.characters_0_127_with_decimal_hex_octal_and
-import com.vasmarfas.card.resources.nothing_found_2
-import com.vasmarfas.card.resources.search_character_decimal_hex_or_name
-import com.vasmarfas.card.resources.show_control_characters_0_31_127
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.MonoTable
@@ -28,7 +23,7 @@ val asciiTableTool = Tool(
     id = "ascii-table",
     category = ToolCategory.TEXT,
     title = Res.string.ascii_table,
-    description = Res.string.characters_0_127_with_decimal_hex_octal_and,
+    description = Res.string.ascii_table_description,
     icon = Icons.Filled.TableChart,
     keywords = listOf("ascii", "table", "character codes", "hex", "octal", "binary", "аски", "таблица", "коды символов"),
 ) { AsciiTableScreen() }
@@ -40,17 +35,17 @@ private fun AsciiTableScreen() {
     ToolInputField(
         value = query,
         onValueChange = { query = it },
-        label = Res.string.search_character_decimal_hex_or_name.str(),
+        label = Res.string.ascii_search_character_decimal_hex.str(),
         placeholder = "A · 65 · 0x41 · tilde",
     )
     SwitchRow(Res.string.show_control_characters_0_31_127.str(), includeControl, { includeControl = it })
     val rows = remember(query, includeControl) { AsciiTable.search(query, includeControl) }
     ResultCard {
         if (rows.isEmpty()) {
-            Text(Res.string.nothing_found_2.str(), style = MaterialTheme.typography.bodyMedium)
+            Text(Res.string.nothing_found.str(), style = MaterialTheme.typography.bodyMedium)
         } else {
             MonoTable(
-                listOf("Dec  Hex  Oct  Bin       Char  Name") +
+                listOf(Res.string.ascii_header_dec.str().padEnd(5) + "Hex  Oct  Bin       " + Res.string.ascii_header_char.str().padEnd(6) + Res.string.ascii_header_name.str()) +
                     rows.map { e ->
                         e.code.toString().padEnd(5) + e.hex.padEnd(5) + e.oct.padEnd(5) + e.bin.padEnd(10) + e.symbol.padEnd(6) + e.name
                     },

@@ -19,7 +19,7 @@ val gcodeCheatsheetTool = Tool(
     id = "gcode-cheatsheet",
     category = ToolCategory.PRINTING,
     title = Res.string.g_code_cheat_sheet,
-    description = Res.string.marlin_and_klipper_commands_with_parameters,
+    description = Res.string.gcode_cheatsheet_description,
     icon = Icons.Filled.Print,
     keywords = listOf("gcode", "g-code", "marlin", "klipper", "m104", "m600", "pressure advance", "гкод", "клиппер", "прошивка", "команды"),
 ) { GcodeCheatsheetScreen() }

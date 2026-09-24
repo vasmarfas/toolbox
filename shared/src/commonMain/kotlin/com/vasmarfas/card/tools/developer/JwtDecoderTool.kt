@@ -28,7 +28,7 @@ val jwtDecoderTool = Tool(
     id = "jwt-decoder",
     category = ToolCategory.DEVELOPER,
     title = Res.string.jwt_decoder,
-    description = Res.string.decode_header_and_payload_explain_standard_c,
+    description = Res.string.jwt_decoder_description,
     icon = Icons.Filled.Token,
     keywords = listOf("jwt", "token", "jws", "oauth", "oidc", "claims", "bearer", "токен", "джвт", "авторизация"),
 ) { JwtDecoderScreen() }
@@ -71,7 +71,7 @@ private fun JwtDecoderScreen() {
         }
         KeyValueRow(Res.string.signature.str(), if (parts.signature.isEmpty()) "—" else "${parts.signature.length} ${Res.string.chars_base64url.str()}", copyable = false)
         Text(
-            Res.string.the_signature_is_not_verified_here_a_well_fo.str(),
+            Res.string.jwt_signature_is_not_verified.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

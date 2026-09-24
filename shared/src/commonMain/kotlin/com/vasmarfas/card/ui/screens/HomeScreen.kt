@@ -12,8 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -26,20 +26,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,53 +58,60 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Analytics
+import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.Lang
 import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Net
+import com.vasmarfas.card.core.formatCount
 import com.vasmarfas.card.core.openUrl
+import com.vasmarfas.card.core.parseCount
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.Article
 import com.vasmarfas.card.data.Avatar as ProfileAvatar
 import com.vasmarfas.card.data.GithubStars
+import com.vasmarfas.card.data.HabrStats
+import com.vasmarfas.card.data.Link
 import com.vasmarfas.card.data.LocalSettings
 import com.vasmarfas.card.data.Profile
 import com.vasmarfas.card.data.ProfileRepository
 import com.vasmarfas.card.data.ThemeMode
 import com.vasmarfas.card.resources.*
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.about_me
-import com.vasmarfas.card.resources.experience_education_skills
-import com.vasmarfas.card.resources.right_here_no_pdf_and_no_external_link
-import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.ToolRegistry
 import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LinkChips
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.PromptChevron
-import com.vasmarfas.card.ui.components.PromptMark
 import com.vasmarfas.card.ui.components.SectionTitle
-import com.vasmarfas.card.ui.components.SelectableText
+import com.vasmarfas.card.ui.components.linkDefaultLabel
 import com.vasmarfas.card.ui.components.linkIcon
+import com.vasmarfas.card.ui.components.linkParams
+import com.vasmarfas.card.ui.components.rememberCopy
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.jetbrains.compose.resources.pluralStringResource
 
 fun currentYear(): Int = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
@@ -108,26 +119,26 @@ fun currentYear(): Int = Clock.System.now().toLocalDateTime(TimeZone.currentSyst
 fun HomeScreen(
     onOpenProjects: () -> Unit,
     onOpenResume: () -> Unit,
-    onOpenTools: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenTool: (String) -> Unit,
 ) {
     val state by ProfileRepository.state.collectAsState()
     ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 24.dp) {
         HomeHeader(onOpenSettings)
         Crossfade(targetState = state.value) { profile ->
             if (profile == null) return@Crossfade
-            // Thirty seconds: who, proof, where to write. The paragraphs wait for the reader who
-            // got that far.
-            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                Hero(profile)
-                StatsStrip(profile, onOpenTools)
-                FeaturedProjects(profile, onOpenProjects)
-                LatestArticles(profile, onOpenProjects)
-                AboutSection(profile)
-                ToolsTeaser(onOpenTools, onOpenTool)
-                ResumeTeaser(onOpenResume)
-                Footer()
+            LaunchedEffect(profile.articles) { HabrStats.refresh(profile.articles) }
+            SelectionContainer {
+                Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Hero(profile)
+                    StatsStrip(profile)
+                    FeaturedProjects(profile, onOpenProjects)
+                    SupportLine(profile)
+                    LatestArticles(profile, onOpenProjects)
+                    ResumeTeaser(onOpenResume)
+                    ContactCard(profile, Res.string.contact_title.str(), Res.string.contact_body.str(), "contact")
+                    AboutSection(profile)
+                    Footer(profile)
+                }
             }
         }
     }
@@ -138,8 +149,6 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
     val settings = LocalSettings.current
     val lang = LocalLang.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Icon(PromptMark, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(8.dp))
         Text(
             Res.string.app_name.str(),
             style = MaterialTheme.typography.headlineSmall,
@@ -154,8 +163,7 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
             Spacer(Modifier.width(6.dp))
             Text(if (lang == Lang.RU) "EN" else "RU")
         }
-        // Effective darkness, not the stored mode: on SYSTEM in the dark the button used to offer
-        // "go dark", and the first click changed nothing.
+        // The button offers the opposite of what is on screen, which on SYSTEM depends on the platform.
         val dark = when (settings.themeMode) {
             ThemeMode.DARK -> true
             ThemeMode.LIGHT -> false
@@ -175,34 +183,141 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
     }
 }
 
+internal fun Profile.link(type: String): Link? = links.firstOrNull { it.active && it.type == type }
+
+private val ContactTypes = setOf("telegram", "email", "phone")
+
 @Composable
 private fun Hero(profile: Profile) {
     val person = profile.person
     val compact = LocalLayoutSize.current == LayoutSize.COMPACT
-    Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
-        Avatar(profile.avatar, if (compact) 72.dp else 120.dp)
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            PromptLine(
-                person.name.str(),
-                if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
-            )
-            Text(person.title.str(), style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Filled.Place,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+            Avatar(profile.avatar, if (compact) 72.dp else 120.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                PromptLine(
+                    person.name.str(),
+                    if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
                 )
-                Spacer(Modifier.width(4.dp))
-                Text(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(person.title.str(), style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Place,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            LinkChips(profile.links)
+        }
+        HeroBlocks(profile, compact)
+    }
+}
+
+@Composable
+private fun HeroBlocks(profile: Profile, compact: Boolean) {
+    @Composable
+    fun Contacts(modifier: Modifier) = HeroBlock(Res.string.contact_me.str(), modifier) {
+        ContactRows(profile.links.filter { it.active && it.type in ContactTypes }, "hero")
+    }
+
+    @Composable
+    fun Resources(modifier: Modifier) = HeroBlock(Res.string.my_resources.str(), modifier) {
+        LinkChips(
+            profile.links.filter { it.active && it.type !in ContactTypes && it.type != "support" },
+            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            source = "resources",
+        )
+    }
+
+    if (compact) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Contacts(Modifier.fillMaxWidth())
+            Resources(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Contacts(Modifier.weight(1f).fillMaxHeight())
+            Resources(Modifier.weight(1f).fillMaxHeight())
         }
     }
 }
 
-/** The mark's chevron, the name typed after it and a cursor still blinking: the icon, spelled out. */
+@Composable
+private fun HeroBlock(title: String, modifier: Modifier, content: @Composable () -> Unit) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+            content()
+        }
+    }
+}
+
+// the address is copied rather than opened: plenty of visitors have no mail client set up
+@Composable
+private fun ContactRows(links: List<Link>, source: String) {
+    val copy = rememberCopy()
+    var copied by remember { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(1500.milliseconds)
+            copied = false
+        }
+    }
+    links.forEach { link ->
+        val email = link.type == "email"
+        val address = link.url.removePrefix("mailto:")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button) {
+                    Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, source))
+                    if (email) {
+                        copy(address)
+                        copied = true
+                    } else {
+                        openUrl(link.url)
+                    }
+                }
+                .pointerHoverIcon(PointerIcon.Hand)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(linkIcon(link.type), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(if (email) address else link.label?.str() ?: linkDefaultLabel(link.type), style = MaterialTheme.typography.bodyLarge)
+                val hint = when {
+                    email && copied -> Res.string.copied.str()
+                    link.type == "telegram" -> "@" + link.url.trimEnd('/').substringAfterLast('/')
+                    else -> null
+                }
+                hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            Icon(
+                when {
+                    email && copied -> Icons.Filled.Check
+                    email -> Icons.Filled.ContentCopy
+                    else -> Icons.AutoMirrored.Filled.OpenInNew
+                },
+                contentDescription = if (email) Res.string.copy.str() else Res.string.open.str(),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
 @Composable
 private fun PromptLine(text: String, style: TextStyle) {
     val glyph = with(LocalDensity.current) { (style.fontSize * 0.72f).toDp() }
@@ -237,11 +352,8 @@ private fun PromptLine(text: String, style: TextStyle) {
     }
 }
 
-/**
- * Both the picture and the switch that shows it come from profile.json, so the avatar can be
- * swapped or taken down without a release. The bundled copy is the fallback while the network
- * one loads, or for good if it never arrives.
- */
+// picture and switch both come from profile.json, so the avatar changes without a release. The bundled
+// copy shows while the network one loads, or for good if it never arrives
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun Avatar(avatar: ProfileAvatar, size: Dp) {
@@ -269,68 +381,56 @@ private fun AboutSection(profile: Profile) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.about_me.str())
         (listOf(person.bio) + person.about).forEach { paragraph ->
-            SelectableText(paragraph.str(), style = MaterialTheme.typography.bodyLarge)
+            Text(paragraph.str(), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
-private class Stat(val value: String, val label: StringResource, val onClick: (() -> Unit)? = null)
+// the plural follows the number as shown: 135K reads as thousands whatever the exact count ends in
+private class Stat(val value: String, val label: PluralStringResource)
+
+// Narrower cells split "администрирования" mid-word.
+private val StatMinWidth = 150.dp
 
 @Composable
-private fun StatsStrip(profile: Profile, onOpenTools: () -> Unit) {
+private fun StatsStrip(profile: Profile) {
     val year = remember { currentYear() }
     val stars by GithubStars.stars.collectAsState()
-    val totalStars = profile.projects.sumOf { project -> GithubStars.starsOf(project) ?: 0 }
+    val views by HabrStats.views.collectAsState()
+    val totalStars = profile.projects.sumOf { GithubStars.starsOf(it, stars) ?: 0 }
+    val totalViews = profile.articles.sumOf { HabrStats.viewsOf(it, views) ?: 0 }
+    val installs = profile.projects.sumOf { parseCount(it.downloads) ?: 0 }
     val stats = listOfNotNull(
-        (year - profile.milestones.androidSince).takeIf { it > 0 }?.let { Stat("$it+", Res.string.years_in_android_kmp) },
-        (year - profile.milestones.sysadminSince).takeIf { it > 0 }?.let { Stat("$it+", Res.string.years_of_sysadmin_work) },
-        Stat(profile.projects.size.toString(), Res.string.public_projects),
-        totalStars.takeIf { it > 0 }?.let { Stat("$it", Res.string.github_stars) },
-        Stat(profile.articles.size.toString(), Res.string.habr_articles),
-        Stat(ToolRegistry.all.size.toString(), Res.string.tools_in_this_app, onOpenTools),
+        (year - profile.milestones.androidSince).takeIf { it > 0 }?.let { Stat("$it+", Res.plurals.years_in_android_kmp) },
+        (year - profile.milestones.sysadminSince).takeIf { it > 0 }?.let { Stat("$it+", Res.plurals.years_of_sysadmin_work) },
+        totalStars.takeIf { it > 0 }?.let { Stat(it.toString(), Res.plurals.github_stars) },
+        Stat(profile.articles.size.toString(), Res.plurals.habr_articles),
+        totalViews.takeIf { it > 0 }?.let { Stat(formatCount(it), Res.plurals.article_views) },
+        installs.takeIf { it > 0 }?.let { Stat(formatCount(it) + "+", Res.plurals.app_installs) },
     )
-    // Three columns on a phone left ~100 dp per label, and "администрирования" broke mid-word.
-    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 2 else 6
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            stats.chunked(columns).forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { stat -> StatCell(stat, Modifier.weight(1f)) }
-                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+        BoxWithConstraints(Modifier.padding(16.dp)) {
+            val columns = (maxWidth / StatMinWidth).toInt().coerceIn(2, 3)
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                stats.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { stat -> StatCell(stat, Modifier.weight(1f)) }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
                 }
             }
         }
     }
-    if (stars.isEmpty()) Spacer(Modifier.height(0.dp))
 }
 
 @Composable
 private fun StatCell(stat: Stat, modifier: Modifier) {
-    val primary = MaterialTheme.colorScheme.primary
-    Column(
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .then(
-                if (stat.onClick == null) {
-                    Modifier
-                } else {
-                    Modifier.clickable(onClick = stat.onClick, role = Role.Button).pointerHoverIcon(PointerIcon.Hand)
-                },
-            )
-            .padding(4.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stat.value, style = MaterialTheme.typography.headlineMedium, color = primary)
-            if (stat.onClick != null) {
-                Spacer(Modifier.width(4.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = primary, modifier = Modifier.size(18.dp))
-            }
-        }
-        Text(stat.label.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stat.value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        Text(pluralStringResource(stat.label, parseCount(stat.value) ?: 0), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -340,11 +440,7 @@ private fun FeaturedProjects(profile: Profile, onOpenProjects: () -> Unit) {
     val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 1 else 2
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.featured_projects.str(), action = { SeeAllButton(onOpenProjects) })
-        // A Row divides its width by weight; FlowRow keeps asking the card how wide it wants to be,
-        // and a card holding a paragraph always answers "wider than the row", so it never paired up.
         featured.chunked(columns).forEach { row ->
-            // IntrinsicSize.Min makes the row as tall as its tallest card, so the cards end level
-            // instead of one hanging below the other by a link chip.
             Row(
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -355,6 +451,36 @@ private fun FeaturedProjects(profile: Profile, onOpenProjects: () -> Unit) {
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+@Composable
+private fun SupportLine(profile: Profile) {
+    val support = profile.link("support") ?: return
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(Res.string.support_projects.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SupportButton(support, "projects")
+    }
+}
+
+@Composable
+internal fun SupportButton(support: Link, source: String) {
+    OutlinedButton(
+        onClick = {
+            Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(support.type, source))
+            Analytics.log(AnalyticsEvent.SUPPORT_OPEN, mapOf(AnalyticsParam.SOURCE to source))
+            openUrl(support.url)
+        },
+        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+    ) {
+        Icon(Icons.Filled.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(support.label?.str() ?: linkDefaultLabel(support.type))
     }
 }
 
@@ -378,6 +504,7 @@ private fun LatestArticles(profile: Profile, onOpenAll: () -> Unit) {
 
 @Composable
 fun ArticleRow(article: Article, modifier: Modifier = Modifier) {
+    val live by HabrStats.views.collectAsState()
     Card(
         onClick = { openUrl(article.url) },
         modifier = modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
@@ -393,52 +520,9 @@ fun ArticleRow(article: Article, modifier: Modifier = Modifier) {
                 }
                 val meta = buildString {
                     append(article.date)
-                    article.views?.let { append(" · ").append(it).append(' ').append(Res.string.views.str()) }
+                    HabrStats.viewsOf(article, live)?.let { append(" · ").append(formatCount(it)).append(' ').append(Res.string.views.str()) }
                 }
                 Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ToolsTeaser(onOpenTools: () -> Unit, onOpenTool: (String) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionTitle(Res.string.tools.str(), action = { SeeAllButton(onOpenTools) })
-        Text(Res.string.tools_intro.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        // Thirteen filled tonal buttons all leading to the same screen read as thirteen commands.
-        // They are an inventory with a way in, which is what an assist chip is for.
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ToolCategory.entries.forEach { category ->
-                val count = ToolRegistry.byCategory(category).size
-                if (count == 0) return@forEach
-                AssistChip(
-                    onClick = onOpenTools,
-                    label = { Text("${category.title.str()} · $count") },
-                    leadingIcon = { Icon(category.icon, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
-                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
-                )
-            }
-        }
-        val popular = listOf("subnet-calculator", "dns-lookup", "unit-converter", "json-formatter", "qr-generator", "password-generator")
-            .mapNotNull { ToolRegistry.byId(it) }
-        if (popular.isNotEmpty()) {
-            // Both groups are chips now, so the shortcuts need a word to tell them from the counts.
-            Text(
-                Res.string.popular.str(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                popular.forEach { tool ->
-                    AssistChip(
-                        onClick = { onOpenTool(tool.id) },
-                        label = { Text(tool.title.str()) },
-                        leadingIcon = { Icon(tool.icon, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
-                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
-                    )
-                }
             }
         }
     }
@@ -459,11 +543,6 @@ private fun ResumeTeaser(onOpenResume: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
-                Text(
-                    Res.string.right_here_no_pdf_and_no_external_link.str(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
         }
@@ -471,27 +550,74 @@ private fun ResumeTeaser(onOpenResume: () -> Unit) {
 }
 
 @Composable
-private fun Footer() {
+internal fun ContactCard(profile: Profile, title: String, body: String, source: String) {
+    val contacts = profile.links.filter { it.active && it.type in ContactTypes }
+    if (contacts.isEmpty()) return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text(body, style = MaterialTheme.typography.bodyMedium)
+            }
+            ContactRows(contacts, source)
+        }
+    }
+}
+
+@Composable
+private fun Footer(profile: Profile) {
+    val copy = rememberCopy()
+    var copied by remember { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(1500.milliseconds)
+            copied = false
+        }
+    }
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(Res.string.built_with.str(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        // A Row squeezed the three buttons until "Исходный код" broke mid-word at 360 dp.
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)) {
-            FooterLink("vasmarfas.com", AppConfig.SITE_COM)
-            FooterLink("vasmarfas.ru", AppConfig.SITE_RU)
-            FooterLink(Res.string.source_code.str(), AppConfig.REPO_URL)
+        Text(
+            Res.string.built_with.str(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            profile.links.filter { it.active && it.type in ContactTypes }.forEach { link ->
+                if (link.type == "email") {
+                    val address = link.url.removePrefix("mailto:")
+                    FooterButton(if (copied) Icons.Filled.Check else linkIcon(link.type), if (copied) Res.string.copied.str() else address) {
+                        Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, "footer"))
+                        copy(address)
+                        copied = true
+                    }
+                } else {
+                    FooterButton(linkIcon(link.type), link.label?.str() ?: linkDefaultLabel(link.type)) {
+                        Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, "footer"))
+                        openUrl(link.url)
+                    }
+                }
+            }
+            FooterButton(linkIcon("github"), Res.string.source_code.str()) { openUrl(AppConfig.REPO_URL) }
         }
-        Spacer(Modifier.height(4.dp))
         Text("© ${currentYear()} vasmarfas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun FooterLink(text: String, url: String) {
-    TextButton(onClick = { openUrl(url) }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
-        Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+private fun FooterButton(icon: ImageVector, label: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
     }
 }

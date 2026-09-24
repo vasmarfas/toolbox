@@ -28,7 +28,7 @@ val unicodeInspectorTool = Tool(
     id = "unicode-inspector",
     category = ToolCategory.TEXT,
     title = Res.string.unicode_inspector,
-    description = Res.string.code_point_utf_8_and_utf_16_bytes_category_a,
+    description = Res.string.unicode_inspector_description,
     icon = Icons.Filled.EmojiSymbols,
     keywords = listOf("unicode", "utf-8", "utf-16", "code point", "escape", "character", "юникод", "символ", "кодовая точка", "экранирование"),
 ) { UnicodeInspectorScreen() }
@@ -93,7 +93,7 @@ private fun UnicodeInspectorScreen() {
             ResultCard {
                 Text(info.text, style = MaterialTheme.typography.displayMedium)
                 KeyValueRow(Res.string.code_point.str(), info.hex)
-                KeyValueRow(Res.string.decimal_3.str(), cp.toString())
+                KeyValueRow(Res.string.decimal_format.str(), cp.toString())
                 KeyValueRow("UTF-8", info.utf8)
                 KeyValueRow("UTF-16", info.utf16)
                 KeyValueRow(Res.string.category.str(), info.category, mono = false, copyable = false)

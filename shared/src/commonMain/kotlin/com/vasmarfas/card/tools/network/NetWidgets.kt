@@ -2,6 +2,7 @@ package com.vasmarfas.card.tools.network
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -14,38 +15,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.data.LocalSettings
 import com.vasmarfas.card.resources.*
-
-object NetStrings {
-    val host = Res.string.host_or_ip_address
-    val port = Res.string.port
-    val timeout = Res.string.timeout_ms
-    val count = Res.string.count
-    val running = Res.string.running_2
-    val noResults = Res.string.no_results
-    val query = Res.string.query_2
-    val lookup = Res.string.lookup
-    val raw = Res.string.raw_response
-    val sent = Res.string.sent
-    val received = Res.string.received
-    val lost = Res.string.lost
-    val min = Res.string.min_2
-    val avg = Res.string.avg
-    val max = Res.string.max
-    val open = Res.string.open_3
-    val closed = Res.string.closed
-    val service = Res.string.service
-    val scanning = Res.string.scanning
-    val stop = Res.string.stop_3
-    val start = Res.string.start
-    val jvmOnlyNote = Res.string.the_browser_has_no_sockets_this_works_in_the
-    val corsNote = Res.string.in_the_browser_requests_are_limited_by_cors
-}
 
 private const val WIDE_COLUMN_UNIT = 110
 
@@ -85,10 +67,57 @@ fun TableBlock(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
 
 @Composable
 fun SimpleTable(header: List<String>, rows: List<List<String>>, weights: List<Float>? = null, mono: Boolean = true) {
-    TableBlock {
-        TableRow(header, header = true, weights = weights)
-        HorizontalDivider()
-        rows.forEach { TableRow(it, weights = weights, mono = mono) }
+    val wide = LocalSettings.current.wideTables
+    val headerStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+    val cellStyle = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodySmall
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints {
+        val available = constraints.maxWidth - with(LocalDensity.current) { 8.dp.roundToPx() } * (header.size - 1)
+        val longestWords = header.indices.map { column -> rows.maxOfOrNull { row -> row.getOrElse(column) { "" }.split(' ').maxOf { it.length } } ?: 0 }
+        val fits = wide || remember(header, longestWords, weights, available) {
+            val total = weights?.sum() ?: header.size.toFloat()
+            header.indices.all { column ->
+                val width = available * (weights?.getOrNull(column) ?: 1f) / total
+                val longest = rows.flatMap { it.getOrElse(column) { "" }.split(' ') }.sortedByDescending { it.length }.take(3)
+                header[column].split(' ').all { measurer.measure(it, headerStyle).size.width <= width } &&
+                    longest.all { measurer.measure(it, cellStyle).size.width <= width }
+            }
+        }
+        if (fits) {
+            TableBlock {
+                TableRow(header, header = true, weights = weights)
+                HorizontalDivider()
+                rows.forEach { TableRow(it, weights = weights, mono = mono) }
+            }
+        } else {
+            StackedRows(header, rows, cellStyle)
+        }
+    }
+}
+
+@Composable
+private fun StackedRows(header: List<String>, rows: List<List<String>>, style: TextStyle) {
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        rows.forEachIndexed { index, row ->
+            if (index > 0) HorizontalDivider()
+            SelectionContainer {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(row.first(), style = style.copy(fontWeight = FontWeight.Bold))
+                    row.drop(1).forEachIndexed { i, cell ->
+                        if (cell.isNotBlank()) {
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(SpanStyle(color = labelColor)) { append("${header[i + 1]}: ") }
+                                    append(cell)
+                                },
+                                style = style,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

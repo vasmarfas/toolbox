@@ -36,7 +36,7 @@ val paceCalculatorTool = Tool(
     id = "pace-calculator",
     category = ToolCategory.FITNESS,
     title = Res.string.pace_calculator,
-    description = Res.string.distance_time_and_pace_any_two_give_the_thir,
+    description = Res.string.pace_calculator_description,
     icon = Icons.AutoMirrored.Filled.DirectionsRun,
     keywords = listOf("pace", "running", "splits", "riegel", "marathon", "speed", "темп", "бег", "отрезки", "марафон", "скорость"),
 ) { PaceCalculatorScreen() }
@@ -50,7 +50,7 @@ private fun PaceCalculatorScreen() {
     var paceText by rememberSaveable { mutableStateOf("5:00") }
 
     val unitKm = if (unit == PaceUnit.KM) 1.0 else KM_PER_MILE
-    val unitLabel = if (unit == PaceUnit.KM) Res.string.km.str() else Res.string.mi.str()
+    val unitLabel = if (unit == PaceUnit.KM) Res.string.unit_km.str() else Res.string.unit_mi.str()
 
     SegmentedChoice(
         options = PaceUnit.entries,
@@ -66,7 +66,7 @@ private fun PaceCalculatorScreen() {
             when (it) {
                 PaceTarget.TIME -> Res.string.time.str()
                 PaceTarget.PACE -> Res.string.pace.str()
-                PaceTarget.DISTANCE -> Res.string.distance_2.str()
+                PaceTarget.DISTANCE -> Res.string.pace_distance.str()
             }
         },
     )
@@ -74,7 +74,7 @@ private fun PaceCalculatorScreen() {
         NumberField(
             value = distanceText,
             onValueChange = { distanceText = it },
-            label = Res.string.distance_2.str(),
+            label = Res.string.pace_distance.str(),
             suffix = unitLabel,
             isError = distanceText.toDoubleLenient().let { it == null || it <= 0 },
         )
@@ -95,7 +95,7 @@ private fun PaceCalculatorScreen() {
             ToolInputField(
                 value = paceText,
                 onValueChange = { paceText = it },
-                label = "${Res.string.pace.str()}, min/$unitLabel",
+                label = "${Res.string.pace.str()}, ${Res.string.unit_min.str()}/$unitLabel",
                 modifier = Modifier.weight(1f),
                 placeholder = "5:00",
                 isError = Pace.parseTime(paceText) == null,
@@ -125,7 +125,7 @@ private fun PaceCalculatorScreen() {
     }
     if (resolved == null) {
         ErrorText(
-            Res.string.enter_a_positive_distance_and_time_as_mm_ss.str(),
+            Res.string.pace_enter_a_positive_distance.str(),
         )
         return
     }
@@ -135,12 +135,12 @@ private fun PaceCalculatorScreen() {
     val speedKmh = Pace.speed(km, seconds)
 
     ResultCard {
-        KeyValueRow(Res.string.distance_2.str(), "${units.fmt(3)} $unitLabel · ${km.fmt(3)} ${Res.string.km.str()}")
+        KeyValueRow(Res.string.pace_distance.str(), "${units.fmt(3)} $unitLabel · ${km.fmt(3)} ${Res.string.unit_km.str()}")
         KeyValueRow(Res.string.time.str(), Pace.formatTime(seconds))
-        KeyValueRow(Res.string.pace.str(), "${Pace.formatPace(pacePerUnit)} min/$unitLabel")
-        KeyValueRow(Res.string.pace_per_km.str(), "${Pace.formatPace(perKm)} min/${Res.string.km.str()}")
-        KeyValueRow(Res.string.pace_per_mile.str(), "${Pace.formatPace(perKm * KM_PER_MILE)} min/${Res.string.mi.str()}")
-        KeyValueRow(Res.string.speed.str(), "${speedKmh.fmt(2)} ${Res.string.km_h.str()} · ${(speedKmh / KM_PER_MILE).fmt(2)} mph")
+        KeyValueRow(Res.string.pace.str(), "${Pace.formatPace(pacePerUnit)} ${Res.string.unit_min.str()}/$unitLabel")
+        KeyValueRow(Res.string.pace_per_km.str(), "${Pace.formatPace(perKm)} ${Res.string.unit_min.str()}/${Res.string.unit_km.str()}")
+        KeyValueRow(Res.string.pace_per_mile.str(), "${Pace.formatPace(perKm * KM_PER_MILE)} ${Res.string.unit_min.str()}/${Res.string.unit_mi.str()}")
+        KeyValueRow(Res.string.speed.str(), "${speedKmh.fmt(2)} ${Res.string.unit_kmh.str()} · ${(speedKmh / KM_PER_MILE).fmt(2)} ${Res.string.unit_mph.str()}")
     }
 
     val splits = Pace.splits(km, perKm, unitKm)
@@ -162,7 +162,7 @@ private fun PaceCalculatorScreen() {
     ResultCard(Res.string.race_predictions_riegel.str()) {
         SimpleTable(
             header = listOf(
-                Res.string.distance_2.str(),
+                Res.string.pace_distance.str(),
                 Res.string.time.str(),
                 Res.string.pace_per_km.str(),
             ),
@@ -175,7 +175,7 @@ private fun PaceCalculatorScreen() {
         )
     }
     Text(
-        text = Res.string.on_a_treadmill_1_incline_roughly_matches_the.str(),
+        text = Res.string.pace_on_a_treadmill_1.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

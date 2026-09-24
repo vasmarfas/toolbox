@@ -44,7 +44,7 @@ val textCleanerTool = Tool(
     id = "text-cleaner",
     category = ToolCategory.TEXT,
     title = Res.string.text_cleaner,
-    description = Res.string.collapse_whitespace_trim_remove_line_breaks,
+    description = Res.string.text_cleaner_description,
     icon = Icons.Filled.CleaningServices,
     keywords = listOf("clean", "whitespace", "trim", "html", "strip", "emoji", "diacritics", "quotes", "очистка", "пробелы", "теги", "эмодзи", "кавычки"),
 ) { TextCleanerScreen() }
@@ -61,7 +61,7 @@ private fun TextCleanerScreen() {
         minLines = 5,
     )
     SwitchRow(Res.string.collapse_whitespace.str(), options.collapseWhitespace, { options = options.copy(collapseWhitespace = it) })
-    SwitchRow(Res.string.trim_lines_2.str(), options.trimLines, { options = options.copy(trimLines = it) })
+    SwitchRow(Res.string.cleaner_trim_lines.str(), options.trimLines, { options = options.copy(trimLines = it) })
     SwitchRow(Res.string.remove_line_breaks.str(), options.removeLineBreaks, { options = options.copy(removeLineBreaks = it) })
     SwitchRow(Res.string.strip_html_tags.str(), options.stripHtml, { options = options.copy(stripHtml = it) })
     SwitchRow(Res.string.remove_non_printable_characters.str(), options.removeNonPrintable, { options = options.copy(removeNonPrintable = it) })

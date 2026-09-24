@@ -3,7 +3,7 @@ package com.vasmarfas.card.data
 import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.Prefs
-import com.vasmarfas.card.resources.Res
+import com.vasmarfas.card.resources.*
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess

@@ -20,7 +20,7 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.calculators.Sex
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -97,7 +97,7 @@ private fun BloodAlcoholScreen() {
             onValueChange = { massText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = massText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -133,13 +133,17 @@ private fun BloodAlcoholScreen() {
     val high = Widmark.promille(grams, mass, sex, hours, Widmark.EliminationLow)
     val clear = Widmark.hoursToClear(grams, mass, sex) - hours
 
+    AnswerCard(
+        "${typical.fmt(2)} ‰",
+        Res.string.time_to_zero.str() + ": " + if (clear <= 0) Res.string.already_zero.str() else "${clear.fmt(1)} ${Res.string.unit_h.str()}",
+        copyValue = typical.fmt(2),
+    )
     ResultCard {
-        KeyValueRow(Res.string.pure_ethanol.str(), "${grams.fmt(1)} ${Res.string.g.str()}", copyable = false)
-        KeyValueRow(Res.string.estimated_level.str(), "${typical.fmt(2)} ‰", copyable = false)
+        KeyValueRow(Res.string.pure_ethanol.str(), "${grams.fmt(1)} ${Res.string.unit_g.str()}", copyable = false)
         KeyValueRow(Res.string.plausible_spread.str(), "${low.fmt(2)}—${high.fmt(2)} ‰", copyable = false)
         KeyValueRow(
             Res.string.time_to_zero.str(),
-            if (clear <= 0) Res.string.already_zero.str() else "${clear.fmt(1)} ${Res.string.h.str()}",
+            if (clear <= 0) Res.string.already_zero.str() else "${clear.fmt(1)} ${Res.string.unit_h.str()}",
             copyable = false,
         )
     }

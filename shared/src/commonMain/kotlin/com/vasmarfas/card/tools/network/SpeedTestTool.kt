@@ -42,13 +42,14 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
-import com.vasmarfas.card.ui.components.ToolSection
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.head
@@ -75,7 +76,7 @@ val speedTestTool = Tool(
     id = "speed-test",
     category = ToolCategory.NETWORK,
     title = Res.string.speed_test,
-    description = Res.string.latency_download_and_upload_speed_against_cl,
+    description = Res.string.speed_test_description,
     icon = Icons.Filled.Speed,
     keywords = listOf("bandwidth", "download", "upload", "latency", "mbps", "openspeedtest", "yandex", "скорость", "интернет", "пинг", "яндекс", "интернетометр"),
 ) { SpeedTestScreen() }
@@ -167,7 +168,7 @@ private suspend fun measureLatency(url: String, head: Boolean, samples: Int = 6)
     return latencyStats(times.drop(1))
 }
 
-private val NotAStream = Res.string.the_address_returns_a_web_page_not_a_data_st
+private val NotAStream = Res.string.speed_address_returns_a_web
 
 private suspend fun measureDownload(urls: List<String>, counter: MutableStateFlow<Long>, lang: Lang): Transfer = coroutineScope {
     val warmupEnd = currentEpochMillis() + WARMUP_MS
@@ -239,8 +240,9 @@ private suspend fun uploadStream(url: String, payload: ByteArray, warmupEnd: Lon
 @Composable
 private fun SpeedTestScreen() {
     val noEndpointsForThisSourceText = Res.string.no_endpoints_for_this_source.str()
-    val corsNoteText = NetStrings.corsNote.str()
+    val corsNoteText = Res.string.net_in_the_browser_requests.str()
     var customSources by remember { mutableStateOf(SpeedSourceStore.load()) }
+    var showCustom by rememberSaveable { mutableStateOf(customSources.isNotEmpty()) }
     var sourceName by rememberSaveable { mutableStateOf(cloudflareSpeedSource.name) }
     var baseUrl by rememberSaveable { mutableStateOf("") }
     var state by remember { mutableStateOf(SpeedState()) }
@@ -323,12 +325,12 @@ private fun SpeedTestScreen() {
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ActionButton(
-                text = if (state.running) NetStrings.running.str() else NetStrings.start.str(),
+                text = if (state.running) Res.string.net_running.str() else Res.string.start.str(),
                 onClick = ::start,
                 enabled = !state.running && source.baseUrl.isNotBlank(),
             )
             if (state.running) {
-                TextButton(onClick = { job?.cancel(); state = state.copy(running = false, phase = SpeedPhase.IDLE) }) { Text(NetStrings.stop.str()) }
+                TextButton(onClick = { job?.cancel(); state = state.copy(running = false, phase = SpeedPhase.IDLE) }) { Text(Res.string.stop_short.str()) }
             }
         }
     }
@@ -357,25 +359,29 @@ private fun SpeedTestScreen() {
         )
     }
     if (state.latencyMs != null || state.downloadMbps != null) {
+        state.downloadMbps?.let { AnswerCard("${it.fmt(1)} ${Res.string.unit_mbit_s.str()}", "${Res.string.download.str()} · ${state.source}", copyValue = it.fmt(1)) }
         ResultCard(title = state.source) {
-            state.latencyMs?.let { KeyValueRow(Res.string.latency.str(), "${it.fmt(0)} ms · jitter ${state.jitterMs?.fmt(1) ?: "—"} ms", copyable = false) }
-            state.downloadMbps?.let { KeyValueRow(Res.string.download.str(), "${it.fmt(1)} Mbit/s (${(it / 8).fmt(2)} MB/s)", copyable = false) }
-            state.uploadMbps?.let { KeyValueRow(Res.string.upload.str(), "${it.fmt(1)} Mbit/s (${(it / 8).fmt(2)} MB/s)", copyable = false) }
+            state.latencyMs?.let { KeyValueRow(Res.string.latency.str(), "${it.fmt(0)} ${Res.string.unit_ms.str()} · ${Res.string.jitter.str()} ${state.jitterMs?.fmt(1) ?: "—"} ${Res.string.unit_ms.str()}", copyable = false) }
+            state.downloadMbps?.let { KeyValueRow(Res.string.download.str(), "${it.fmt(1)} ${Res.string.unit_mbit_s.str()} (${(it / 8).fmt(2)} ${Res.string.unit_mb_per_second.str()})", copyable = false) }
+            state.uploadMbps?.let { KeyValueRow(Res.string.upload.str(), "${it.fmt(1)} ${Res.string.unit_mbit_s.str()} (${(it / 8).fmt(2)} ${Res.string.unit_mb_per_second.str()})", copyable = false) }
             KeyValueRow(Res.string.endpoint.str(), state.endpoint, copyable = false)
         }
     }
     Text(
-        Res.string.results_depend_on_the_chosen_source_the_rout.str(),
+        Res.string.speed_results_depend.str(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    SpeedSourceSection(
-        sources = customSources,
-        onChange = {
-            customSources = it
-            SpeedSourceStore.save(it)
-        },
-    )
+    SwitchRow(Res.string.custom_sources.str(), showCustom, { showCustom = it })
+    if (showCustom) {
+        SpeedSourceSection(
+            sources = customSources,
+            onChange = {
+                customSources = it
+                SpeedSourceStore.save(it)
+            },
+        )
+    }
 }
 
 @Composable
@@ -392,8 +398,8 @@ private fun SpeedSourceSection(sources: List<SpeedSource>, onChange: (List<Speed
         editing = -1
     }
 
-    ToolSection(Res.string.custom_sources.str()) {
-        ToolInputField(value = name, onValueChange = { name = it }, label = Res.string.name_2.str())
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ToolInputField(value = name, onValueChange = { name = it }, label = Res.string.item_name.str())
         ChoiceChips(
             options = SpeedSourceKind.entries.filter { it != SpeedSourceKind.YANDEX },
             selected = kind,
@@ -403,7 +409,7 @@ private fun SpeedSourceSection(sources: List<SpeedSource>, onChange: (List<Speed
         ToolInputField(
             value = url,
             onValueChange = { url = it },
-            label = Res.string.base_url_2.str(),
+            label = Res.string.speed_base_url.str(),
             placeholder = "https://speed.example.com",
             keyboardType = KeyboardType.Uri,
             monospace = true,

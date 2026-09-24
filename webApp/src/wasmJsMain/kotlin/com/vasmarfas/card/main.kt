@@ -13,8 +13,6 @@ import com.vasmarfas.card.ui.navigation.TopDestination
 import com.vasmarfas.card.ui.navigation.UrlRoutes
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalBrowserHistoryApi::class)
 fun main() {
@@ -52,6 +50,3 @@ private fun navigateToFragment(navController: NavController, fragment: String) {
         else -> navController.navigate(route) { launchSingleTop = true }
     }
 }
-
-@Suppress("unused")
-private val mainScope = CoroutineScope(Dispatchers.Main)

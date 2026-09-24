@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,21 +16,20 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,6 +42,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.APP_VERSION
+import com.vasmarfas.card.core.Analytics
+import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.Lang
 import com.vasmarfas.card.core.PlatformKind
@@ -51,6 +54,7 @@ import com.vasmarfas.card.core.platformInfo
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.core.supportsDynamicColor
 import com.vasmarfas.card.data.GithubStars
+import com.vasmarfas.card.data.HabrStats
 import com.vasmarfas.card.data.LocalSettings
 import com.vasmarfas.card.data.ProfileRepository
 import com.vasmarfas.card.data.ResumeRepository
@@ -67,7 +71,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onRunOnboarding: () -> Unit) {
     val settings = LocalSettings.current
     val profileState by ProfileRepository.state.collectAsState()
     val scope = rememberCoroutineScope()
@@ -153,12 +157,12 @@ fun SettingsScreen() {
                 description = Res.string.wide_tables_hint.str(),
             )
             if (currentPlatform != PlatformKind.WEB) {
-                SwitchRow(
-                    Res.string.open_on_tools.str(),
-                    settings.startOnTools,
-                    { settings.updateStartOnTools(it) },
-                    description = Res.string.start_on_tools_hint.str(),
-                )
+                Text(Res.string.pick_again_hint.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(onClick = onRunOnboarding, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
+                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.size(8.dp))
+                    Text(Res.string.pick_again.str())
+                }
             }
         }
 
@@ -174,7 +178,14 @@ fun SettingsScreen() {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     text = Res.string.refresh.str(),
-                    onClick = { scope.launch { ProfileRepository.refresh(); ResumeRepository.refresh(); GithubStars.refresh(profileState.value?.projects.orEmpty(), force = true) } },
+                    onClick = {
+                        scope.launch {
+                            ProfileRepository.refresh()
+                            ResumeRepository.refresh()
+                            GithubStars.refresh(profileState.value?.projects.orEmpty(), force = true)
+                            HabrStats.refresh(profileState.value?.articles.orEmpty(), force = true)
+                        }
+                    },
                     enabled = !profileState.refreshing,
                 )
                 TextButton(onClick = { openUrl(AppConfig.contentUrl("profile.json")) }) { Text("profile.json") }
@@ -186,20 +197,23 @@ fun SettingsScreen() {
             KeyValueRow(Res.string.platform.str(), "${info.kind.title.str()} · ${info.osName} ${info.osVersion} · ${info.deviceModel}", mono = false, copyable = false)
             Text(Res.string.built_with.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                AboutLink(Res.string.source_code.str(), AppConfig.REPO_URL)
-                AboutLink("vasmarfas.com", AppConfig.SITE_COM)
-                AboutLink("vasmarfas.ru", AppConfig.SITE_RU)
-                AboutLink(Res.string.privacy_policy.str(), "${AppConfig.REPO_URL}/blob/master/privacy-policy.md")
-                AboutLink(Res.string.terms.str(), "${AppConfig.REPO_URL}/blob/master/terms.md")
+                AboutLink(Res.string.source_code.str(), AppConfig.REPO_URL, "source")
+                AboutLink("vasmarfas.com", AppConfig.SITE_COM, "site_com")
+                AboutLink("vasmarfas.ru", AppConfig.SITE_RU, "site_ru")
+                AboutLink(Res.string.privacy_policy.str(), "${AppConfig.REPO_URL}/blob/master/privacy-policy.md", "privacy")
+                AboutLink(Res.string.terms.str(), "${AppConfig.REPO_URL}/blob/master/terms.md", "terms")
             }
         }
     }
 }
 
 @Composable
-private fun AboutLink(text: String, url: String) {
+private fun AboutLink(text: String, url: String, id: String) {
     AssistChip(
-        onClick = { openUrl(url) },
+        onClick = {
+            Analytics.log(AnalyticsEvent.LINK_OPEN, mapOf(AnalyticsParam.LINK to id))
+            openUrl(url)
+        },
         label = { Text(text) },
         leadingIcon = {
             Icon(

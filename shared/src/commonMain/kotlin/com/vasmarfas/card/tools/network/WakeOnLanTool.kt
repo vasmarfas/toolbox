@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.Prefs
@@ -41,7 +40,7 @@ val wakeOnLanTool = Tool(
     id = "wake-on-lan",
     category = ToolCategory.NETWORK,
     title = Res.string.wake_on_lan,
-    description = Res.string.send_a_magic_packet_to_wake_a_computer_keep,
+    description = Res.string.wake_on_lan_description,
     icon = Icons.Filled.PowerSettingsNew,
     keywords = listOf("wol", "magic packet", "wake", "включить", "пробуждение"),
     platforms = PlatformKind.native,
@@ -86,7 +85,7 @@ private fun WakeOnLanScreen() {
     ToolInputField(value = mac, onValueChange = { mac = it }, label = Res.string.mac_address.str(), isError = mac.isNotBlank() && !validMac, monospace = true)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ToolInputField(value = broadcast, onValueChange = { broadcast = it }, label = Res.string.broadcast_address.str(), modifier = Modifier.weight(2f), keyboardType = KeyboardType.Uri, monospace = true)
-        NumberField(value = port, onValueChange = { port = it }, label = NetStrings.port.str(), modifier = Modifier.weight(1f))
+        NumberField(value = port, onValueChange = { port = it }, label = Res.string.port.str(), modifier = Modifier.weight(1f))
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ActionButton(text = Res.string.wake.str(), onClick = { send(WolDevice(name, mac, broadcast, port.toIntOrNull() ?: 9)) }, enabled = validMac)

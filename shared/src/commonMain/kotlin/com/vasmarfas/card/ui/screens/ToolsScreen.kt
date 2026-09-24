@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
@@ -52,13 +55,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
+import com.vasmarfas.card.core.Analytics
+import com.vasmarfas.card.core.AnalyticsEvent
+import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.PlatformKind
+import com.vasmarfas.card.core.currentPlatform
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.LocalSettings
 import com.vasmarfas.card.resources.*
@@ -70,31 +81,101 @@ import com.vasmarfas.card.ui.components.ContentMaxWidth
 import com.vasmarfas.card.ui.components.EmptyState
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LocalLayoutSize
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+
+private sealed interface Shelf {
+    val key: String
+
+    data object Favorites : Shelf {
+        override val key = "favorites"
+    }
+
+    data object Popular : Shelf {
+        override val key = "popular"
+    }
+
+    data class Of(val category: ToolCategory) : Shelf {
+        override val key = category.id
+    }
+}
+
+private val shelves: List<Shelf> by lazy {
+    val gathered = if (currentPlatform == PlatformKind.WEB) listOf(Shelf.Favorites, Shelf.Popular) else listOf(Shelf.Popular)
+    gathered + ToolCategory.entries.filter { ToolRegistry.byCategory(it).isNotEmpty() }.map { Shelf.Of(it) }
+}
+
+private val Shelf.icon: ImageVector
+    get() = when (this) {
+        Shelf.Favorites -> Icons.Filled.Star
+        Shelf.Popular -> Icons.Filled.Whatshot
+        is Shelf.Of -> category.icon
+    }
+
+@Composable
+private fun Shelf.title(): String = when (this) {
+    Shelf.Favorites -> Res.string.favorites.str()
+    Shelf.Popular -> Res.string.popular.str()
+    is Shelf.Of -> category.title.str()
+}
+
+private fun Shelf.tools(favorites: List<String>): List<Tool> = when (this) {
+    Shelf.Favorites -> favorites.mapNotNull { ToolRegistry.byId(it) }
+    Shelf.Popular -> ToolRegistry.popular.filter { it.availableHere }
+    is Shelf.Of -> ToolRegistry.byCategory(category)
+}
 
 @Composable
 fun ToolsScreen(onOpenTool: (String) -> Unit) {
     val settings = LocalSettings.current
     var query by rememberSaveable { mutableStateOf("") }
-    var category by rememberSaveable { mutableStateOf<String?>(null) }
-    val selectedCategory = category?.let { id -> ToolCategory.entries.firstOrNull { it.id == id } }
-    val browsing = query.isBlank() && selectedCategory == null
-    val filtered = remember(query, selectedCategory) {
-        ToolRegistry.all.filter { (selectedCategory == null || it.category == selectedCategory) && it.matches(query) }
+    var shelfKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val shelf = shelves.firstOrNull { it.key == shelfKey }
+    val browsing = query.isBlank() && shelf == null
+    val filtered = remember(query, shelf, settings.myTools) {
+        val q = query.trim()
+        (shelf?.tools(settings.myTools) ?: ToolRegistry.all)
+            .filter { it.matches(query) }
+            .sortedBy { if (q.isNotEmpty() && it.title.matches(q)) 0 else 1 }
     }
-    val favorites = filtered.filter { it.id in settings.favorites }
-    val recent = settings.recent.mapNotNull { ToolRegistry.byId(it) }.filter { it.id !in settings.favorites }
+    val recent = settings.recent.mapNotNull { ToolRegistry.byId(it) }
     var categoriesExpanded by rememberSaveable { mutableStateOf(false) }
     val compact = LocalLayoutSize.current == LayoutSize.COMPACT
     // A tile tapped at the bottom of the page must not open its category scrolled past the header.
     val grid = rememberLazyGridState()
-    LaunchedEffect(selectedCategory, query) { grid.scrollToItem(0) }
+    LaunchedEffect(shelf, query) { grid.scrollToItem(0) }
+    LaunchedEffect(query) {
+        if (query.isBlank()) return@LaunchedEffect
+        delay(1500.milliseconds)
+        Analytics.search(query, filtered.size)
+    }
+    val source = when {
+        query.isNotBlank() -> "search"
+        shelf == Shelf.Popular -> "popular"
+        shelf == Shelf.Favorites -> "favorites"
+        shelf is Shelf.Of -> "category"
+        else -> "catalog"
+    }
+    val open = { id: String -> openTool(id, source, onOpenTool) }
+    val select = { key: String? ->
+        shelfKey = key
+        key?.let { Analytics.log(AnalyticsEvent.CATALOG_FILTER, mapOf(AnalyticsParam.CATEGORY to it)) }
+    }
+    NavigationBackHandler(
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = shelf != null || query.isNotEmpty(),
+        onBackCompleted = {
+            query = ""
+            shelfKey = null
+        },
+    )
 
     Column(Modifier.fillMaxSize()) {
         CatalogHeader(
             query = query,
             onQueryChange = { query = it },
-            selected = selectedCategory,
-            onSelect = { category = it?.id },
+            selected = shelf,
+            onSelect = { select(it?.key) },
             expanded = categoriesExpanded,
             onToggleExpanded = { categoriesExpanded = !categoriesExpanded },
         )
@@ -108,46 +189,54 @@ fun ToolsScreen(onOpenTool: (String) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (favorites.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, key = "favorites") {
-                    ChipRow(Res.string.favorites.str(), favorites, onOpenTool)
-                }
-            }
             if (browsing && recent.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }, key = "recent") {
-                    ChipRow(Res.string.recent.str(), recent, onOpenTool)
+                    ChipRow(Res.string.recent.str(), recent) { openTool(it, "recent", onOpenTool) }
                 }
             }
             if (browsing) {
                 item(span = { GridItemSpan(maxLineSpan) }, key = "categories") { GroupHeader(Res.string.categories.str()) }
-                items(ToolCategory.entries, key = { "tile-" + it.id }) { cat ->
-                    CategoryTile(cat, onClick = { category = cat.id })
+                items(shelves, key = { "tile-" + it.key }) { item ->
+                    ShelfTile(item, item.tools(settings.myTools), onClick = { select(item.key) })
                 }
             } else {
-                val grouped = filtered.groupBy { it.category }
-                if (grouped.isEmpty()) {
+                val groups = if (shelf == null || shelf is Shelf.Of) {
+                    filtered.groupBy { it.category }.map { (cat, tools) -> Shelf.Of(cat) to tools }
+                } else {
+                    listOf(shelf to filtered).filter { it.second.isNotEmpty() }
+                }
+                if (groups.isEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        EmptyState(
-                            icon = Icons.Filled.SearchOff,
-                            title = Res.string.nothing_found.str(),
-                            description = Res.string.nothing_found_hint.str(),
-                        ) {
-                            ActionButton(
-                                text = Res.string.reset_search.str(),
-                                onClick = {
-                                    query = ""
-                                    category = null
-                                },
-                            )
+                        if (shelf == Shelf.Favorites && query.isBlank()) {
+                            EmptyState(
+                                icon = Icons.Filled.StarBorder,
+                                title = Res.string.favorites_empty.str(),
+                                description = Res.string.favorites_empty_hint.str(),
+                            ) {
+                                ActionButton(text = Res.string.popular.str(), onClick = { select(Shelf.Popular.key) })
+                            }
+                        } else {
+                            EmptyState(
+                                icon = Icons.Filled.SearchOff,
+                                title = Res.string.nothing_found.str(),
+                                description = Res.string.nothing_found_hint.str(),
+                            ) {
+                                ActionButton(
+                                    text = Res.string.reset_search.str(),
+                                    onClick = {
+                                        query = ""
+                                        shelfKey = null
+                                    },
+                                )
+                            }
                         }
                     }
                 }
-                ToolCategory.entries.forEach { cat ->
-                    val tools = grouped[cat] ?: return@forEach
-                    item(span = { GridItemSpan(maxLineSpan) }, key = "header-" + cat.id) {
-                        GroupHeader("${cat.title.str()} · ${tools.size}", category = cat)
+                groups.forEach { (group, tools) ->
+                    item(span = { GridItemSpan(maxLineSpan) }, key = "header-" + group.key) {
+                        GroupHeader("${group.title()} · ${tools.size}", icon = group.icon)
                     }
-                    items(tools, key = { it.id }) { ToolCard(it, onOpenTool) }
+                    items(tools, key = { it.id }) { ToolCard(it, open) }
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.height(24.dp)) }
@@ -155,17 +244,25 @@ fun ToolsScreen(onOpenTool: (String) -> Unit) {
     }
 }
 
+private fun openTool(id: String, source: String, onOpenTool: (String) -> Unit) {
+    Analytics.log(
+        AnalyticsEvent.TOOL_OPEN,
+        mapOf(AnalyticsParam.TOOL to id, AnalyticsParam.CATEGORY to (ToolRegistry.byId(id)?.category?.id ?: ""), AnalyticsParam.SOURCE to source),
+    )
+    onOpenTool(id)
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CatalogHeader(
     query: String,
     onQueryChange: (String) -> Unit,
-    selected: ToolCategory?,
-    onSelect: (ToolCategory?) -> Unit,
+    selected: Shelf?,
+    onSelect: (Shelf?) -> Unit,
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
 ) {
-    val categories = remember { listOf<ToolCategory?>(null) + ToolCategory.entries.filter { ToolRegistry.byCategory(it).isNotEmpty() } }
+    val categories = remember { listOf<Shelf?>(null) + shelves }
     val chips = rememberLazyListState()
     LaunchedEffect(selected) {
         val index = categories.indexOf(selected)
@@ -197,7 +294,7 @@ private fun CatalogHeader(
                         contentPadding = PaddingValues(start = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(categories, key = { it?.id ?: "all" }) { CategoryChip(it, selected, onSelect) }
+                        items(categories, key = { it?.key ?: "all" }) { CategoryChip(it, selected, onSelect) }
                     }
                 }
                 IconButton(
@@ -235,11 +332,11 @@ private fun CatalogHeader(
 }
 
 @Composable
-private fun CategoryChip(option: ToolCategory?, selected: ToolCategory?, onSelect: (ToolCategory?) -> Unit) {
+private fun CategoryChip(option: Shelf?, selected: Shelf?, onSelect: (Shelf?) -> Unit) {
     FilterChip(
         selected = option == selected,
         onClick = { onSelect(option) },
-        label = { Text(option?.title?.str() ?: Res.string.all_tools.str(), maxLines = 1) },
+        label = { Text(option?.title() ?: Res.string.all_tools.str(), maxLines = 1) },
         leadingIcon = {
             Icon(option?.icon ?: Icons.Filled.Apps, contentDescription = null, modifier = Modifier.size(18.dp))
         },
@@ -248,10 +345,10 @@ private fun CategoryChip(option: ToolCategory?, selected: ToolCategory?, onSelec
 }
 
 @Composable
-private fun GroupHeader(text: String, category: ToolCategory? = null) {
+private fun GroupHeader(text: String, icon: ImageVector? = null) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
-        if (category != null) {
-            Icon(category.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        if (icon != null) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(8.dp))
         }
         Text(text, style = MaterialTheme.typography.titleMedium)
@@ -276,32 +373,41 @@ private fun ChipRow(title: String, tools: List<Tool>, onOpenTool: (String) -> Un
 }
 
 @Composable
-private fun CategoryTile(category: ToolCategory, onClick: () -> Unit) {
-    val tools = ToolRegistry.byCategory(category)
+private fun ShelfTile(shelf: Shelf, tools: List<Tool>, onClick: () -> Unit) {
     val typography = MaterialTheme.typography
     val lines = typography.titleMedium.lineHeight.value * 2 + typography.bodySmall.lineHeight.value * 2
     val textHeight = with(LocalDensity.current) { lines.sp.toDp() }
-    val preview = tools.take(6).map { it.title.str() }.joinToString(" · ") + if (tools.size > 6) "…" else ""
+    val preview = if (tools.isEmpty() && shelf == Shelf.Favorites) {
+        Res.string.favorites_tile_hint.str()
+    } else {
+        tools.take(6).map { it.title.str() }.joinToString(" · ") + if (tools.size > 6) "…" else ""
+    }
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(40.dp)) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        category.icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(22.dp),
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(40.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            shelf.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                if (tools.isNotEmpty()) {
+                    Text(tools.size.toString(), style = typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             var titleLines by remember { mutableStateOf(1) }
             Column(Modifier.height(textHeight + 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    "${category.title.str()} · ${tools.size}",
+                    shelf.title(),
                     style = typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -320,7 +426,7 @@ private fun CategoryTile(category: ToolCategory, onClick: () -> Unit) {
 }
 
 @Composable
-fun ToolCard(tool: Tool, onOpenTool: (String) -> Unit, modifier: Modifier = Modifier) {
+fun ToolCard(tool: Tool, onOpenTool: (String) -> Unit, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null) {
     val available = tool.availableHere
     val typography = MaterialTheme.typography
     val lines = (typography.titleMedium.lineHeight.value + typography.bodySmall.lineHeight.value) * 2 +
@@ -383,6 +489,7 @@ fun ToolCard(tool: Tool, onOpenTool: (String) -> Unit, modifier: Modifier = Modi
                     )
                 }
             }
+            trailing?.invoke()
         }
     }
 }

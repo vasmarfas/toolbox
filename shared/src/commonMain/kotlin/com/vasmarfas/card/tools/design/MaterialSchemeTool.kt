@@ -36,7 +36,7 @@ val materialSchemeTool = Tool(
     id = "material-scheme",
     category = ToolCategory.DESIGN,
     title = Res.string.material_3_scheme,
-    description = Res.string.a_full_material_3_color_scheme_from_a_seed_c,
+    description = Res.string.material_scheme_description,
     icon = Icons.Filled.Style,
     keywords = listOf("material you", "scheme", "seed", "tonal", "theme", "схема", "тема", "материал", "палитра"),
 ) { MaterialSchemeScreen() }
@@ -84,7 +84,7 @@ private fun MaterialSchemeScreen() {
         Res.string.primary to primaryRoles(scheme),
         Res.string.secondary to secondaryRoles(scheme),
         Res.string.tertiary to tertiaryRoles(scheme),
-        Res.string.error_2 to errorRoles(scheme),
+        Res.string.scheme_error to errorRoles(scheme),
         Res.string.surfaces to surfaceRoles(scheme),
         Res.string.outline_and_inverse to outlineRoles(scheme),
     )

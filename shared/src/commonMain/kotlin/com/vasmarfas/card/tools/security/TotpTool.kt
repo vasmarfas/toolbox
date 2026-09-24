@@ -39,7 +39,7 @@ val totpTool = Tool(
     id = "totp",
     category = ToolCategory.SECURITY,
     title = Res.string.totp_codes,
-    description = Res.string.rfc_6238_one_time_codes_from_a_base32_secret,
+    description = Res.string.totp_description,
     icon = Icons.Filled.Key,
     keywords = listOf("totp", "otp", "2fa", "mfa", "authenticator", "one-time", "google authenticator", "двухфакторная", "код", "аутентификатор"),
 ) { TotpScreen() }
@@ -69,13 +69,13 @@ private fun TotpScreen() {
     val parsed = remember(input) { Totp.parseUri(input) }
     if (parsed == null) {
         SegmentedChoice(options = listOf(6, 8), selected = digits, onSelect = { digits = it }, label = { "$it ${Res.string.digits.str()}" })
-        SegmentedChoice(options = listOf(30, 60), selected = period, onSelect = { period = it }, label = { "$it ${Res.string.s.str()}" })
+        SegmentedChoice(options = listOf(30, 60), selected = period, onSelect = { period = it }, label = { "$it ${Res.string.unit_s.str()}" })
     }
     if (input.isBlank()) return
     val secretText = parsed?.secret ?: input.trim()
     val secret = remember(secretText) { Base32.decode(secretText) }
     if (secret == null || secret.isEmpty()) {
-        ErrorText(Res.string.not_a_valid_base32_secret_letters_a_z_and_di.str())
+        ErrorText(Res.string.totp_not_a_valid_base32.str())
         return
     }
     val activeDigits = parsed?.digits ?: digits
@@ -109,8 +109,8 @@ private fun TotpScreen() {
         if (parsed?.issuer != null) KeyValueRow(Res.string.issuer_2.str(), parsed.issuer, mono = false)
         if (parsed?.account != null) KeyValueRow(Res.string.account.str(), parsed.account, mono = false)
         KeyValueRow(Res.string.algorithm.str(), "HMAC-${algorithm.title}", copyable = false)
-        KeyValueRow(Res.string.digits_2.str(), activeDigits.toString(), copyable = false)
-        KeyValueRow(Res.string.period.str(), "$activePeriod ${Res.string.s.str()}", copyable = false)
+        KeyValueRow(Res.string.totp_digits.str(), activeDigits.toString(), copyable = false)
+        KeyValueRow(Res.string.period.str(), "$activePeriod ${Res.string.unit_s.str()}", copyable = false)
         KeyValueRow(Res.string.counter.str(), counter.toString(), copyable = false)
         KeyValueRow(Res.string.secret_base32.str(), secretText)
         KeyValueRow(

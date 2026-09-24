@@ -18,6 +18,9 @@ class ChromeState {
 
 val LocalChrome = staticCompositionLocalOf { ChromeState() }
 
+// lets shared widgets tell analytics which tool a copy or an error came from
+val LocalToolId = staticCompositionLocalOf<String?> { null }
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun expandedHeight(normal: Dp, reserved: Dp): Dp {

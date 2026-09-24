@@ -49,7 +49,7 @@ val calendarTool = Tool(
     id = "calendar",
     category = ToolCategory.TIME,
     title = Res.string.calendar,
-    description = Res.string.month_view_starting_on_monday_with_iso_week,
+    description = Res.string.calendar_description,
     icon = Icons.Filled.CalendarMonth,
     keywords = listOf("calendar", "month", "week number", "календарь", "месяц", "номер недели"),
     expandable = true,
@@ -127,7 +127,7 @@ private fun CalendarScreen() {
     if (selected != null) {
         val (weekYear, week) = DateMath.isoWeek(selected)
         val fromToday = todayDate.daysUntil(selected)
-        ResultCard("${selected.day} ${monthNames[selected.month.number - 1].str()} ${selected.year}") {
+        ResultCard("${selected.day} ${monthNamesInDate[selected.month.number - 1].str()} ${selected.year}") {
             KeyValueRow(Res.string.weekday.str(), selected.dayOfWeek.title().str(), mono = false)
             KeyValueRow("ISO", selected.iso())
             KeyValueRow(Res.string.iso_week.str(), "$weekYear-W${week.pad2()}")
@@ -136,7 +136,7 @@ private fun CalendarScreen() {
             KeyValueRow(
                 Res.string.relative_to_today.str(),
                 when {
-                    fromToday == 0 -> Res.string.today_2.str()
+                    fromToday == 0 -> Res.string.today_relative.str()
                     fromToday > 0 -> "$fromToday ${Res.string.days_ahead.str()}"
                     else -> "${-fromToday} ${Res.string.days_ago.str()}"
                 },

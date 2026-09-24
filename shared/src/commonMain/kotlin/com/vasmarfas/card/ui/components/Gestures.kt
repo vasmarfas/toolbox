@@ -5,11 +5,8 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputScope
 
-/**
- * Tracks a touch from the first press, consuming every event so a scrolling parent never takes the
- * gesture over. Canvases that are dragged along the vertical axis need this: `detectDragGestures`
- * loses to the surrounding `verticalScroll` as soon as the touch slop is passed.
- */
+// consumes every event from the first press, so a scrolling parent never takes the gesture over:
+// detectDragGestures loses to the surrounding verticalScroll as soon as the touch slop is passed
 suspend fun PointerInputScope.trackTouch(onStart: (Offset) -> Unit, onMove: (Offset) -> Unit) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)

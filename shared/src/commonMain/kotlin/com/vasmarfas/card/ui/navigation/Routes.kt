@@ -26,6 +26,10 @@ import org.jetbrains.compose.resources.StringResource
 data object HomeRoute
 
 @Serializable
+@SerialName("my")
+data object MyToolsRoute
+
+@Serializable
 @SerialName("projects")
 data object ProjectsRoute
 
@@ -52,6 +56,7 @@ enum class TopDestination(
     private val siteSelectedIcon: ImageVector,
     val urlFragment: String,
 ) {
+    MY_TOOLS(MyToolsRoute, Res.string.home, Icons.Outlined.Home, Icons.Filled.Home, "my"),
     HOME(HomeRoute, Res.string.home, Icons.Outlined.Home, Icons.Filled.Home, "home"),
     PROJECTS(ProjectsRoute, Res.string.projects, Icons.Outlined.Widgets, Icons.Filled.Widgets, "projects"),
     RESUME(ResumeRoute, Res.string.resume_page, Icons.Outlined.Description, Icons.Filled.Description, "resume"),
@@ -65,13 +70,16 @@ enum class TopDestination(
     val icon: ImageVector get() = if (asAboutPage) Icons.Outlined.Person else siteIcon
     val selectedIcon: ImageVector get() = if (asAboutPage) Icons.Filled.Person else siteSelectedIcon
 
+    // the apps' about page and the site's home are different pages for analytics
+    val screenName: String get() = if (asAboutPage) "about" else urlFragment
+
     companion object {
-        /**
-         * The site keeps the personal pages and the order they have always had. The store builds
-         * ship as a toolbox: projects and the resume stay reachable by link but leave the bar.
-         */
+        // the site keeps the personal pages in their old order. Store builds ship as a toolbox: the person's
+        // own tools first, projects and the resume reachable by link but off the bar
         val visible: List<TopDestination>
-            get() = if (currentPlatform == PlatformKind.WEB) entries.toList() else listOf(TOOLS, HOME, SETTINGS)
+            get() = if (currentPlatform == PlatformKind.WEB) entries - MY_TOOLS else listOf(MY_TOOLS, TOOLS, HOME, SETTINGS)
+
+        val start: TopDestination get() = if (currentPlatform == PlatformKind.WEB) HOME else MY_TOOLS
     }
 }
 

@@ -25,7 +25,7 @@ val lineToolsTool = Tool(
     id = "line-tools",
     category = ToolCategory.TEXT,
     title = Res.string.line_tools,
-    description = Res.string.sort_dedupe_reverse_shuffle_trim_number_line,
+    description = Res.string.line_tools_description,
     icon = Icons.AutoMirrored.Filled.Sort,
     keywords = listOf("sort", "dedupe", "unique", "shuffle", "reverse", "lines", "join", "split", "сортировка", "дубликаты", "строки", "перемешать"),
 ) { LineToolsScreen() }
@@ -42,7 +42,7 @@ private fun LineToolsScreen() {
     ToolInputField(
         value = input,
         onValueChange = { input = it },
-        label = Res.string.lines_2.str(),
+        label = Res.string.line_tools_lines.str(),
         singleLine = false,
         minLines = 5,
         monospace = true,

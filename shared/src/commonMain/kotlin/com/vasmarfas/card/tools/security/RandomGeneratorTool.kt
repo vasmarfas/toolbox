@@ -23,6 +23,7 @@ import com.vasmarfas.card.tools.developer.Base64Tools
 import com.vasmarfas.card.tools.developer.toHex
 import com.vasmarfas.card.tools.text.OutputCard
 import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -45,7 +46,7 @@ val randomGeneratorTool = Tool(
     id = "random-generator",
     category = ToolCategory.SECURITY,
     title = Res.string.random_generator,
-    description = Res.string.cryptographically_random_numbers_in_a_range,
+    description = Res.string.random_generator_description,
     icon = Icons.Filled.Casino,
     keywords = listOf("random", "dice", "coin", "shuffle", "lottery", "pick", "случайное", "кубик", "монетка", "жребий", "перемешать", "розыгрыш"),
 ) { RandomGeneratorScreen() }
@@ -64,9 +65,9 @@ private fun RandomGeneratorScreen() {
     when (mode) {
         RandomMode.INT, RandomMode.UNIQUE -> Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             NumberField(value = fromText, onValueChange = { fromText = it }, label = Res.string.from__3.str(), modifier = Modifier.weight(1f))
-            NumberField(value = toText, onValueChange = { toText = it }, label = Res.string.to_2.str(), modifier = Modifier.weight(1f))
+            NumberField(value = toText, onValueChange = { toText = it }, label = Res.string.random_to.str(), modifier = Modifier.weight(1f))
             if (mode == RandomMode.UNIQUE) {
-                NumberField(value = countText, onValueChange = { countText = it }, label = Res.string.count_2.str(), modifier = Modifier.weight(1f))
+                NumberField(value = countText, onValueChange = { countText = it }, label = Res.string.random_count.str(), modifier = Modifier.weight(1f))
             }
         }
 
@@ -97,14 +98,11 @@ private fun RandomGeneratorScreen() {
     when (mode) {
         RandomMode.INT -> {
             if (from == null || to == null || from > to) {
-                ErrorText(Res.string.enter_a_valid_range_2.str())
+                ErrorText(Res.string.random_enter_a_valid_range.str())
                 return
             }
             val value = remember(from, to, seed) { Dice.intInRange(from, to) }
-            ResultCard {
-                KeyValueRow(Res.string.result.str(), value.toString())
-                KeyValueRow(Res.string.range.str(), "$from … $to (${to - from + 1})", copyable = false)
-            }
+            AnswerCard(value.toString(), "${Res.string.range.str()}: $from … $to")
         }
 
         RandomMode.UNIQUE -> {
@@ -114,7 +112,7 @@ private fun RandomGeneratorScreen() {
             }
             val values = remember(from, to, count, seed) { Dice.uniqueInts(from, to, count) }
             if (values == null) {
-                ErrorText(Res.string.the_range_is_smaller_than_the_requested_coun.str())
+                ErrorText(Res.string.random_range_is_smaller.str())
                 return
             }
             ResultCard {
@@ -126,14 +124,14 @@ private fun RandomGeneratorScreen() {
         RandomMode.DICE -> {
             val roll = remember(diceText, seed) { Dice.roll(diceText) }
             if (roll == null) {
-                ErrorText(Res.string.notation_like_3d6_2_1_100_dice_with_2_1000_s.str())
+                ErrorText(Res.string.random_notation_like_3d6_2.str())
                 return
             }
             ResultCard {
-                KeyValueRow(Res.string.total_3.str(), roll.total.toString())
+                KeyValueRow(Res.string.random_total.str(), roll.total.toString())
                 val modifierText = if (roll.modifier != 0) " ${if (roll.modifier > 0) "+" else "−"} ${abs(roll.modifier)}" else ""
                 KeyValueRow(Res.string.rolls.str(), roll.rolls.joinToString(" + ") + modifierText)
-                KeyValueRow(Res.string.dice_2.str(), roll.rolls.size.toString(), copyable = false)
+                KeyValueRow(Res.string.random_dice.str(), roll.rolls.size.toString(), copyable = false)
             }
         }
 
@@ -159,7 +157,7 @@ private fun RandomGeneratorScreen() {
             val shuffled = remember(items, seed) { Dice.shuffled(items) }
             ResultCard {
                 KeyValueRow(Res.string.picked.str(), picked.orEmpty(), mono = false)
-                KeyValueRow(Res.string.options_2.str(), items.size.toString(), copyable = false)
+                KeyValueRow(Res.string.random_options.str(), items.size.toString(), copyable = false)
             }
             OutputCard(shuffled.joinToString("\n"), title = Res.string.shuffled_order.str())
         }

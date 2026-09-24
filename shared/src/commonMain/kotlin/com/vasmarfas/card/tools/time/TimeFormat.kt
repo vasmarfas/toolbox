@@ -79,6 +79,21 @@ val monthNames: List<StringResource> = listOf(
     Res.string.december,
 )
 
+val monthNamesInDate: List<StringResource> = listOf(
+    Res.string.january_of,
+    Res.string.february_of,
+    Res.string.march_of,
+    Res.string.april_of,
+    Res.string.may_of,
+    Res.string.june_of,
+    Res.string.july_of,
+    Res.string.august_of,
+    Res.string.september_of,
+    Res.string.october_of,
+    Res.string.november_of,
+    Res.string.december_of,
+)
+
 fun DayOfWeek.title(): StringResource = weekdayNames[isoDayNumber - 1]
 
 fun DayOfWeek.shortTitle(): StringResource = weekdayShortNames[isoDayNumber - 1]

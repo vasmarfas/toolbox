@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Today
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,12 +17,12 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.DateField
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
-import com.vasmarfas.card.ui.components.ToolInputField
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -41,28 +38,10 @@ val dateCalculatorTool = Tool(
     id = "date-calculator",
     category = ToolCategory.TIME,
     title = Res.string.date_calculator,
-    description = Res.string.difference_between_dates_adding_or_subtracti,
+    description = Res.string.date_calculator_description,
     icon = Icons.Filled.DateRange,
     keywords = listOf("date", "days between", "weekday", "iso week", "leap year", "дата", "дней между", "день недели", "неделя", "високосный"),
 ) { DateCalculatorScreen() }
-
-@Composable
-private fun DateField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
-    ToolInputField(
-        value = value,
-        onValueChange = onValueChange,
-        label = label,
-        modifier = modifier,
-        placeholder = "YYYY-MM-DD",
-        isError = value.isNotBlank() && parseDate(value) == null,
-        trailingIcon = {
-            IconButton(onClick = { onValueChange(today().iso()) }) {
-                Icon(Icons.Filled.Today, contentDescription = Res.string.today.str())
-            }
-        },
-        monospace = true,
-    )
-}
 
 @Composable
 private fun DateCalculatorScreen() {
@@ -92,7 +71,7 @@ private fun DifferenceSection() {
     var toText by rememberSaveable { mutableStateOf("") }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         DateField(fromText, { fromText = it }, Res.string.from__4.str(), Modifier.weight(1f))
-        DateField(toText, { toText = it }, Res.string.to_3.str(), Modifier.weight(1f))
+        DateField(toText, { toText = it }, Res.string.date_to.str(), Modifier.weight(1f))
     }
     val from = parseDate(fromText)
     val to = parseDate(toText)
@@ -136,9 +115,9 @@ private fun ShiftSection() {
         label = {
             when (it) {
                 DateUnit.DAYS -> Res.string.days.str()
-                DateUnit.WEEKS -> Res.string.weeks_2.str()
-                DateUnit.MONTHS -> Res.string.months_2.str()
-                DateUnit.YEARS -> Res.string.years_2.str()
+                DateUnit.WEEKS -> Res.string.date_weeks.str()
+                DateUnit.MONTHS -> Res.string.months_field.str()
+                DateUnit.YEARS -> Res.string.date_years.str()
             }
         },
     )
@@ -146,7 +125,7 @@ private fun ShiftSection() {
         options = listOf(false, true),
         selected = subtract,
         onSelect = { subtract = it },
-        label = { if (it) Res.string.subtract.str() else Res.string.add_2.str() },
+        label = { if (it) Res.string.subtract.str() else Res.string.date_add.str() },
     )
     val date = parseDate(dateText)
     val amount = amountText.trim().toIntOrNull()
@@ -179,12 +158,12 @@ private fun InfoSection() {
         KeyValueRow(Res.string.day_of_year.str(), "${date.dayOfYear} / $yearDays")
         KeyValueRow(Res.string.days_left_in_year.str(), DateMath.daysLeftInYear(date).toString())
         KeyValueRow(Res.string.quarter.str(), "Q${DateMath.quarter(date)}")
-        KeyValueRow(Res.string.leap_year.str(), (if (leap) Res.string.yes_2 else Res.string.no_2).str(), mono = false, copyable = false)
+        KeyValueRow(Res.string.leap_year.str(), (if (leap) Res.string.date_yes else Res.string.date_no).str(), mono = false, copyable = false)
         KeyValueRow(Res.string.days_in_month.str(), DateMath.daysInMonth(date.year, date.month.number).toString())
         KeyValueRow(
             Res.string.relative_to_today.str(),
             when {
-                fromToday == 0 -> Res.string.today_2.str()
+                fromToday == 0 -> Res.string.today_relative.str()
                 fromToday > 0 -> "$fromToday ${Res.string.days_ahead.str()}"
                 else -> "${-fromToday} ${Res.string.days_ago.str()}"
             },

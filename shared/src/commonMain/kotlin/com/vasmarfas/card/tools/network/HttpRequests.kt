@@ -19,7 +19,7 @@ import org.jetbrains.compose.resources.StringResource
 val httpMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
 
 enum class HttpBodyMode(val label: StringResource) {
-    NONE(Res.string.none_2),
+    NONE(Res.string.request_none),
     RAW(Res.string.raw),
     FORM(Res.string.form),
 }
@@ -32,7 +32,7 @@ enum class RawBodyType(val label: StringResource, val contentType: String) {
 }
 
 enum class HttpAuthKind(val label: StringResource) {
-    NONE(Res.string.none_2),
+    NONE(Res.string.request_none),
     BEARER(Res.string.bearer),
     BASIC(Res.string.basic),
     HEADER(Res.string.custom_header),

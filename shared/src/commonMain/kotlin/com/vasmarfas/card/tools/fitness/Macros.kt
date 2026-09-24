@@ -1,9 +1,6 @@
 package com.vasmarfas.card.tools.fitness
 
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.bulk
-import com.vasmarfas.card.resources.cut
-import com.vasmarfas.card.resources.maintain
+import com.vasmarfas.card.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 enum class NutritionGoal(val title: StringResource, val defaultPercent: Double) {

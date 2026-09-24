@@ -18,6 +18,7 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
@@ -27,7 +28,7 @@ val dataSizeTool = Tool(
     id = "data-size",
     category = ToolCategory.CONVERTERS,
     title = Res.string.data_size_and_transfer_time,
-    description = Res.string.bits_and_bytes_with_decimal_kb_mb_and_binary,
+    description = Res.string.data_size_description,
     icon = Icons.Filled.Storage,
     keywords = listOf("bytes", "bits", "kib", "mib", "gib", "download", "bandwidth", "байты", "биты", "мегабайт", "гигабайт", "скачивание", "скорость"),
 ) { DataSizeScreen() }
@@ -50,7 +51,7 @@ private fun DataSizeScreen() {
         NumberField(
             value = input,
             onValueChange = { input = it },
-            label = Res.string.size_2.str(),
+            label = Res.string.data_size_value.str(),
             modifier = Modifier.weight(1f),
             isError = input.isNotBlank() && value == null,
         )
@@ -59,7 +60,7 @@ private fun DataSizeScreen() {
             selected = unit,
             onSelect = { unit = it },
             label = Res.string.unit.str(),
-            text = { it.symbol },
+            text = { it.symbol.str() },
             modifier = Modifier.weight(1f),
         )
     }
@@ -80,21 +81,22 @@ private fun DataSizeScreen() {
             selected = speedUnit,
             onSelect = { speedUnit = it },
             label = Res.string.speed_unit.str(),
-            text = { it.symbol },
+            text = { it.symbol.str() },
             modifier = Modifier.weight(1f),
         )
     }
     if (value != null) {
+        if (speed != null && speed > 0) {
+            AnswerCard(
+                DataSize.formatDuration(DataSize.transferSeconds(value, unit, speed, speedUnit)),
+                "${Res.string.transfer_time.str()} · ${speed.fmtSig()} ${speedUnit.symbol.str()}",
+            )
+        }
         ResultCard(Res.string.transfer_time.str()) {
-            if (speed != null && speed > 0) {
-                KeyValueRow(
-                    "${speed.fmtSig()} ${speedUnit.symbol}",
-                    DataSize.formatDuration(DataSize.transferSeconds(value, unit, speed, speedUnit)),
-                )
-            }
-            referenceSpeeds.forEach { (refSpeed, refUnit) ->
-                KeyValueRow("${refSpeed.fmtSig()} ${refUnit.symbol}", DataSize.formatDuration(DataSize.transferSeconds(value, unit, refSpeed, refUnit)))
-            }
+            referenceSpeeds.filterNot { (refSpeed, refUnit) -> speed != null && refSpeed * refUnit.bitsPerSecond == speed * speedUnit.bitsPerSecond }
+                .forEach { (refSpeed, refUnit) ->
+                    KeyValueRow("${refSpeed.fmtSig()} ${refUnit.symbol.str()}", DataSize.formatDuration(DataSize.transferSeconds(value, unit, refSpeed, refUnit)))
+                }
         }
         UnitGroupCard(Res.string.decimal_si.str(), DataGroup.DECIMAL, value, unit)
         UnitGroupCard(Res.string.binary_iec.str(), DataGroup.BINARY, value, unit)
@@ -106,7 +108,8 @@ private fun DataSizeScreen() {
 private fun UnitGroupCard(title: String, group: DataGroup, value: Double, unit: DataUnit) {
     ResultCard(title) {
         DataUnit.entries.filter { it.group == group }.forEach { target ->
-            KeyValueRow(target.symbol, DataSize.convert(value, unit, target).fmtSig())
+            val converted = DataSize.convert(value, unit, target)
+            KeyValueRow(target.symbol.str(), converted.fmtReadable(), copyValue = converted.fmtSig())
         }
     }
 }

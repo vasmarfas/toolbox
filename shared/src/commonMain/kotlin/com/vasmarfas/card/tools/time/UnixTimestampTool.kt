@@ -42,7 +42,7 @@ val unixTimestampTool = Tool(
     id = "unix-timestamp",
     category = ToolCategory.TIME,
     title = Res.string.unix_timestamp,
-    description = Res.string.current_epoch_time_timestamp_to_date_in_loca,
+    description = Res.string.unix_timestamp_description,
     icon = Icons.Filled.Schedule,
     keywords = listOf("epoch", "unix", "timestamp", "utc", "iso 8601", "время", "эпоха", "дата"),
 ) { UnixTimestampScreen() }
@@ -59,7 +59,7 @@ private fun UnixTimestampScreen() {
     val zoneId = remember { systemTimeZoneId() }
     val nowOffset = remember(now / 60_000) { localOffset(now / 1000) }
     ResultCard(Res.string.now.str()) {
-        KeyValueRow(Res.string.seconds_2.str(), (now / 1000).toString())
+        KeyValueRow(Res.string.seconds_field.str(), (now / 1000).toString())
         KeyValueRow(Res.string.milliseconds.str(), now.toString())
         KeyValueRow(Res.string.local_time.str(), Timestamps.wallTime(now, nowOffset).isoDateTime())
         KeyValueRow(Res.string.local_zone.str(), "$zoneId (UTC${Timestamps.formatOffset(nowOffset)})", copyable = false)
@@ -88,7 +88,7 @@ private fun UnixTimestampScreen() {
             val utc = Timestamps.wallTime(ms, 0)
             ResultCard {
                 KeyValueRow(Res.string.detected_unit.str(), unit.label, copyable = false)
-                KeyValueRow(Res.string.seconds_2.str(), ms.floorDiv(1000L).toString())
+                KeyValueRow(Res.string.seconds_field.str(), ms.floorDiv(1000L).toString())
                 KeyValueRow(Res.string.milliseconds.str(), ms.toString())
                 KeyValueRow(Res.string.local.str(), "${local.isoDateTime()} (${local.date.dayOfWeek.shortTitle().str()})")
                 KeyValueRow("UTC", "${utc.isoDateTime()} (${utc.date.dayOfWeek.shortTitle().str()})")
@@ -117,7 +117,7 @@ private fun UnixTimestampScreen() {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             NumberField(year, { year = it }, Res.string.year.str(), Modifier.weight(1f))
             NumberField(month, { month = it }, Res.string.month.str(), Modifier.weight(1f))
-            NumberField(day, { day = it }, Res.string.day_2.str(), Modifier.weight(1f))
+            NumberField(day, { day = it }, Res.string.unix_day.str(), Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             NumberField(hour, { hour = it }, Res.string.hour.str(), Modifier.weight(1f))
@@ -138,7 +138,7 @@ private fun UnixTimestampScreen() {
         } else {
             val epoch = if (zone == ZoneChoice.UTC) Timestamps.epochSecondsOf(local) { 0 } else Timestamps.epochSecondsOf(local) { localOffset(it) }
             ResultCard {
-                KeyValueRow(Res.string.seconds_2.str(), epoch.toString())
+                KeyValueRow(Res.string.seconds_field.str(), epoch.toString())
                 KeyValueRow(Res.string.milliseconds.str(), (epoch * 1000).toString())
                 KeyValueRow("ISO 8601", Timestamps.iso8601(epoch * 1000, if (zone == ZoneChoice.UTC) 0 else localOffset(epoch)))
             }

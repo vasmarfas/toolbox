@@ -41,6 +41,7 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -76,7 +77,7 @@ val jsonFormatterTool = Tool(
     id = "json-formatter",
     category = ToolCategory.DEVELOPER,
     title = Res.string.json_formatter,
-    description = Res.string.validate_pretty_print_with_2_or_4_spaces_min,
+    description = Res.string.json_formatter_description,
     icon = Icons.Filled.DataObject,
     keywords = listOf("json", "format", "pretty", "minify", "validate", "beautify", "escape", "tree", "viewer", "джсон", "форматирование", "валидация", "дерево"),
     expandable = true,
@@ -84,7 +85,7 @@ val jsonFormatterTool = Tool(
 
 @Composable
 private fun JsonFormatterScreen() {
-    val theInputIsLargerThan8MbSplitTheDocuText = Res.string.the_input_is_larger_than_8_mb_split_the_docu.str()
+    val theInputIsLargerThan8MbSplitTheDocuText = Res.string.json_input_is_larger.str()
     var input by remember { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(JsonMode.FORMAT) }
     var indent by rememberSaveable { mutableStateOf(2) }
@@ -116,7 +117,7 @@ private fun JsonFormatterScreen() {
             }
         }
     }
-    SegmentedChoice(
+    ChoiceChips(
         options = JsonMode.entries,
         selected = mode,
         onSelect = { mode = it },
@@ -200,7 +201,7 @@ private fun LoadedDocument(length: Int, onClear: () -> Unit) {
             TextButton(onClick = onClear) { Text(Res.string.clear.str()) }
         }
         Text(
-            Res.string.the_input_field_is_hidden_editing_a_document.str(),
+            Res.string.json_input_field_is_hidden.str(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -328,7 +329,7 @@ private fun JsonTreeRow(row: JsonRow, selected: Boolean, onClick: () -> Unit) {
         Text(row.label, style = mono, maxLines = 1)
         Text(
             text = when (row.kind) {
-                JsonKind.OBJECT -> "  {…} ${row.childCount.fmtGrouped()} " + Res.string.keys_2.str()
+                JsonKind.OBJECT -> "  {…} ${row.childCount.fmtGrouped()} " + Res.string.json_keys.str()
                 JsonKind.ARRAY -> "  […] ${row.childCount.fmtGrouped()} " + Res.string.items.str()
                 else -> "  ${row.value}"
             },

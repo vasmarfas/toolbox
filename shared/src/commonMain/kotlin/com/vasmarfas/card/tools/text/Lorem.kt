@@ -1,18 +1,13 @@
 package com.vasmarfas.card.tools.text
 
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.latin
-import com.vasmarfas.card.resources.paragraphs
-import com.vasmarfas.card.resources.russian
-import com.vasmarfas.card.resources.sentences
-import com.vasmarfas.card.resources.words_2
+import com.vasmarfas.card.resources.*
 import kotlin.random.Random
 import org.jetbrains.compose.resources.StringResource
 
 enum class LoremUnit(val title: StringResource) {
     PARAGRAPHS(Res.string.paragraphs),
     SENTENCES(Res.string.sentences),
-    WORDS(Res.string.words_2),
+    WORDS(Res.string.lorem_words),
 }
 
 enum class LoremLang(val title: StringResource) {

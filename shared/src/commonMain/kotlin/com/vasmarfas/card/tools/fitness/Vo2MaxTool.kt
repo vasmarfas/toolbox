@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +20,6 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.calculators.Sex
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
@@ -32,7 +31,7 @@ val vo2MaxTool = Tool(
     category = ToolCategory.FITNESS,
     title = Res.string.vo2_max,
     description = Res.string.vo2_max_description,
-    icon = Icons.Filled.DirectionsRun,
+    icon = Icons.AutoMirrored.Filled.DirectionsRun,
     keywords = listOf(
         "vo2max", "cooper", "rockport", "aerobic", "endurance", "mets",
         "мпк", "выносливость", "купер", "аэробный", "метаболический эквивалент",
@@ -90,7 +89,7 @@ private fun CooperInputs() {
         value = metresText,
         onValueChange = { metresText = it },
         label = Res.string.distance_in_12_minutes.str(),
-        suffix = Res.string.m.str(),
+        suffix = Res.string.unit_m.str(),
         modifier = Modifier.fillMaxWidth(),
         isError = metresText.toDoubleLenient().let { it == null || it <= 0 },
     )
@@ -116,7 +115,7 @@ private fun RockportInputs() {
             onValueChange = { massText = it },
             label = Res.string.weight.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.kg.str(),
+            suffix = Res.string.unit_kg.str(),
             isError = massText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -133,7 +132,7 @@ private fun RockportInputs() {
             onValueChange = { minutesText = it },
             label = Res.string.mile_walk_time.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.min.str(),
+            suffix = Res.string.unit_min.str(),
             isError = minutesText.toDoubleLenient().let { it == null || it <= 0 },
         )
         NumberField(
@@ -141,7 +140,7 @@ private fun RockportInputs() {
             onValueChange = { heartRateText = it },
             label = Res.string.heart_rate_at_finish.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.bpm.str(),
+            suffix = Res.string.unit_bpm.str(),
             isError = heartRateText.trim().toIntOrNull().let { it == null || it !in 40..240 },
         )
     }
@@ -177,7 +176,7 @@ private fun RestingHeartRateInputs() {
             onValueChange = { maxText = it },
             label = Res.string.max_heart_rate.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.bpm.str(),
+            suffix = Res.string.unit_bpm.str(),
             isError = maxText.trim().toIntOrNull().let { it == null || it !in 100..230 },
         )
         NumberField(
@@ -185,7 +184,7 @@ private fun RestingHeartRateInputs() {
             onValueChange = { restingText = it },
             label = Res.string.resting_heart_rate.str(),
             modifier = Modifier.weight(1f),
-            suffix = Res.string.bpm.str(),
+            suffix = Res.string.unit_bpm.str(),
             isError = restingText.trim().toIntOrNull().let { it == null || it !in 30..120 },
         )
     }

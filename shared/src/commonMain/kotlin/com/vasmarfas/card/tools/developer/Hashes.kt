@@ -298,9 +298,11 @@ object Sha512 {
     private val H0 = "6a09e667f3bcc908 bb67ae8584caa73b 3c6ef372fe94f82b a54ff53a5f1d36f1 510e527fade682d1 9b05688c2b3e6c1f 1f83d9abfb41bd6b 5be0cd19137e2179"
         .split(' ').map { it.toULong(16).toLong() }.toLongArray()
 
-    fun digest(message: ByteArray): ByteArray {
+    fun digest(message: ByteArray): ByteArray = digest(message, H0, 64)
+
+    internal fun digest(message: ByteArray, initial: LongArray, length: Int): ByteArray {
         val data = pad(message, 128, 16, littleEndian = false)
-        val h = H0.copyOf()
+        val h = initial.copyOf()
         val w = LongArray(80)
         for (chunk in 0 until data.size step 128) {
             for (i in 0 until 16) w[i] = readLongBE(data, chunk + i * 8)
@@ -344,7 +346,7 @@ object Sha512 {
         }
         val out = ByteArray(64)
         for (i in 0 until 8) writeLongBE(out, i * 8, h[i])
-        return out
+        return if (length == 64) out else out.copyOf(length)
     }
 }
 
@@ -366,4 +368,11 @@ object Crc32 {
         writeIntBE(out, 0, compute(data))
         return out
     }
+}
+
+object Sha384 {
+    private val H0 = "cbbb9d5dc1059ed8 629a292a367cd507 9159015a3070dd17 152fecd8f70e5939 67332667ffc00b31 8eb44a8768581511 db0c2e0d64f98fa7 47b5481dbefa4fa4"
+        .split(' ').map { it.toULong(16).toLong() }.toLongArray()
+
+    fun digest(message: ByteArray): ByteArray = Sha512.digest(message, H0, 48)
 }

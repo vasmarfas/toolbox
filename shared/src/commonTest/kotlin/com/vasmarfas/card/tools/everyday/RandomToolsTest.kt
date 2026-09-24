@@ -8,15 +8,6 @@ import kotlin.test.assertTrue
 
 class RandomToolsTest {
     @Test
-    fun sleepTimes() {
-        val bed = SleepMath.bedtimes(7 * 60)
-        assertEquals(6, bed.first().cycles)
-        assertEquals("21:46", bed.first().time)
-        assertEquals("03:44", SleepMath.wakeTimes(23 * 60).first().time)
-        assertEquals(4.5, SleepMath.wakeTimes(23 * 60).first().hours)
-    }
-
-    @Test
     fun wheel() {
         assertEquals(listOf("a", "b"), DecisionWheel.parseOptions(" a \n\nb\n"))
         val steps = DecisionWheel.stepsToReach(1, 0, 4)

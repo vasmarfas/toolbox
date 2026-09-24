@@ -17,12 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.all
-import com.vasmarfas.card.resources.http_status_codes
-import com.vasmarfas.card.resources.nothing_found_2
-import com.vasmarfas.card.resources.search_by_code_name_or_description
-import com.vasmarfas.card.resources.searchable_reference_of_1xx_5xx_status_codes
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ChoiceChips
@@ -33,7 +28,7 @@ val httpStatusCodesTool = Tool(
     id = "http-status-codes",
     category = ToolCategory.DEVELOPER,
     title = Res.string.http_status_codes,
-    description = Res.string.searchable_reference_of_1xx_5xx_status_codes,
+    description = Res.string.http_status_codes_description,
     icon = Icons.Filled.Http,
     keywords = listOf("http", "status", "code", "404", "500", "response", "rest", "код ответа", "статус", "ошибка"),
 ) { HttpStatusCodesScreen() }
@@ -57,7 +52,7 @@ private fun HttpStatusCodesScreen() {
     )
     val found = remember(query, group, lang) { HttpStatuses.search(query).filter { group == 0 || it.group == group } }
     if (found.isEmpty()) {
-        Text(Res.string.nothing_found_2.str(), style = MaterialTheme.typography.bodyMedium)
+        Text(Res.string.nothing_found.str(), style = MaterialTheme.typography.bodyMedium)
         return
     }
     found.groupBy { it.group }.forEach { (g, statuses) ->

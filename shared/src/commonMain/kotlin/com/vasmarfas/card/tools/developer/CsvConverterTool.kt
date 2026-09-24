@@ -31,7 +31,7 @@ val csvConverterTool = Tool(
     id = "csv-converter",
     category = ToolCategory.DEVELOPER,
     title = Res.string.csv_converter,
-    description = Res.string.csv_or_tsv_with_auto_detected_delimiter_and,
+    description = Res.string.csv_converter_description,
     icon = Icons.Filled.TableChart,
     keywords = listOf("csv", "tsv", "json", "markdown", "table", "convert", "spreadsheet", "таблица", "конвертер", "разделитель"),
 ) { CsvConverterScreen() }
@@ -65,13 +65,13 @@ private fun CsvConverterScreen() {
             if (element !is JsonArray) {
                 ErrorText(
                     if (element == null) Res.string.invalid_json.str() + JsonTools.errorMessage(parsed.exceptionOrNull()!!)
-                    else Res.string.expected_a_json_array_at_the_top_level.str(),
+                    else Res.string.csv_expected_a_json_array.str(),
                 )
                 return
             }
             val csv = remember(element, semicolonOut) { Csv.fromJson(element, if (semicolonOut) ';' else ',') }
             if (csv == null) {
-                ErrorText(Res.string.the_array_must_contain_objects_only.str())
+                ErrorText(Res.string.csv_array_must_contain_objects.str())
                 return
             }
             OutputCard(csv)

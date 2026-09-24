@@ -13,7 +13,7 @@ actual fun readThermal(): ThermalReading? {
         NSProcessInfoThermalState.NSProcessInfoThermalStateFair -> ThermalLevel.LIGHT
         NSProcessInfoThermalState.NSProcessInfoThermalStateSerious -> ThermalLevel.SEVERE
         NSProcessInfoThermalState.NSProcessInfoThermalStateCritical -> ThermalLevel.CRITICAL
-        else -> ThermalLevel.UNKNOWN
+        else -> return null
     }
     return ThermalReading(celsius = null, level = level, source = ThermalSource.THROTTLING)
 }

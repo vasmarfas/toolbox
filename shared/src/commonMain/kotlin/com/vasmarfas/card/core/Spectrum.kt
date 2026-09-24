@@ -19,10 +19,11 @@ class SpectrumFrame(
 
 expect fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame>
 
-/**
- * Radix-2 FFT with a Hann window, for the platforms that hand over PCM rather than a spectrum.
- * Kept separate from the SciMark kernel, which is a reference port and has to stay untouched.
- */
+// samples between two spectra where they are computed from PCM: the window slides, it does not jump
+internal const val SpectrumHop = 2048
+
+// for the platforms that hand over PCM rather than a spectrum. Separate from the SciMark kernel,
+// which is a reference port and stays untouched
 internal object Fft {
     fun magnitudesDb(samples: FloatArray): FloatArray {
         val n = samples.size

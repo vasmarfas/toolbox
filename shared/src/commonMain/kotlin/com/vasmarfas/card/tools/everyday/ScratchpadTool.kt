@@ -31,7 +31,7 @@ val scratchpadTool = Tool(
     id = "notes-scratchpad",
     category = ToolCategory.EVERYDAY,
     title = Res.string.scratchpad,
-    description = Res.string.a_single_persistent_note_for_quick_text_with,
+    description = Res.string.notes_scratchpad_description,
     icon = Icons.AutoMirrored.Filled.Note,
     keywords = listOf("notes", "scratchpad", "text", "clipboard", "заметки", "блокнот", "текст", "черновик"),
 ) { ScratchpadScreen() }
@@ -71,7 +71,7 @@ private fun ScratchpadScreen() {
     }
     val stats = textStats(text)
     ResultCard {
-        KeyValueRow(Res.string.characters_2.str(), stats.chars.toString(), copyable = false)
+        KeyValueRow(Res.string.characters_count.str(), stats.chars.toString(), copyable = false)
         KeyValueRow(Res.string.without_spaces.str(), stats.charsNoSpaces.toString(), copyable = false)
         KeyValueRow(Res.string.words.str(), stats.words.toString(), copyable = false)
         KeyValueRow(Res.string.lines.str(), stats.lines.toString(), copyable = false)

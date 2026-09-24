@@ -27,7 +27,7 @@ val hashGeneratorTool = Tool(
     id = "hash-generator",
     category = ToolCategory.DEVELOPER,
     title = Res.string.hash_generator,
-    description = Res.string.md5_sha_1_sha_256_sha_512_crc32_and_hmac_of,
+    description = Res.string.hash_generator_description,
     icon = Icons.Filled.Tag,
     keywords = listOf("hash", "md5", "sha1", "sha256", "sha512", "crc32", "hmac", "checksum", "digest", "хеш", "контрольная сумма"),
 ) { HashGeneratorScreen() }

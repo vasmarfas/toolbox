@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date:** 2026-09-18
+**Effective Date:** 2026-09-25
 
 **vasmarfas** ("we," "our," or "us") is a personal website and a free multitool published as a
 web app at vasmarfas.com and vasmarfas.ru and as native applications for Android, iOS, Windows,
@@ -15,29 +15,54 @@ services. The collection starts with the App and there is no switch inside it th
 
 The App sends these events and nothing else:
 
-- `app_open` — the App was started;
-- `screen_view` — a screen was opened (`screen`: `home`, `projects`, `resume`, `tools`, `settings`);
-- `tool_open` — a tool was opened (`tool`: the tool identifier from the catalogue, e.g. `ping`);
-- `tool_action` — an action inside a tool (`tool` and `action`, both fixed identifiers);
-- `language_change`, `theme_change` — the interface language or the theme was switched.
+- `app_open` and `screen_view`: the App was started, a screen was opened (`screen_name` is a tab
+  such as `tools` or `settings`, or `tool_` followed by the tool identifier).
+- `tool_open`, `tool_action`, `result_copy`, `tool_error`: a tool was opened (with the place it was
+  opened from: search, a category, the home screen, a link to the website that opened the Android
+  app), its main button was pressed, a result was copied, the tool showed an error. The parameters
+  are the tool and category identifiers.
+- `tool_pin`, `tool_unpin`, `home_remove`, `home_remove_cancel`, `home_add_tools`,
+  `home_section_toggle`: a tool was added to or removed from the home screen (favourites on the
+  website), a home screen section was folded or unfolded.
+- `search`, `search_empty`, `catalog_filter`: the catalogue was searched, with the number of
+  results, or filtered by a category.
+- `onboarding_start`, `onboarding_step`, `onboarding_back`, `onboarding_skip`, `onboarding_role`,
+  `onboarding_interest`, `onboarding_tool_toggle`, `onboarding_complete`: the questions shown on the
+  first start of the apps. Which step was reached, which of the fixed answers were picked, which
+  proposed tools were kept and how many seconds it took.
+- `settings_change`: the language, theme, accent colour, dynamic colour or table width was changed,
+  with the new value.
+- `link_open` and `support_open`: a link on the profile, résumé or settings page was opened (the
+  kind of link and the part of the page it sits in, not its address).
+- `scroll_depth`: a page was scrolled past 25, 50, 75 or 100 percent, with the name of the screen.
+- `ui_click` (website, Yandex.Metrica only): a button, link or tab was pressed on a page of the site
+  outside the tools, with the screen and the text of that element as the page shows it.
 
-Event parameters may contain only identifiers matching `[a-z0-9_-]` — tool and screen names from the
-App's own catalogue. Whatever you type into a tool — addresses, domains, passwords, text, numbers —
-is never part of an event.
+Event parameters contain only identifiers matching `[a-z0-9_-]` from the App's own catalogue and
+counters. There are two exceptions. The catalogue search query is sent as `search_term`, but only when
+it looks like a tool name: 2 to 30 letters, spaces and hyphens with at most four digits. A query
+with an e-mail, a phone number, an IP address or a link in it fails this check and is not sent. And
+`ui_click` carries the label of the pressed element, which is text of the site itself: text fields
+and tool screens are never read for it. Nothing you type into a tool, such as addresses, domains,
+passwords, text or numbers, is ever part of an event.
+
+The App also attaches these properties to the analytics installation: the answer to the first-start
+question about what you do (`role`, one or two of ten fixed values or `mixed` for more), whether the
+questions were answered or skipped, the number of chosen interests and of tools on the home screen in
+ranges such as `11-20`, the interface language and the theme.
 
 The statistics are collected and processed by their operators, not by us:
 
-- **Google, Firebase Analytics** (Android) and **Firebase Analytics for the web** (website).
-  Collects an app instance identifier, device model, OS and application version, the country derived
-  from the IP address, and session data. https://policies.google.com/privacy
+- **Google, Firebase Analytics** (Android) and **Firebase Analytics for the web** (vasmarfas.com only,
+  vasmarfas.ru does not load it). Collects an app instance identifier, device model, OS and application
+  version, the country derived from the IP address, and session data. https://policies.google.com/privacy
 - **Google, Firebase Crashlytics** (Android). On a crash it sends the stack trace, the device model,
   the OS and application version and an installation identifier.
 - **Google, Firebase Performance Monitoring** (Android). Measures startup time, screen rendering and
   the duration of the App's own network requests.
-- **Yandex, Yandex.Metrica** (website). Sets its own cookie and collects the IP address, user agent,
-  visited pages and the referrer. Session replay (Webvisor) and the click map are enabled in the
-  counter's configuration, so your interaction with the page is recorded.
-  https://yandex.com/legal/metrica_termsofuse/
+- **Yandex, Yandex.Metrica** (website, both domains). Sets its own cookie and collects the IP address,
+  user agent, the pages and screens visited, the referrer and the events listed above. Session
+  replay (Webvisor) and the click map are turned off. https://yandex.com/legal/metrica_termsofuse/
 
 The desktop and iOS builds contain no analytics code: there `logEvent` does nothing.
 
@@ -45,66 +70,78 @@ The desktop and iOS builds contain no analytics code: there `logEvent` does noth
 
 The App keeps a small amount of data locally so that it works the way you left it:
 
-- settings — language, theme and accent colour;
-- the list of favourite and recently opened tools;
-- data you enter into tools that offer to remember it — saved Wake-on-LAN devices, world clock
-  zones, counters, the scratchpad, countdown events, calibration values;
-- a cached copy of the profile file (`profile.json`) that describes the site's content;
-- a cached copy of currency exchange rates.
+- settings: language, theme and accent colour
+- the tools on the home screen (favourites on the website), recently opened tools and the folded
+  home screen sections
+- the answers to the first-start questions, so that asking again starts from them
+- data you enter into tools that offer to remember it: saved Wake-on-LAN devices, world clock
+  zones, counters, the scratchpad, countdown events, calibration values, speed test sources
+- a cached copy of the profile file (`profile.json`) that describes the site's content
+- a cached copy of currency exchange rates
 
 On Android this lives in the App's private storage, on iOS in the App's user defaults, on desktop in
 the user's preferences store, and in the browser in `localStorage` of the site's origin. None of it
 is synced or sent anywhere. Uninstalling the App, or clearing the site's data in the browser, removes
 it.
 
+Photo, video, audio and document tools read only the files you pick and process them on the device.
+The results are saved where you choose, and nothing is uploaded.
+
 ## 3. Network requests
 
 Apart from the analytics traffic described in section 1, the App makes network requests only when you
 open a tool that needs them or explicitly start an action. Each request goes directly from your
-device to the third party named below; we operate none of these services and receive nothing from
+device to the third party named below. We operate none of these services and receive nothing from
 them.
 
-- **Profile refresh** — on start the App downloads the latest `profile.json` from
+- **Profile refresh.** On start the App downloads the latest `profile.json` from
   `raw.githubusercontent.com` (the project's public repository) so that the site's text can be
   updated without a release. The request contains no personal data.
-- **DNS lookup, public DNS benchmark** — queries are sent to the resolver you choose
-  (Cloudflare, Google, Quad9, AdGuard over DNS-over-HTTPS, or any server you enter over UDP).
-  The resolver sees the domain name you typed.
-- **Whois / RDAP** — the domain, IP address or AS number you typed is sent to `rdap.org` and the
+- **Project and article numbers.** On start the App asks `api.github.com` for the star count of each
+  listed repository, and when the profile or projects page is open it asks `habr.com` for the view
+  count of each listed article. Both are repeated at most once every six hours and contain no
+  personal data.
+- **DNS lookup, public DNS benchmark.** Queries go to the resolvers you pick in the tool (Cloudflare,
+  Google, Quad9, AdGuard, Mullvad, DNS4EU, Comss, OpenDNS, Control D and Yandex are listed) or to any
+  server you enter. The resolver sees the domain name you typed.
+- **Whois / RDAP.** The domain, IP address or AS number you typed is sent to `rdap.org` and the
   registry it redirects to, and, where sockets are available, to whois servers on port 43.
-- **IP info** — `ipwho.is` (with `ipapi.co` as a fallback) receives the IP address you typed, or,
-  when you ask for your own address, the request itself reveals your public IP to that service.
-- **MAC address lookup** — the address prefix you typed is sent to `api.maclookup.app`.
-- **Speed test** — random data is downloaded from and uploaded to `speed.cloudflare.com`; the
-  uploaded bytes carry no information.
-- **HTTP request** — the request you compose is sent to the URL you entered, exactly as written.
-- **Ping (HTTP mode), TLS certificate** — connect to the host you entered.
-- **Currency converter** — exchange rates are fetched from `open.er-api.com`; the request contains
-  no personal data.
-- **Have I Been Pwned check** — only the first five characters of the SHA-1 hash of the password
-  you typed are sent to `api.pwnedpasswords.com`; the password itself never leaves your device.
+- **IP info.** `ipwho.is` (with `ipapi.co` as a fallback) receives the IP address you typed. When you
+  ask for your own address, the request itself reveals your public IP to that service.
+- **MAC address lookup.** The address prefix you typed is sent to `api.maclookup.app`.
+- **Speed test.** Random data is downloaded from and uploaded to the source you pick:
+  `speed.cloudflare.com`, the Yandex Internetometer at `yandex.ru/internet`, an OpenSpeedTest server
+  of your own or a file URL you enter. The uploaded bytes carry no information.
+- **HTTP request.** The request you compose is sent to the URL you entered, exactly as written.
+- **Ping (HTTP mode), TLS certificate.** These connect to the host you entered.
+- **Currency converter.** Exchange rates are fetched from `open.er-api.com`. The request contains no
+  personal data.
+- **Crypto converter.** Coin prices are fetched from `api.coingecko.com`. The request contains no
+  personal data.
+- **Have I Been Pwned check.** Only the first five characters of the SHA-1 hash of the password
+  you typed are sent to `api.pwnedpasswords.com`. The password itself never leaves your device.
 
 Tools that work with your local network (ping, traceroute, port scanner, LAN scanner,
 Wake-on-LAN, device discovery, network interfaces) talk only to the addresses you specify or to
-devices on your own network.
+devices on your own network. Buttons such as "Open in OpenStreetMap" open that page in your browser.
 
 ## 4. Device permissions and sensors
 
 Some tools use device capabilities, always after you open the tool and, where the platform
 requires it, after you grant the permission:
 
-- **Location** (Android, iOS, browser) — the GPS tool shows your coordinates and speed on screen;
-  on Android the same permission is required by the system to read the Wi-Fi network name. The
+- **Location** (Android, iOS, browser). The GPS tool shows your coordinates and speed on screen. On
+  Android the same permission is required by the system to read the Wi-Fi network name. The
   location is not stored or transmitted.
-- **Motion and environment sensors** — compass, level, accelerometer, magnetometer, light,
+- **Motion and environment sensors.** Compass, level, accelerometer, magnetometer, light,
   barometer and pedometer read the sensors and display the values. Nothing is recorded beyond the
   short history shown in the chart.
-- **Microphone** — the sound meter computes a loudness level from the audio input on the fly;
-  no audio is recorded or saved.
-- **Camera flash** — the torch tool toggles the LED; the camera itself is not used and no image is
+- **Microphone.** The sound meter, the spectrum analyzer and the tuner analyse the audio input on
+  the fly. No audio is recorded or saved.
+- **Camera flash.** The torch tool toggles the LED. The camera itself is not used and no image is
   captured.
-- **Vibration** — used by the vibration test and by a few tools as haptic feedback.
-- **Network state** — used to show the connection details in the network interfaces tool.
+- **Vibration.** Used by the vibration test and by a few tools as haptic feedback.
+- **Network state.** Used to show the connection details in the network interfaces tool.
 
 ## 5. Third-party services
 
@@ -126,9 +163,9 @@ consoles, which carry no name, e-mail or any other detail that identifies you.
 
 The App has no switch that stops the collection. In the browser you can block the counters with an
 extension, or clear the site's cookies and `localStorage`, which removes the Yandex.Metrica
-identifier; on Android you can reset the advertising identifier in the system settings. Events that
-were already sent are stored by Google and Yandex under their own terms — request access or deletion
-from them directly through the links in section 1.
+identifier. On Android you can reset the advertising identifier in the system settings. Events that
+were already sent are stored by Google and Yandex under their own terms, and you can request access
+or deletion from them directly through the links in section 1.
 
 ## 8. Changes to this policy
 

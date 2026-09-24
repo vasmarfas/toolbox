@@ -43,6 +43,23 @@ class FormatTest {
     }
 
     @Test
+    fun counts() {
+        assertEquals("850", formatCount(850))
+        assertEquals("8.4K", formatCount(8442))
+        assertEquals("8K", formatCount(8020))
+        assertEquals("10K", formatCount(9960))
+        assertEquals("71K", formatCount(70826))
+        assertEquals("1M", formatCount(999_600))
+        assertEquals("1.2M", formatCount(1_234_567))
+        assertEquals(10_000, parseCount("10K+"))
+        assertEquals(8_400, parseCount("8,4K"))
+        assertEquals(1_200_000, parseCount("1.2M"))
+        assertEquals(5, parseCount("5+"))
+        assertNull(parseCount(""))
+        assertNull(parseCount("many"))
+    }
+
+    @Test
     fun lenientDouble() {
         assertEquals(1.5, "1,5".toDoubleLenient())
         assertEquals(1000.0, "1 000".toDoubleLenient())

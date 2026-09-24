@@ -1,7 +1,6 @@
 package com.vasmarfas.card.tools.fitness
 
 import com.vasmarfas.card.resources.*
-import com.vasmarfas.card.tools.calculators.Sex
 import kotlin.math.pow
 import kotlin.math.sqrt
 import org.jetbrains.compose.resources.StringResource
@@ -12,7 +11,7 @@ object BodyMetrics {
     fun waistToHeight(waistCm: Double, heightCm: Double): Double = waistCm / heightCm
 
     fun waistToHeightNote(ratio: Double): StringResource = when {
-        ratio < 0.4 -> Res.string.below_the_healthy_band_check_the_measurement
+        ratio < 0.4 -> Res.string.body_below_the_healthy_band
         ratio < 0.5 -> Res.string.healthy
         ratio < 0.6 -> Res.string.increased_central_fat
         else -> Res.string.high_central_fat
@@ -62,10 +61,10 @@ object BodyMetrics {
         val shift = if (sex == Sex.MALE) 0.0 else -3.0
         return when {
             value < 18 + shift -> Res.string.below_average_muscle_mass
-            value < 20 + shift -> Res.string.average_2
+            value < 20 + shift -> Res.string.body_average
             value < 22 + shift -> Res.string.above_average_visibly_trained
             value < 25 + shift -> Res.string.advanced_years_of_training
-            else -> Res.string.above_the_natural_ceiling_for_most_people
+            else -> Res.string.body_above_the_natural_ceiling
         }
     }
 }

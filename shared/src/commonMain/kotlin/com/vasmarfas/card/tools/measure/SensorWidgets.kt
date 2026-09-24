@@ -1,5 +1,7 @@
 package com.vasmarfas.card.tools.measure
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SensorsOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.SensorReading
 import com.vasmarfas.card.core.SensorType
 import com.vasmarfas.card.core.availableSensors
@@ -22,18 +23,13 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChartKind
 import com.vasmarfas.card.ui.components.ChartSeries
+import com.vasmarfas.card.ui.components.EmptyState
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.InteractiveChart
+import com.vasmarfas.card.ui.components.LoadingRow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
-
-object MeasureStrings {
-    val noSensor = Res.string.this_device_has_no_such_sensor
-    val waiting = Res.string.waiting_for_sensor_data
-    val motionPermission = Res.string.the_browser_needs_permission_to_read_motion
-    val start = Res.string.start
-    val value = Res.string.value_
-    val sample = Res.string.sample_2
-}
+import kotlin.time.Duration.Companion.seconds
 
 private val axisNames = listOf("X", "Y", "Z")
 
@@ -62,20 +58,31 @@ fun rememberSensor(type: SensorType, history: MutableList<SensorReading>? = null
     return SensorSession(reading, error, supported, ready)
 }
 
+// desktop browsers announce motion events and never send one, so a sensor silent for three seconds
+// is shown as missing
 @Composable
 fun SensorGate(session: SensorSession, content: @Composable (SensorReading) -> Unit) {
+    var silent by remember { mutableStateOf(false) }
+    LaunchedEffect(session.reading == null) {
+        silent = false
+        if (session.reading == null) {
+            delay(3.seconds)
+            silent = true
+        }
+    }
     when {
-        !session.supported -> Text(MeasureStrings.noSensor.str(), style = MaterialTheme.typography.bodyLarge)
+        !session.supported -> EmptyState(Icons.Filled.SensorsOff, Res.string.sensor_missing_title.str(), description = Res.string.sensor_missing_description.str())
         session.error != null -> ErrorText(session.error)
-        session.reading == null -> Text(MeasureStrings.waiting.str(), style = MaterialTheme.typography.bodyMedium)
+        session.reading == null && silent -> EmptyState(Icons.Filled.SensorsOff, Res.string.sensor_silent_title.str(), description = Res.string.sensor_silent_description.str())
+        session.reading == null -> LoadingRow(Res.string.waiting_for_sensor_data.str())
         else -> content(session.reading)
     }
 }
 
 @Composable
 fun MotionPermissionButton(onGranted: () -> Unit) {
-    val sampleText = MeasureStrings.sample.str()
-    Text(MeasureStrings.motionPermission.str(), style = MaterialTheme.typography.bodyMedium)
+    val sampleText = Res.string.sensor_sample.str()
+    Text(Res.string.sensor_browser_needs_permission.str(), style = MaterialTheme.typography.bodyMedium)
     ActionButton(text = Res.string.grant_permission.str(), onClick = onGranted)
 }
 
@@ -87,9 +94,9 @@ fun LineChart(
     symmetric: Boolean = true,
     kind: ChartKind = ChartKind.LINE,
 ) {
-    val sampleText = MeasureStrings.sample.str()
+    val sampleText = Res.string.sensor_sample.str()
     val fallback = MaterialTheme.colorScheme.primary
-    val single = MeasureStrings.value.str()
+    val single = Res.string.value_.str()
     InteractiveChart(
         series = series.mapIndexed { index, values ->
             ChartSeries(

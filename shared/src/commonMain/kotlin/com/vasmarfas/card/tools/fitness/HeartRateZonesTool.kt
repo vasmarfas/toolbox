@@ -31,7 +31,7 @@ val heartRateZonesTool = Tool(
     id = "heart-rate-zones",
     category = ToolCategory.FITNESS,
     title = Res.string.heart_rate_zones,
-    description = Res.string.max_hr_by_three_age_formulas_or_a_measured_o,
+    description = Res.string.heart_rate_zones_description,
     icon = Icons.Filled.MonitorHeart,
     keywords = listOf("heart rate", "zones", "karvonen", "tanaka", "hrmax", "resting", "пульс", "зоны", "карвонен", "покой", "чсс"),
 ) { HeartRateZonesScreen() }
@@ -57,7 +57,7 @@ private fun HeartRateZonesScreen() {
             onValueChange = { restingText = it },
             label = Res.string.resting_hr.str(),
             modifier = Modifier.weight(1f),
-            suffix = "bpm",
+            suffix = Res.string.unit_bpm.str(),
             isError = restingText.toDoubleLenient().let { it == null || it < 25 || it > 120 },
         )
     }
@@ -79,7 +79,7 @@ private fun HeartRateZonesScreen() {
             value = measuredText,
             onValueChange = { measuredText = it },
             label = Res.string.max_hr.str(),
-            suffix = "bpm",
+            suffix = Res.string.unit_bpm.str(),
             isError = measuredText.toDoubleLenient().let { it == null || it < 100 || it > 230 },
         )
     }
@@ -90,20 +90,20 @@ private fun HeartRateZonesScreen() {
     if (age == null || age !in 5..100 || resting == null || resting < 25 || resting > 120 ||
         (useMeasured && (measured == null || measured < 100 || measured > 230))
     ) {
-        ErrorText(Res.string.age_5_100_resting_hr_25_120_max_hr_100_230.str())
+        ErrorText(Res.string.hr_age_5_100_resting.str())
         return
     }
     val maxHr = if (useMeasured) measured!! else HeartRate.maxHr(formula, age)
     if (maxHr <= resting) {
-        ErrorText(Res.string.max_hr_must_be_above_the_resting_hr.str())
+        ErrorText(Res.string.hr_max_hr.str())
         return
     }
 
     ResultCard {
-        KeyValueRow(Res.string.max_hr.str(), "${maxHr.roundToInt()} bpm")
-        KeyValueRow(Res.string.heart_rate_reserve.str(), "${HeartRate.reserve(maxHr, resting).roundToInt()} bpm")
+        KeyValueRow(Res.string.max_hr.str(), "${maxHr.roundToInt()} ${Res.string.unit_bpm.str()}")
+        KeyValueRow(Res.string.heart_rate_reserve.str(), "${HeartRate.reserve(maxHr, resting).roundToInt()} ${Res.string.unit_bpm.str()}")
         MaxHrFormula.entries.forEach {
-            KeyValueRow(it.title.str(), "${HeartRate.maxHr(it, age).fmt(0)} bpm", mono = false, copyable = false)
+            KeyValueRow(it.title.str(), "${HeartRate.maxHr(it, age).fmt(0)} ${Res.string.unit_bpm.str()}", mono = false, copyable = false)
         }
     }
     ResultCard(Res.string.zones.str()) {

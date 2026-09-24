@@ -8,8 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.vasmarfas.card.core.str
-import com.vasmarfas.card.resources.Res
-import com.vasmarfas.card.resources.result
+import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.MonoText
 import com.vasmarfas.card.ui.components.ResultCard

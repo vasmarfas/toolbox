@@ -1,9 +1,12 @@
 package com.vasmarfas.card.tools.security
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,14 +15,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
-import com.vasmarfas.card.tools.text.OutputCard
 import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
@@ -36,7 +41,7 @@ val passwordGeneratorTool = Tool(
     id = "password-generator",
     category = ToolCategory.SECURITY,
     title = Res.string.password_generator,
-    description = Res.string.cryptographically_random_passwords_with_sele,
+    description = Res.string.password_generator_description,
     icon = Icons.Filled.Password,
     keywords = listOf("password", "generator", "random", "passphrase", "entropy", "secure", "пароль", "генератор", "случайный", "фраза", "энтропия"),
 ) { PasswordGeneratorScreen() }
@@ -45,7 +50,7 @@ val passwordGeneratorTool = Tool(
 private fun PasswordGeneratorScreen() {
     var mode by rememberSaveable { mutableStateOf(GenMode.PASSWORD) }
     var length by rememberSaveable { mutableStateOf(20) }
-    var count by rememberSaveable { mutableStateOf(5) }
+    var count by rememberSaveable { mutableStateOf(1) }
     var lower by rememberSaveable { mutableStateOf(true) }
     var upper by rememberSaveable { mutableStateOf(true) }
     var digits by rememberSaveable { mutableStateOf(true) }
@@ -58,12 +63,47 @@ private fun PasswordGeneratorScreen() {
     var capitalize by rememberSaveable { mutableStateOf(false) }
     var addNumber by rememberSaveable { mutableStateOf(true) }
     var seed by remember { mutableStateOf(0) }
+    val sets = CharSets(lower, upper, digits, symbols, excludeAmbiguous)
+    val wordList = if (phraseLang == PhraseLang.EN) WordLists.english else WordLists.russian
+    val problem = when {
+        mode == GenMode.PASSWORD && sets.groups.isEmpty() -> Res.string.select_at_least_one_character_set
+        mode == GenMode.PASSWORD && requireEach && length < sets.groups.size -> Res.string.password_length_is_smaller
+        else -> null
+    }
+    val results = remember(mode, length, count, sets, requireEach, words, phraseLang, separator, capitalize, addNumber, seed, problem) {
+        if (problem != null) {
+            emptyList()
+        } else {
+            List(count) {
+                if (mode == GenMode.PASSWORD) {
+                    PasswordGen.password(length, sets, requireEach).orEmpty()
+                } else {
+                    PasswordGen.passphrase(words, wordList, separator, capitalize, addNumber)
+                }
+            }
+        }
+    }
     SegmentedChoice(
         options = GenMode.entries,
         selected = mode,
         onSelect = { mode = it },
         label = { if (it == GenMode.PASSWORD) Res.string.password.str() else Res.string.passphrase.str() },
     )
+    if (problem != null) {
+        ErrorText(problem.str())
+    } else {
+        ResultCard {
+            results.forEach { result ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SelectionContainer(Modifier.weight(1f)) {
+                        Text(result, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace))
+                    }
+                    CopyIconButton(result)
+                }
+            }
+        }
+    }
+    ActionButton(Res.string.generate.str(), onClick = { seed++ }, icon = Icons.Filled.Refresh)
     if (mode == GenMode.PASSWORD) {
         Text(Res.string.length.str() + ": $length")
         Slider(
@@ -105,34 +145,14 @@ private fun PasswordGeneratorScreen() {
         steps = 18,
         modifier = Modifier.fillMaxWidth(),
     )
-    ActionButton(Res.string.generate.str(), onClick = { seed++ }, icon = Icons.Filled.Refresh)
-    val sets = CharSets(lower, upper, digits, symbols, excludeAmbiguous)
-    val wordList = if (phraseLang == PhraseLang.EN) WordLists.english else WordLists.russian
-    if (mode == GenMode.PASSWORD && sets.groups.isEmpty()) {
-        ErrorText(Res.string.select_at_least_one_character_set.str())
-        return
-    }
-    if (mode == GenMode.PASSWORD && requireEach && length < sets.groups.size) {
-        ErrorText(Res.string.length_is_smaller_than_the_number_of_selecte.str())
-        return
-    }
-    val results = remember(mode, length, count, sets, requireEach, words, phraseLang, separator, capitalize, addNumber, seed) {
-        List(count) {
-            if (mode == GenMode.PASSWORD) {
-                PasswordGen.password(length, sets, requireEach).orEmpty()
-            } else {
-                PasswordGen.passphrase(words, wordList, separator, capitalize, addNumber)
-            }
-        }
-    }
-    OutputCard(results.joinToString("\n"))
+    if (problem != null) return
     val bits = if (mode == GenMode.PASSWORD) {
         PasswordGen.entropyBits(sets.alphabet.length, length)
     } else {
         PasswordGen.passphraseEntropyBits(wordList.size, words, addNumber)
     }
     ResultCard(Res.string.strength.str()) {
-        KeyValueRow(Res.string.entropy.str(), "${bits.fmt(1)} ${Res.string.bits_2.str()}", copyable = false)
+        KeyValueRow(Res.string.entropy.str(), "${bits.fmt(1)} ${Res.string.unit_bit.str()}", copyable = false)
         KeyValueRow(Res.string.rating.str(), PasswordGen.strengthLabel(bits).str(), mono = false, copyable = false)
         if (mode == GenMode.PASSWORD) {
             KeyValueRow(Res.string.alphabet_size.str(), sets.alphabet.length.toString(), copyable = false)

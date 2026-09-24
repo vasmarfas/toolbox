@@ -33,7 +33,7 @@ val filamentLengthWeightTool = Tool(
     id = "filament-length-weight",
     category = ToolCategory.PRINTING,
     title = Res.string.filament_length_and_weight,
-    description = Res.string.grams_metres_and_cm_of_filament_for_a_materi,
+    description = Res.string.filament_length_weight_description,
     icon = Icons.Filled.Straighten,
     keywords = listOf("filament", "spool", "grams", "metres", "density", "remaining", "пруток", "катушка", "граммы", "метры", "плотность", "остаток"),
 ) { FilamentLengthWeightScreen() }
@@ -52,13 +52,13 @@ private fun FilamentLengthWeightScreen() {
         selected = material,
         onSelect = { material = it },
         label = Res.string.material.str(),
-        text = { "${it.title.str()} · ${it.density.fmt(2)} g/cm³" },
+        text = { "${it.title.str()} · ${it.density.fmt(2)} ${Res.string.unit_g_cm3.str()}" },
     )
     SegmentedChoice(
         options = filamentDiameters,
         selected = diameter,
         onSelect = { diameter = it },
-        label = { "${it.fmt(2)} ${Res.string.mm.str()}" },
+        label = { "${it.fmt(2)} ${Res.string.unit_mm.str()}" },
     )
     SegmentedChoice(
         options = FilamentUnit.entries,
@@ -68,7 +68,7 @@ private fun FilamentLengthWeightScreen() {
             when (it) {
                 FilamentUnit.GRAMS -> Res.string.grams.str()
                 FilamentUnit.METRES -> Res.string.metres.str()
-                FilamentUnit.VOLUME -> "cm³"
+                FilamentUnit.VOLUME -> Res.string.unit_cm3.str()
             }
         },
     )
@@ -78,9 +78,9 @@ private fun FilamentLengthWeightScreen() {
         onValueChange = { amountText = it },
         label = Res.string.amount.str(),
         suffix = when (unit) {
-            FilamentUnit.GRAMS -> Res.string.g.str()
-            FilamentUnit.METRES -> Res.string.m.str()
-            FilamentUnit.VOLUME -> "cm³"
+            FilamentUnit.GRAMS -> Res.string.unit_g.str()
+            FilamentUnit.METRES -> Res.string.unit_m.str()
+            FilamentUnit.VOLUME -> Res.string.unit_cm3.str()
         },
         isError = amount == null || amount < 0,
     )
@@ -97,9 +97,9 @@ private fun FilamentLengthWeightScreen() {
     val metres = Filament.lengthM(grams, diameter, material.density)
     val volume = grams / material.density
     ResultCard {
-        KeyValueRow(Res.string.weight.str(), "${grams.fmt(2)} ${Res.string.g.str()}")
-        KeyValueRow(Res.string.length.str(), "${metres.fmt(3)} ${Res.string.m.str()}")
-        KeyValueRow(Res.string.volume.str(), "${volume.fmt(3)} cm³")
+        KeyValueRow(Res.string.weight.str(), "${grams.fmt(2)} ${Res.string.unit_g.str()}")
+        KeyValueRow(Res.string.length.str(), "${metres.fmt(3)} ${Res.string.unit_m.str()}")
+        KeyValueRow(Res.string.volume.str(), "${volume.fmt(3)} ${Res.string.unit_cm3.str()}")
         KeyValueRow(Res.string.grams_per_metre.str(), Filament.gramsPerMetre(diameter, material.density).fmt(3))
     }
 
@@ -110,7 +110,7 @@ private fun FilamentLengthWeightScreen() {
                 onValueChange = { measuredText = it },
                 label = Res.string.measured_total_weight.str(),
                 modifier = Modifier.weight(1f),
-                suffix = Res.string.g.str(),
+                suffix = Res.string.unit_g.str(),
                 isError = measuredText.toDoubleLenient() == null,
             )
             NumberField(
@@ -118,7 +118,7 @@ private fun FilamentLengthWeightScreen() {
                 onValueChange = { emptySpoolText = it },
                 label = Res.string.empty_spool_weight.str(),
                 modifier = Modifier.weight(1f),
-                suffix = Res.string.g.str(),
+                suffix = Res.string.unit_g.str(),
                 isError = emptySpoolText.toDoubleLenient() == null,
             )
         }
@@ -131,21 +131,21 @@ private fun FilamentLengthWeightScreen() {
     }
     val remaining = measured - emptySpool
     if (remaining < 0) {
-        ErrorText(Res.string.the_spool_alone_weighs_more_than_the_measure.str())
+        ErrorText(Res.string.filament_spool_alone_weighs_more.str())
         return
     }
     ResultCard(Res.string.left_on_the_spool.str()) {
-        KeyValueRow(Res.string.filament.str(), "${remaining.fmt(1)} ${Res.string.g.str()}")
-        KeyValueRow(Res.string.length.str(), "${Filament.lengthM(remaining, diameter, material.density).fmt(2)} ${Res.string.m.str()}")
+        KeyValueRow(Res.string.filament.str(), "${remaining.fmt(1)} ${Res.string.unit_g.str()}")
+        KeyValueRow(Res.string.length.str(), "${Filament.lengthM(remaining, diameter, material.density).fmt(2)} ${Res.string.unit_m.str()}")
         KeyValueRow(Res.string.prints_of_this_model.str(), if (grams > 0) (remaining / grams).fmt(1) else "—")
     }
     ResultCard(Res.string.grams_per_metre_by_material.str()) {
         SimpleTable(
             header = listOf(
                 Res.string.material.str(),
-                "g/cm³",
-                "1.75 ${Res.string.mm.str()}",
-                "2.85 ${Res.string.mm.str()}",
+                Res.string.unit_g_cm3.str(),
+                "1.75 ${Res.string.unit_mm.str()}",
+                "2.85 ${Res.string.unit_mm.str()}",
             ),
             rows = FilamentMaterial.entries.map {
                 listOf(

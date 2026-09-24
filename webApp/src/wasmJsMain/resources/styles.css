@@ -34,13 +34,17 @@ canvas {
     outline: none;
 }
 
+div:has(> canvas.media-preview) {
+    pointer-events: none;
+}
+
+canvas.media-preview {
+    border-radius: 12px;
+}
+
 #splash {
     position: fixed;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 0;
     overflow-y: auto;
     background: var(--bg);
     z-index: 10;
@@ -52,67 +56,53 @@ canvas {
     pointer-events: none;
 }
 
-.splash-card {
-    max-width: 520px;
-    width: calc(100% - 48px);
-    margin: auto;
-    padding: 32px 28px;
-    border-radius: 28px;
-    background: var(--card);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    text-align: center;
+.splash-top {
+    position: sticky;
+    top: 0;
+    padding: 12px 16px 0;
+    background: var(--bg);
 }
 
-.splash-avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
-    display: block;
-    margin: 0 auto 16px;
+.splash-row {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .splash-mark {
-    width: 48px;
-    height: 48px;
-    display: block;
-    margin: 0 auto 12px;
+    width: 28px;
+    height: 28px;
+    flex: none;
     color: var(--accent);
 }
 
 .splash-name {
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 6px;
-}
-
-.splash-title {
-    margin: 0 0 18px;
-    color: var(--muted);
-    font-size: 15px;
-    line-height: 1.4;
-}
-
-.splash-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.splash-links a {
-    text-decoration: none;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 8px 14px;
-    border-radius: 999px;
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 500;
+    color: var(--accent);
+}
+
+.splash-note {
+    margin: 0 0 0 auto;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.splash-note a,
+.splash-noscript a {
+    color: var(--accent);
+}
+
+.splash-percent {
+    font-variant-numeric: tabular-nums;
 }
 
 .splash-progress {
-    height: 4px;
+    max-width: 860px;
+    height: 3px;
+    margin: 10px auto 0;
     border-radius: 2px;
     background: var(--accent-soft);
     overflow: hidden;
@@ -131,25 +121,118 @@ canvas {
     100% { transform: translateX(250%); }
 }
 
-.splash-note {
-    margin: 14px 0 0;
-    font-size: 13px;
+.splash-progress.determinate .splash-bar {
+    width: 100%;
+    animation: none;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.2s ease-out;
+}
+
+.splash-noscript {
+    max-width: 860px;
+    margin: 12px auto 0;
+    padding: 0 16px;
+    font-size: 14px;
     color: var(--muted);
 }
 
-.splash-note a {
+html[lang="en"] .pre[lang="ru"],
+html[lang="ru"] .pre[lang="en"] {
+    display: none;
+}
+
+.pre {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 8px 16px 48px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.pre a {
     color: var(--accent);
 }
 
-.splash-about,
-.splash-cats {
-    margin: 14px 0 0;
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--muted);
-    text-align: left;
+.pre h2 {
+    margin: 32px 0 12px;
+    font-size: 22px;
+    font-weight: 500;
 }
 
-.splash-cats {
-    margin-top: 8px;
+.pre-name {
+    margin: 20px 0 8px;
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+.pre-title {
+    margin: 0 0 4px;
+    font-size: 17px;
+}
+
+.pre-muted {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.pre-blocks,
+.pre-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.pre-blocks {
+    margin-top: 20px;
+}
+
+.pre-block,
+.pre-card {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--card);
+}
+
+.pre .pre-block h2 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.pre-card h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.pre-card p {
+    margin: 4px 0;
+}
+
+.pre-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pre-rows li {
+    padding: 6px 0;
+}
+
+.pre-chips {
+    margin: 8px 0 0;
+}
+
+.pre-chips a {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    padding: 5px 12px;
+    border: 1px solid var(--accent-soft);
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
 }

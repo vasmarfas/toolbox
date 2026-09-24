@@ -21,12 +21,19 @@ Full text: [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt)
 | Ktor (client core, OkHttp, Darwin, JS engines) | JetBrains s.r.o. |
 | OkHttp | Square, Inc. |
 | Firebase Crashlytics, Firebase Performance Monitoring | Google LLC |
+| AndroidX Media3 (transformer, effect, common) | The Android Open Source Project |
+| Apache PDFBox with FontBox and pdfbox-io (desktop builds) | The Apache Software Foundation |
+| Apache Commons Logging, pulled in by PDFBox (desktop builds) | The Apache Software Foundation |
+| JavaCPP (desktop builds) | Samuel Audet |
+| PDF.js (`pdfjs-dist`, website) | Mozilla Foundation |
 
 ## MIT License
 
 **material-kolor** — Copyright (c) 2025 Jordon de Hoog
 
 **qrose** — Copyright (c) 2023 Alexander Zhirkevich
+
+**FileKit** — Copyright (c) 2026 Vincent Guillebaud
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 > and associated documentation files (the "Software"), to deal in the Software without
@@ -42,6 +49,38 @@ Full text: [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt)
 > NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 > DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Mozilla Public License 2.0
+
+**Mediabunny** and **@mediabunny/mp3-encoder** — Copyright (c) Vanilagy. The website loads both
+unmodified from its own `vendor/` folder on first use of a media tool. Source code:
+<https://github.com/Vanilagy/mediabunny>. License text: <https://www.mozilla.org/en-US/MPL/2.0/>.
+
+## GNU Lesser General Public License
+
+**FFmpeg** 8.1, in the LGPL build published by the JavaCPP Presets (`org.bytedeco:ffmpeg`), ships
+with desktop builds as separate executables that the app starts as processes. The codec libraries
+that build links in are covered by their own licenses, listed in the FFmpeg configuration of the
+presets. FFmpeg source: <https://ffmpeg.org/download.html>. Build scripts:
+<https://github.com/bytedeco/javacpp-presets/tree/master/ffmpeg>. License text:
+<https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>.
+
+**LAME**, compiled to WebAssembly inside `@mediabunny/mp3-encoder`, is licensed under the LGPL 2.0
+or later. It runs only on the website, in its own module. Source: <https://lame.sourceforge.io>.
+
+## SIL Open Font License 1.1
+
+**Liberation Fonts** 2.1.5 — Digitized data copyright (c) 2010 Google Corporation, with Reserved
+Font Arimo, Tinos and Cousine. Copyright (c) 2012 Red Hat, Inc., with Reserved Font Name Liberation.
+The fonts under `shared/src/commonMain/composeResources/files/fonts` are cut down to Latin, Cyrillic
+and punctuation and renamed Toolbox, as the license requires of modified versions. They are used
+only to typeset PDF files, which embed subsets of them. The license text sits next to them in
+`OFL.txt`.
+
+## CC0 1.0
+
+**minimp3** by lieff, <https://github.com/lieff/minimp3>. The Huffman tables and the analysis
+window of the MP3 encoder in `Mp3Tables.kt` were taken from it. The encoder itself is not a port.
 
 ## BSD 3-Clause
 
@@ -82,6 +121,9 @@ standard benchmarks.
 **JUnit 4** (`junit:junit`) is used for tests under the Eclipse Public License 1.0,
 <https://www.eclipse.org/legal/epl-v10.html>. It is a test dependency and is not present in any
 published build.
+
+**Apache Commons Imaging** checks the image codecs in the desktop tests under the Apache License
+2.0 and is not present in any published build either.
 
 ## Website
 

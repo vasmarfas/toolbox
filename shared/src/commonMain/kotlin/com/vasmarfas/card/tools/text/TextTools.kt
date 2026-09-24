@@ -3,17 +3,19 @@ package com.vasmarfas.card.tools.text
 import com.vasmarfas.card.tools.Tool
 
 val textTools: List<Tool> = listOf(
-    caseConverterTool,
     textCounterTool,
-    lineToolsTool,
+    caseConverterTool,
+    textDiffTool,
     findReplaceTool,
     transliterationTool,
     keyboardLayoutTool,
-    morseCodeTool,
-    ciphersTool,
-    loremIpsumTool,
-    textDiffTool,
     textCleanerTool,
+    mojibakeFixerTool,
+    lineToolsTool,
+    loremIpsumTool,
+    morseCodeTool,
+    phoneticAlphabetTool,
+    ciphersTool,
     unicodeInspectorTool,
     asciiTableTool,
 )

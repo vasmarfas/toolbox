@@ -16,8 +16,10 @@ actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
     val line = runCatching { AudioSystem.getTargetDataLine(format) as TargetDataLine }.getOrNull() ?: return@flow
     line.open(format, fftSize * 4)
     line.start()
-    val bytes = ByteArray(fftSize * 2)
+    val hop = minOf(fftSize, SpectrumHop)
+    val bytes = ByteArray(hop * 2)
     val samples = FloatArray(fftSize)
+    var collected = 0
     try {
         while (currentCoroutineContext().isActive) {
             var filled = 0
@@ -27,11 +29,13 @@ actual fun microphoneSpectrumFlow(fftSize: Int): Flow<SpectrumFrame> = flow {
                 filled += read
             }
             if (filled < bytes.size) break
-            for (i in 0 until fftSize) {
+            samples.copyInto(samples, 0, hop, fftSize)
+            for (i in 0 until hop) {
                 val value = ((bytes[i * 2 + 1].toInt() shl 8) or (bytes[i * 2].toInt() and 0xFF)).toShort()
-                samples[i] = value / 32768f
+                samples[fftSize - hop + i] = value / 32768f
             }
-            emit(SpectrumFrame(Fft.magnitudesDb(samples), sampleRate))
+            collected = minOf(fftSize, collected + hop)
+            if (collected == fftSize) emit(SpectrumFrame(Fft.magnitudesDb(samples), sampleRate))
         }
     } finally {
         line.stop()
