@@ -9,11 +9,11 @@ codebase builds the site on WebAssembly ([vasmarfas.com](https://vasmarfas.com),
 
 ## What is inside
 
-A card page with contacts, projects, articles and a CV, and a catalogue of offline tools in 18
-categories with search and recents. In the apps the first tab is Home: on first start two questions
-about what you do and what you are into put the matching tools there, and the site keeps favourites
-instead. Anything that can be computed locally runs everywhere. Sockets and sensors run where the OS
-provides them, and the catalogue marks each tool with the platforms it supports.
+A profile page with contacts, projects, articles and a CV, and a catalogue of offline tools in 18
+categories with search and recents. In the apps the first tab is Home. On first start the app asks
+what you do and what you are into and puts the matching tools there. The site keeps favourites
+instead. Anything that can be computed locally runs everywhere. Network tools and sensors work where
+the OS provides them, and the catalogue shows which platforms each tool runs on.
 
 | Category | Examples |
 |---|---|
@@ -34,9 +34,9 @@ provides them, and the catalogue marks each tool with the platforms it supports.
 | Developer | JSON, Base64, hashes and HMAC, UUID, programmer calculator, floating-point inspector, regex tester and builder, URL and punycode, JWT, Markdown, CSV, cron, HTTP codes, escaping, chmod, semver, MIME |
 | Network | speed test, my IP, ping (ICMP/TCP/HTTP), DNS over HTTPS and UDP, whois/RDAP, traceroute, port and LAN scanners, Wake-on-LAN, subnet calculator and splitter, HTTP requests, TLS certificates, public DNS, interfaces and Wi-Fi, UPnP/Bonjour, MAC lookup, port reference, data size and transfer time |
 | Electronics | Ohm's law, resistor color code, LED resistor, voltage divider, battery life, wire gauge |
-| 3D printing | print and resin cost, filament picker and table of 52 plastics, filament length and weight, time estimate, layer and nozzle, E-steps and flow, temperature tower, shrinkage, G-code cheat sheet |
+| 3D printing | print and resin cost, filament picker and table of 51 plastics, filament length and weight, time estimate, layer and nozzle, E-steps and flow, temperature tower, shrinkage, G-code cheat sheet |
 
-Texts come in Russian and English and switch instantly. The card content is data rather than code:
+Texts come in Russian and English and switch instantly. The profile content is data rather than code:
 `profile.json` and `resume.json` ship inside the app and are refreshed from the network at startup,
 so the site and installed apps pick up changes without a release.
 

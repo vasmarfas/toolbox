@@ -33,15 +33,24 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # the Linux FFmpeg from JavaCPP links PulseAudio, and the runner image has no libpulse.so.0
-      - name: Install PulseAudio client library
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpulse0
+      # the Linux FFmpeg from JavaCPP links PulseAudio, VA-API, libdrm and XCB, the runner image lacks at least
+      # libpulse.so.0 and libva.so.2
+      - name: Install FFmpeg runtime libraries
+        run: >-
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends
+          libpulse0 libva2 libva-drm2 libva-x11-2 libvdpau1 libdrm2 libxcb1 libxcb-shm0 libxcb-shape0 libxcb-xfixes0
+          libasound2t64
 
       - name: Unit tests
         run: ./gradlew :shared:jvmTest
 
       - name: Build Android, desktop and web
         run: ./gradlew :androidApp:assembleDebug :desktopApp:compileKotlin :webApp:wasmJsBrowserDistribution
+
+      # the loader names only the first missing library, ldd lists all of them
+      - name: Missing FFmpeg libraries
+        if: failure()
+        run: ldd ~/.javacpp/cache/*/org/bytedeco/ffmpeg/linux-x86_64/ffmpeg | grep "not found" || true
 
       - name: Upload test reports
         if: failure()
