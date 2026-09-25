@@ -4,13 +4,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.vasmarfas.card.core.Lang
+import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.playTone
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
@@ -19,6 +24,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.ToolSection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,6 +48,9 @@ private fun MorseCodeScreen() {
     var input by rememberSaveable { mutableStateOf("") }
     var playing by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
+    var current by remember { mutableStateOf<String?>(null) }
+    val lang = LocalLang.current
+    var treeAlphabet by rememberSaveable { mutableStateOf(if (lang == Lang.RU) MorseAlphabet.CYRILLIC else MorseAlphabet.LATIN) }
     val scope = rememberCoroutineScope()
     SegmentedChoice(
         options = MorseMode.entries,
@@ -70,6 +79,13 @@ private fun MorseCodeScreen() {
         if (mode == MorseMode.ENCODE) Morse.encode(input) else Morse.decode(input, alphabet)
     }
     val morse = if (mode == MorseMode.ENCODE) output else input
+    LaunchedEffect(input, mode, alphabet) {
+        when {
+            mode == MorseMode.DECODE -> treeAlphabet = alphabet
+            input.any { it.lowercaseChar() in 'а'..'я' || it.lowercaseChar() == 'ё' } -> treeAlphabet = MorseAlphabet.CYRILLIC
+            input.any { it.lowercaseChar() in 'a'..'z' } -> treeAlphabet = MorseAlphabet.LATIN
+        }
+    }
     if (input.isNotBlank()) {
         OutputCard(output)
         ActionButton(
@@ -81,17 +97,30 @@ private fun MorseCodeScreen() {
                 } else {
                     job = scope.launch {
                         playing = true
+                        val codes = Morse.codes(morse)
                         try {
                             for (step in Morse.schedule(morse)) {
+                                current = codes.getOrNull(step.letter)?.take(step.symbol + 1)
                                 if (step.tone) playTone(700.0, step.ms)
                                 delay(step.ms.milliseconds)
                             }
                         } finally {
                             playing = false
+                            current = null
                         }
                     }
                 }
             },
         )
+    }
+    ToolSection(Res.string.morse_tree.str()) {
+        SegmentedChoice(
+            options = MorseAlphabet.entries,
+            selected = treeAlphabet,
+            onSelect = { treeAlphabet = it },
+            label = { if (it == MorseAlphabet.LATIN) Res.string.morse_latin.str() else Res.string.cyrillic.str() },
+        )
+        MorseTree(treeAlphabet, current)
+        Text(Res.string.morse_tree_hint.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

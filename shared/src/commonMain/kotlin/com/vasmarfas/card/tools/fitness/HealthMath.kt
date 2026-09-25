@@ -42,6 +42,13 @@ object Glycemia {
     fun ifccMmolMol(a1cPercent: Double): Double = (a1cPercent - 2.15) * 10.929
 
     fun dcctFromIfcc(mmolPerMol: Double): Double = mmolPerMol / 10.929 + 2.15
+
+    // WHO and ADA thresholds: 0 below 5.7 %, 1 prediabetes up to 6.4 %, 2 diabetes from 6.5 %
+    fun category(a1cPercent: Double): Int = when {
+        a1cPercent < 5.7 -> 0
+        a1cPercent < 6.5 -> 1
+        else -> 2
+    }
 }
 
 object Widmark {
@@ -108,4 +115,25 @@ object Vo2Max {
     fun heartRateRatio(maxBpm: Int, restingBpm: Int): Double = 15.3 * maxBpm / restingBpm
 
     fun mets(vo2Max: Double): Double = vo2Max / 3.5
+
+    // Cooper Institute norms by decade of age from 20: where poor, fair, good, excellent and superior begin
+    private val men = listOf(
+        listOf(33.0, 36.5, 42.5, 46.5, 52.5),
+        listOf(31.5, 35.5, 41.0, 45.0, 49.5),
+        listOf(30.2, 33.6, 39.0, 43.8, 48.1),
+        listOf(26.1, 31.0, 35.8, 41.0, 45.4),
+        listOf(20.5, 26.1, 32.3, 36.5, 44.3),
+    )
+    private val women = listOf(
+        listOf(23.6, 29.0, 33.0, 37.0, 41.1),
+        listOf(22.8, 27.0, 31.5, 35.7, 40.1),
+        listOf(21.0, 24.5, 29.0, 32.9, 37.0),
+        listOf(20.2, 22.8, 27.0, 31.5, 35.8),
+        listOf(17.5, 20.2, 24.5, 30.3, 31.5),
+    )
+
+    fun norms(sex: Sex, age: Int): List<Double> = (if (sex == Sex.MALE) men else women)[((age - 20) / 10).coerceIn(0, 4)]
+
+    // 0 is very poor, 5 is superior
+    fun rating(value: Double, sex: Sex, age: Int): Int = norms(sex, age).count { value >= it }
 }

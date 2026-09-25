@@ -7,6 +7,8 @@ class Ipv6Address(val groups: IntArray) {
 
     fun expanded(): String = groups.joinToString(":") { it.toString(16).padStart(4, '0') }
 
+    fun ptrName(): String = expanded().replace(":", "").reversed().toCharArray().joinToString(".") + ".ip6.arpa"
+
     fun compressed(): String {
         var bestStart = -1
         var bestLen = 0

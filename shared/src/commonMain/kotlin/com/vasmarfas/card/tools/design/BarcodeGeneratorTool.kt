@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.str
@@ -38,6 +37,7 @@ import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 import com.vasmarfas.card.ui.components.expandedHeight
+import com.vasmarfas.card.ui.components.monoFamily
 import io.github.alexzhirkevich.qrose.oned.BarcodeType
 import io.github.alexzhirkevich.qrose.oned.rememberBarcodePainter
 
@@ -53,6 +53,13 @@ val barcodeGeneratorTool = Tool(
 
 @Composable
 private fun BarcodeGeneratorScreen() {
+    var scanning by rememberSaveable { mutableStateOf(false) }
+    CreateOrScan(scanning) { scanning = it }
+    if (scanning) CodeScanner() else BarcodeCreator()
+}
+
+@Composable
+private fun BarcodeCreator() {
     var type by rememberSaveable { mutableStateOf(BarcodeType.EAN13) }
     var data by rememberSaveable { mutableStateOf(BarcodeType.EAN13.sampleData()) }
     ChoiceChips(
@@ -106,7 +113,7 @@ private fun BarcodeGeneratorScreen() {
         Image(painter, contentDescription = null, modifier = Modifier.fillMaxWidth().height(expandedHeight(normal = 120.dp, reserved = 420.dp)))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = monoFamily()),
             color = Color.Black,
             textAlign = TextAlign.Center,
         )

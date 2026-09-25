@@ -1,13 +1,21 @@
 package com.vasmarfas.card.tools.media
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Gif
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,10 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.MediaEngine
 import com.vasmarfas.card.core.MediaInfo
 import com.vasmarfas.card.core.PickKind
@@ -36,6 +47,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
@@ -45,6 +57,7 @@ import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.pluralStringResource
@@ -63,7 +76,16 @@ val gifMakerTool = Tool(
     ),
 ) { GifMakerScreen() }
 
-private class Gif(val name: String, val bytes: ByteArray, val width: Int, val height: Int, val frames: Int, val first: ImageBitmap)
+// previews are the frames shrunk for the screen, the GIF itself stays as encoded
+private class Gif(val name: String, val bytes: ByteArray, val width: Int, val height: Int, val frames: Int, val previews: List<ImageBitmap>, val delayMs: Int, val loop: Boolean)
+
+private const val PREVIEW_SIDE = 360
+private const val PREVIEW_FRAMES = 300
+
+private fun preview(frame: ImageBitmap): ImageBitmap {
+    val scale = min(1.0, PREVIEW_SIDE.toDouble() / maxOf(frame.width, frame.height))
+    return if (scale == 1.0) frame else frame.scaled((frame.width * scale).roundToInt().coerceAtLeast(1), (frame.height * scale).roundToInt().coerceAtLeast(1))
+}
 
 private val gifWidths = listOf(240, 320, 480, 640)
 
@@ -98,7 +120,7 @@ private fun GifMakerScreen() {
     TaskProgress(task, Res.string.rendering.str())
     result?.let { gif ->
         ResultCard(title = Res.string.result.str()) {
-            Preview(gif.first)
+            GifPlayer(gif)
             Text(
                 "${gif.width} × ${gif.height} · ${pluralStringResource(Res.plurals.frame_count, gif.frames, gif.frames)} · ${formatBytes(gif.bytes.size.toLong(), binary = false)}",
                 style = MaterialTheme.typography.bodyLarge,
@@ -161,21 +183,20 @@ private fun FromVideo(task: TaskState, width: Int, loop: Boolean, options: @Comp
             val rate = fps
             task.launch(scope) { progress ->
                 var writer: GifWriter? = null
-                var first: ImageBitmap? = null
+                val previews = ArrayList<ImageBitmap>()
                 var count = 0
                 val total = ((end - start) * rate / 1000).coerceAtLeast(1)
                 MediaEngine.frames(source, start, end, rate.toDouble(), longSide) { frame ->
-                    val gif = writer ?: GifWriter(frame.width, frame.height, if (loop) 0 else -1).also {
-                        writer = it
-                        first = frame
+                    val gif = writer ?: GifWriter(frame.width, frame.height, if (loop) 0 else -1).also { writer = it }
+                    withContext(Dispatchers.Default) {
+                        gif.addFrame(frame.pixels(), 1000 / rate)
+                        if (previews.size < PREVIEW_FRAMES) previews += preview(frame)
                     }
-                    withContext(Dispatchers.Default) { gif.addFrame(frame.pixels(), 1000 / rate) }
                     count++
                     progress((count.toFloat() / total).coerceAtMost(1f))
                 }
                 val gif = writer ?: return@launch
-                val cover = first ?: return@launch
-                onResult(Gif(renamed(source.name, "gif"), withContext(Dispatchers.Default) { gif.finish() }, gif.width, gif.height, count, cover))
+                onResult(Gif(renamed(source.name, "gif"), withContext(Dispatchers.Default) { gif.finish() }, gif.width, gif.height, count, previews, 1000 / rate, loop))
             }
         },
     )
@@ -195,7 +216,7 @@ private fun FromPhotos(task: TaskState, width: Int, loop: Boolean, options: @Com
     }
     if (files.isEmpty()) return
     files.forEach { FileLine(it.name, formatBytes(it.size(), binary = false), icon = Icons.Filled.Image) }
-    LabeledSlider(Res.string.frame_time.str(), (frameMs / 1000.0).fmt(1) + " s", frameMs.toFloat(), 100f..5000f) { frameMs = (it / 100).roundToInt() * 100 }
+    LabeledSlider(Res.string.frame_time.str(), (frameMs / 1000.0).fmt(1) + " " + Res.string.unit_s.str(), frameMs.toFloat(), 100f..5000f) { frameMs = (it / 100).roundToInt() * 100 }
     options()
     ActionButton(
         text = Res.string.make_gif.str(),
@@ -207,21 +228,54 @@ private fun FromPhotos(task: TaskState, width: Int, loop: Boolean, options: @Com
             val delay = frameMs
             task.launch(scope) { progress ->
                 var writer: GifWriter? = null
-                var first: ImageBitmap? = null
+                val previews = ArrayList<ImageBitmap>()
                 sources.forEachIndexed { index, file ->
                     val image = decodeImage(file.readBytes()) ?: throw IllegalStateException("${file.name}: $unreadable")
                     val gif = writer ?: GifWriter(width, (width.toLong() * image.height / image.width).toInt().coerceAtLeast(1), if (loop) 0 else -1).also { writer = it }
-                    val frame = withContext(Dispatchers.Default) { fitted(image, gif.width, gif.height) }
-                    if (first == null) first = frame
-                    withContext(Dispatchers.Default) { gif.addFrame(frame.pixels(), delay) }
+                    withContext(Dispatchers.Default) {
+                        val frame = fitted(image, gif.width, gif.height)
+                        gif.addFrame(frame.pixels(), delay)
+                        previews += preview(frame)
+                    }
                     progress((index + 1f) / sources.size)
                 }
                 val gif = writer ?: return@launch
-                val cover = first ?: return@launch
-                onResult(Gif(renamed(sources.first().name, "gif"), withContext(Dispatchers.Default) { gif.finish() }, gif.width, gif.height, sources.size, cover))
+                onResult(Gif(renamed(sources.first().name, "gif"), withContext(Dispatchers.Default) { gif.finish() }, gif.width, gif.height, sources.size, previews, delay, loop))
             }
         },
     )
+}
+
+// plays as soon as the GIF is made. A GIF without a loop stops on its last frame, play starts it over
+@Composable
+private fun GifPlayer(gif: Gif) {
+    var playing by remember(gif) { mutableStateOf(true) }
+    var index by remember(gif) { mutableStateOf(0) }
+    val last = gif.previews.lastIndex
+    LaunchedEffect(gif, playing) {
+        while (playing && last > 0) {
+            delay(gif.delayMs.toLong().coerceAtLeast(20))
+            if (index == last && !gif.loop) {
+                playing = false
+            } else {
+                index = if (index == last) 0 else index + 1
+            }
+        }
+    }
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Preview(gif.previews.getOrNull(index))
+        if (last > 0) {
+            FilledTonalIconButton(
+                onClick = {
+                    if (!playing && index == last) index = 0
+                    playing = !playing
+                },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+            ) {
+                Icon(if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = if (playing) Res.string.pause.str() else Res.string.play.str())
+            }
+        }
+    }
 }
 
 private fun fitted(image: ImageBitmap, width: Int, height: Int): ImageBitmap {

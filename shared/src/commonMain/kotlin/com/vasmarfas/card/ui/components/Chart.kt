@@ -45,7 +45,6 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -54,6 +53,7 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.pluralStringResource
 
 data class ChartSeries(
     val label: String,
@@ -111,7 +111,7 @@ fun InteractiveChart(
     val measurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontFamily = FontFamily.Monospace,
+        fontFamily = monoFamily(),
     )
     val tickLabels = remember(ticks, labelStyle, yFormat) { ticks.map { measurer.measure(yFormat(it), labelStyle) } }
     val gridColor = MaterialTheme.colorScheme.outlineVariant
@@ -250,11 +250,12 @@ fun InteractiveChart(
                 "${Res.string.chart_avg.str()} ${yFormat(range.average)}",
                 "${Res.string.chart_max.str()} ${yFormat(range.high)}",
             ).joinToString(" · "),
-            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            style = MaterialTheme.typography.labelMedium.copy(fontFamily = monoFamily()),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         val choices = windowOptions.filter { it == 0 || it < count }
         if (windows && choices.size > 1) {
+            Text(Res.string.chart_show.str(), style = MaterialTheme.typography.labelLarge)
             ChoiceChips(
                 options = choices,
                 selected = if (windowSize <= 0) 0 else windowSize,
@@ -262,7 +263,7 @@ fun InteractiveChart(
                     windowSize = it
                     windowStart = null
                 },
-                label = { if (it == 0) Res.string.fit.str() else it.toString() },
+                label = { if (it == 0) Res.string.chart_all_readings.str() else pluralStringResource(Res.plurals.chart_last_readings, it, it) },
             )
         }
     }
@@ -307,7 +308,7 @@ private fun ChartTooltip(header: String, entries: List<ChartEntry>, modifier: Mo
                     if (entry.label.isNotEmpty()) {
                         Text(entry.label, style = MaterialTheme.typography.labelMedium)
                     }
-                    Text(entry.value, style = MaterialTheme.typography.labelLarge, fontFamily = FontFamily.Monospace)
+                    Text(entry.value, style = MaterialTheme.typography.labelLarge, fontFamily = monoFamily())
                 }
             }
         }

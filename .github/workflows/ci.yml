@@ -33,6 +33,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # the Linux FFmpeg from JavaCPP links PulseAudio, and the runner image has no libpulse.so.0
+      - name: Install PulseAudio client library
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpulse0
+
       - name: Unit tests
         run: ./gradlew :shared:jvmTest
 

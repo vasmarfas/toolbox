@@ -1,9 +1,12 @@
 package com.vasmarfas.card.tools.documents
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.FolderZip
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
@@ -18,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.ZipArchive
 import com.vasmarfas.card.core.ZipEntryInfo
 import com.vasmarfas.card.core.ZipWriter
@@ -31,11 +35,16 @@ import com.vasmarfas.card.tools.media.FileLine
 import com.vasmarfas.card.tools.media.PickButton
 import com.vasmarfas.card.tools.media.SaveButton
 import com.vasmarfas.card.tools.media.uniqueName
+import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
+import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.size
@@ -127,27 +136,51 @@ private fun SaveEntry(archive: ZipArchive, entry: ZipEntryInfo, onError: (String
     }
 }
 
+private class ZipItem(val file: PlatformFile, val path: String)
+
+private fun walk(dir: PlatformFile, prefix: String, into: MutableList<ZipItem>) {
+    for (child in dir.list().sortedBy { it.name }) {
+        val path = prefix + child.name
+        if (child.isDirectory()) walk(child, "$path/", into) else into += ZipItem(child, path)
+    }
+}
+
 @Composable
 private fun Create() {
-    val files = remember { mutableStateListOf<PlatformFile>() }
+    val items = remember { mutableStateListOf<ZipItem>() }
     var compress by rememberSaveable { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
 
-    PickButton(Res.string.choose_files.str(), emptySet(), multiple = true, icon = Icons.Filled.Add) { files += it }
-    if (files.isEmpty()) return
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PickButton(Res.string.choose_files.str(), emptySet(), multiple = true, icon = Icons.Filled.Add) { picked -> items += picked.map { ZipItem(it, it.name) } }
+        ActionButton(
+            text = Res.string.choose_folder.str(),
+            icon = Icons.Filled.CreateNewFolder,
+            onClick = {
+                scope.launch {
+                    val dir = runCatching { FileKit.openDirectoryPicker() }.getOrNull() ?: return@launch
+                    val found = ArrayList<ZipItem>()
+                    withContext(Dispatchers.Default) { walk(dir, "${dir.name}/", found) }
+                    items += found
+                }
+            },
+        )
+    }
+    if (items.isEmpty()) return
     OrderedFiles(
-        names = files.map { it.name },
-        details = files.map { formatBytes(it.size(), binary = false) },
-        onMove = { from, to -> files.add(to, files.removeAt(from)) },
-        onRemove = { files.removeAt(it) },
+        names = items.map { it.path },
+        details = items.map { formatBytes(it.file.size(), binary = false) },
+        onMove = { from, to -> items.add(to, items.removeAt(from)) },
+        onRemove = { items.removeAt(it) },
         icon = Icons.AutoMirrored.Filled.InsertDriveFile,
     )
     SwitchRow(Res.string.zip_deflate.str(), compress, { compress = it }, description = Res.string.zip_deflate_hint.str())
     SaveButton(Res.string.make_zip.str()) {
         val taken = mutableSetOf<String>()
         val zip = ZipWriter()
-        for (file in files.toList()) {
-            val bytes = file.readBytes()
-            withContext(Dispatchers.Default) { zip.add(uniqueName(file.name, taken), bytes, compress) }
+        for (item in items.toList()) {
+            val bytes = item.file.readBytes()
+            withContext(Dispatchers.Default) { zip.add(uniqueName(item.path, taken), bytes, compress) }
         }
         saveBytes(withContext(Dispatchers.Default) { zip.toByteArray() }, "archive.zip")
     }

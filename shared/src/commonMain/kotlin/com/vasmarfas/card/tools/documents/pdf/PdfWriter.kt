@@ -160,6 +160,10 @@ class PdfWriter {
         objects[ref.number - 1] = obj
     }
 
+    operator fun get(ref: PdfRef): PdfObject? = objects.getOrNull(ref.number - 1)
+
+    fun resolve(obj: PdfObject?): PdfObject? = if (obj is PdfRef) get(obj) else obj
+
     fun stream(dict: PdfDict, data: ByteArray, compress: Boolean = true): PdfRef {
         var bytes = data
         if (compress) {
@@ -181,7 +185,15 @@ class PdfWriter {
         return add(PdfStream(dict, bytes))
     }
 
-    fun toByteArray(root: PdfRef, info: PdfRef? = null): ByteArray {
+    internal fun toByteArray(root: PdfRef, info: PdfRef?, encryptor: PdfEncryptor?): ByteArray {
+        if (encryptor == null) return toByteArray(root, info)
+        val encrypt = add(encryptor.dict)
+        return write(root, info, encrypt) { number, obj -> if (number == encrypt.number) obj else encryptor.encrypt(obj) }
+    }
+
+    fun toByteArray(root: PdfRef, info: PdfRef? = null): ByteArray = write(root, info, null) { _, obj -> obj }
+
+    private fun write(root: PdfRef, info: PdfRef?, encrypt: PdfRef?, transform: (Int, PdfObject) -> PdfObject): ByteArray {
         var payload = 0L
         for (obj in objects) if (obj is PdfStream) payload += obj.data.size
         val out = ByteSink((payload + objects.size * 96L + 1024).coerceAtMost(Int.MAX_VALUE - 64L).toInt())
@@ -193,7 +205,7 @@ class PdfWriter {
             offsets[i] = out.size
             out.writeAscii((i + 1).toString())
             out.writeAscii(" 0 obj\n")
-            when (val obj = objects[i] ?: PdfNull) {
+            when (val obj = transform(i + 1, objects[i] ?: PdfNull)) {
                 is PdfStream -> {
                     PdfSyntax.writeDict(out, obj.dict, obj.data.size)
                     out.writeAscii("\nstream\n")
@@ -219,6 +231,7 @@ class PdfWriter {
         val id = PdfString(fingerprint(out, payloads), hex = true)
         val trailer = PdfDict("Size" to PdfInt.of(objects.size + 1), "Root" to root)
         if (info != null) trailer["Info"] = info
+        if (encrypt != null) trailer["Encrypt"] = encrypt
         trailer["ID"] = PdfArray(id, id)
         out.writeAscii("trailer\n")
         PdfSyntax.write(out, trailer)

@@ -20,5 +20,6 @@ val networkTools: List<Tool> = listOf(
     discoveryTool,
     macLookupTool,
     subnetSplitterTool,
+    dataSizeTool,
     portsReferenceTool,
 )

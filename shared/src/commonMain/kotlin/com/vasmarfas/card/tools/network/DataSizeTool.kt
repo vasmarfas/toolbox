@@ -1,4 +1,4 @@
-package com.vasmarfas.card.tools.converters
+package com.vasmarfas.card.tools.network
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,6 +18,8 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.converters.fmtReadable
+import com.vasmarfas.card.tools.converters.fmtSig
 import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
@@ -26,7 +28,7 @@ import com.vasmarfas.card.ui.components.ResultCard
 
 val dataSizeTool = Tool(
     id = "data-size",
-    category = ToolCategory.CONVERTERS,
+    category = ToolCategory.NETWORK,
     title = Res.string.data_size_and_transfer_time,
     description = Res.string.data_size_description,
     icon = Icons.Filled.Storage,

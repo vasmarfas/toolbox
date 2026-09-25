@@ -1,18 +1,29 @@
 package com.vasmarfas.card.tools.security
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.secureRandomBytes
 import com.vasmarfas.card.core.str
@@ -21,16 +32,21 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.developer.Base64Tools
 import com.vasmarfas.card.tools.developer.toHex
+import com.vasmarfas.card.tools.everyday.Coin
+import com.vasmarfas.card.tools.everyday.DiceTray
+import com.vasmarfas.card.tools.everyday.RollingText
 import com.vasmarfas.card.tools.text.OutputCard
 import com.vasmarfas.card.ui.components.ActionButton
-import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
+import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 import kotlin.math.abs
+import kotlin.random.Random
 import org.jetbrains.compose.resources.StringResource
 
 private enum class RandomMode(val title: StringResource) {
@@ -41,6 +57,11 @@ private enum class RandomMode(val title: StringResource) {
     LIST(Res.string.from_a_list),
     BYTES(Res.string.bytes),
 }
+
+private const val MAX_BALLS = 60
+private const val BALL_LAG_STEPS = 10
+private const val BALL_LAG_MS = 100
+private const val MAX_DICE_SHOWN = 12
 
 val randomGeneratorTool = Tool(
     id = "random-generator",
@@ -71,13 +92,16 @@ private fun RandomGeneratorScreen() {
             }
         }
 
-        RandomMode.DICE -> ToolInputField(
-            value = diceText,
-            onValueChange = { diceText = it },
-            label = Res.string.dice_notation.str(),
-            placeholder = "2d20 · 3d6+2 · d100",
-            monospace = true,
-        )
+        RandomMode.DICE -> {
+            ToolInputField(
+                value = diceText,
+                onValueChange = { diceText = it },
+                label = Res.string.dice_notation.str(),
+                placeholder = "2d20 · 3d6+2 · d100",
+                monospace = true,
+            )
+            Hint(Res.string.dice_notation_hint.str())
+        }
 
         RandomMode.LIST -> ToolInputField(
             value = listText,
@@ -102,7 +126,15 @@ private fun RandomGeneratorScreen() {
                 return
             }
             val value = remember(from, to, seed) { Dice.intInRange(from, to) }
-            AnswerCard(value.toString(), "${Res.string.range.str()}: $from … $to")
+            ResultCard {
+                Box(Modifier.fillMaxWidth()) {
+                    RollingText(value.toString(), seed, MaterialTheme.typography.displayMedium, Modifier.align(Alignment.Center)) {
+                        Random.nextLong(from.toLong(), to + 1L).toString()
+                    }
+                    CopyIconButton(value.toString(), Modifier.align(Alignment.CenterEnd))
+                }
+                Text("${Res.string.range.str()}: $from … $to", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            }
         }
 
         RandomMode.UNIQUE -> {
@@ -116,6 +148,24 @@ private fun RandomGeneratorScreen() {
                 return
             }
             ResultCard {
+                if (values.size <= MAX_BALLS) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        values.forEachIndexed { i, v ->
+                            Box(
+                                Modifier.widthIn(min = 48.dp).height(48.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape).padding(horizontal = 10.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                RollingText(v.toString(), seed, MaterialTheme.typography.titleMedium, lag = minOf(i, BALL_LAG_STEPS) * BALL_LAG_MS) {
+                                    Random.nextLong(from.toLong(), to + 1L).toString()
+                                }
+                            }
+                        }
+                    }
+                }
                 KeyValueRow(Res.string.draw_order.str(), values.joinToString(", "))
                 KeyValueRow(Res.string.sorted.str(), values.sorted().joinToString(", "))
             }
@@ -128,23 +178,17 @@ private fun RandomGeneratorScreen() {
                 return
             }
             ResultCard {
-                KeyValueRow(Res.string.random_total.str(), roll.total.toString())
+                if (roll.rolls.size <= MAX_DICE_SHOWN) DiceTray(roll.rolls, roll.sides, seed)
+                Text(roll.total.toString(), style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 val modifierText = if (roll.modifier != 0) " ${if (roll.modifier > 0) "+" else "−"} ${abs(roll.modifier)}" else ""
-                KeyValueRow(Res.string.rolls.str(), roll.rolls.joinToString(" + ") + modifierText)
+                KeyValueRow(Res.string.rolls.str(), roll.rolls.joinToString(" + ") + modifierText + " = ${roll.total}")
                 KeyValueRow(Res.string.random_dice.str(), roll.rolls.size.toString(), copyable = false)
             }
         }
 
         RandomMode.COIN -> {
             val heads = remember(seed) { Dice.intInRange(0, 1) == 0 }
-            ResultCard {
-                KeyValueRow(
-                    Res.string.result.str(),
-                    if (heads) Res.string.heads.str() else Res.string.tails.str(),
-                    mono = false,
-                    copyable = false,
-                )
-            }
+            ResultCard { Coin(heads, seed, Res.string.heads.str(), Res.string.tails.str()) }
         }
 
         RandomMode.LIST -> {
@@ -156,7 +200,8 @@ private fun RandomGeneratorScreen() {
             val picked = remember(items, seed) { Dice.pick(items) }
             val shuffled = remember(items, seed) { Dice.shuffled(items) }
             ResultCard {
-                KeyValueRow(Res.string.picked.str(), picked.orEmpty(), mono = false)
+                Text(Res.string.picked.str(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                RollingText(picked.orEmpty(), seed, MaterialTheme.typography.headlineMedium, Modifier.fillMaxWidth()) { items.random() }
                 KeyValueRow(Res.string.random_options.str(), items.size.toString(), copyable = false)
             }
             OutputCard(shuffled.joinToString("\n"), title = Res.string.shuffled_order.str())

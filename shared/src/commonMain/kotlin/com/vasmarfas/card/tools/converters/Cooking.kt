@@ -45,8 +45,9 @@ object Cooking {
         OvenSetting("7", 220, 425, Res.string.hot),
         OvenSetting("8", 230, 450, Res.string.hot),
         OvenSetting("9", 240, 475, Res.string.very_hot),
-        OvenSetting("10", 260, 500, Res.string.very_hot),
     )
+
+    const val FAN_OFFSET = 20
 
     fun convert(value: Double, from: CookingUnit, to: CookingUnit, ingredient: Ingredient): Double {
         val grams = if (from.grams != null) value * from.grams else value * from.ml!! * ingredient.density

@@ -17,10 +17,10 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
-import com.vasmarfas.card.ui.components.MonoTable
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolSection
 import org.jetbrains.compose.resources.StringResource
@@ -86,7 +86,12 @@ private fun ClothingSizesScreen() {
         }
     }
     ToolSection(table.title.str()) {
-        MonoTable(table.lines(table.columns.map { headerName(it) }))
+        SimpleTable(
+            header = table.columns.map { headerName(it) },
+            rows = table.rows,
+            mono = false,
+            highlight = table.rows.indexOfFirst { it[columnIndex] == value }.takeIf { it >= 0 },
+        )
     }
 }
 

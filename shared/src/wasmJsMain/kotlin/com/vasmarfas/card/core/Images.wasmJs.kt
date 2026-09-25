@@ -1,5 +1,6 @@
 package com.vasmarfas.card.core
 
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.await
 import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Int8Array
@@ -32,12 +33,14 @@ private fun jsImagePixels(image: JsAny): Int32Array = js("image.pixels")
 actual suspend fun decodeRawImage(bytes: ByteArray): RawImage? {
     skiaDecode(bytes)?.let { return RawImage(it, oriented = true) }
     val decoded = jsDecodeImage(bytes.toInt8Array()).await<JsAny?>() ?: return null
-    val width = jsImageWidth(decoded)
-    val height = jsImageHeight(decoded)
-    val rgba = jsImagePixels(decoded)
+    return RawImage(rgbaBitmap(jsImagePixels(decoded), jsImageWidth(decoded), jsImageHeight(decoded)), oriented = true)
+}
+
+// canvas image data comes as RGBA bytes, Compose wants ARGB ints
+fun rgbaBitmap(rgba: Int32Array, width: Int, height: Int): ImageBitmap {
     val pixels = IntArray(width * height) {
         val v = rgba[it]
         (v and 0xFF00FF00.toInt()) or ((v and 0xFF) shl 16) or ((v ushr 16) and 0xFF)
     }
-    return RawImage(imageBitmapOf(pixels, width, height), oriented = true)
+    return imageBitmapOf(pixels, width, height)
 }

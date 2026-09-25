@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRail
 import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.material3.WideNavigationRailValue
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -57,6 +58,8 @@ import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.currentPlatform
 import com.vasmarfas.card.core.initAnalytics
+import com.vasmarfas.card.core.pullToReload
+import com.vasmarfas.card.core.reloadPage
 import com.vasmarfas.card.core.setWindowTitle
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.AppSettings
@@ -71,6 +74,7 @@ import com.vasmarfas.card.ui.components.ChromeState
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LocalChrome
 import com.vasmarfas.card.ui.components.LocalLayoutSize
+import com.vasmarfas.card.ui.components.LocalOpenTool
 import com.vasmarfas.card.ui.components.layoutSizeFor
 import com.vasmarfas.card.ui.navigation.HomeRoute
 import com.vasmarfas.card.ui.navigation.MyToolsRoute
@@ -246,7 +250,19 @@ private fun AppShell(
                         }
                     },
                 ) { padding ->
-                    AppNavHost(navController, navigateTop, linkRoute, onLinkHandled, onNavHostReady, onRunOnboarding, Modifier.padding(padding))
+                    var reloading by remember { mutableStateOf(false) }
+                    PullToRefreshBox(
+                        isRefreshing = reloading,
+                        onRefresh = {
+                            reloading = true
+                            reloadPage()
+                        },
+                        modifier = Modifier.padding(padding).fillMaxSize(),
+//                        enabled = pullToReload,
+                        enabled = false,
+                    ) {
+                        AppNavHost(navController, navigateTop, linkRoute, onLinkHandled, onNavHostReady, onRunOnboarding, Modifier.fillMaxSize())
+                    }
                 }
             }
         }
@@ -284,47 +300,53 @@ private fun AppNavHost(
     modifier: Modifier = Modifier,
 ) {
     val openTool: (String) -> Unit = { id -> navController.navigate(ToolRoute(id)) }
+    val switchTool: (String) -> Unit = { id ->
+        val behind = navController.previousBackStackEntry?.takeIf { it.destination.hasRoute(ToolRoute::class) }?.toRoute<ToolRoute>()
+        if (behind?.id == id) navController.popBackStack() else openTool(id)
+    }
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
-        NavHost(
-            navController = navController,
-            startDestination = TopDestination.start.route,
-            enterTransition = { fadeThroughIn() },
-            exitTransition = { fadeOut(tween(NavFadeOut)) },
-            popEnterTransition = { fadeThroughIn() },
-            popExitTransition = { fadeOut(tween(NavFadeOut)) },
-        ) {
-            composable<MyToolsRoute> {
-                MyToolsScreen(
-                    onOpenTool = openTool,
-                    onOpenCatalog = { onNavigateTop(TopDestination.TOOLS) },
-                    onRunOnboarding = onRunOnboarding,
-                )
+        CompositionLocalProvider(LocalOpenTool provides switchTool) {
+            NavHost(
+                navController = navController,
+                startDestination = TopDestination.start.route,
+                enterTransition = { fadeThroughIn() },
+                exitTransition = { fadeOut(tween(NavFadeOut)) },
+                popEnterTransition = { fadeThroughIn() },
+                popExitTransition = { fadeOut(tween(NavFadeOut)) },
+            ) {
+                composable<MyToolsRoute> {
+                    MyToolsScreen(
+                        onOpenTool = openTool,
+                        onOpenCatalog = { onNavigateTop(TopDestination.TOOLS) },
+                        onRunOnboarding = onRunOnboarding,
+                    )
+                }
+                composable<HomeRoute> {
+                    HomeScreen(
+                        onOpenProjects = { onNavigateTop(TopDestination.PROJECTS) },
+                        onOpenResume = { onNavigateTop(TopDestination.RESUME) },
+                        onOpenSettings = { onNavigateTop(TopDestination.SETTINGS) },
+                    )
+                }
+                composable<ProjectsRoute> { ProjectsScreen() }
+                composable<ResumeRoute> { ResumeScreen() }
+                composable<ToolsRoute> { ToolsScreen(onOpenTool = openTool) }
+                // A tool rises out of the card that opened it and sinks back on the way out.
+                composable<ToolRoute>(
+                    enterTransition = {
+                        fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
+                            slideInVertically(tween(NavFadeIn, delayMillis = NavFadeOut)) { it / 24 }
+                    },
+                    popExitTransition = { fadeOut(tween(NavFadeOut)) + slideOutVertically(tween(NavFadeOut)) { it / 24 } },
+                ) { entry ->
+                    val route = entry.toRoute<ToolRoute>()
+                    ToolScreen(
+                        toolId = route.id,
+                        onBack = { if (!navController.popBackStack()) onNavigateTop(TopDestination.TOOLS) },
+                    )
+                }
+                composable<SettingsRoute> { SettingsScreen(onRunOnboarding = { onRunOnboarding("settings") }) }
             }
-            composable<HomeRoute> {
-                HomeScreen(
-                    onOpenProjects = { onNavigateTop(TopDestination.PROJECTS) },
-                    onOpenResume = { onNavigateTop(TopDestination.RESUME) },
-                    onOpenSettings = { onNavigateTop(TopDestination.SETTINGS) },
-                )
-            }
-            composable<ProjectsRoute> { ProjectsScreen() }
-            composable<ResumeRoute> { ResumeScreen() }
-            composable<ToolsRoute> { ToolsScreen(onOpenTool = openTool) }
-            // A tool rises out of the card that opened it and sinks back on the way out.
-            composable<ToolRoute>(
-                enterTransition = {
-                    fadeIn(tween(NavFadeIn, delayMillis = NavFadeOut)) +
-                        slideInVertically(tween(NavFadeIn, delayMillis = NavFadeOut)) { it / 24 }
-                },
-                popExitTransition = { fadeOut(tween(NavFadeOut)) + slideOutVertically(tween(NavFadeOut)) { it / 24 } },
-            ) { entry ->
-                val route = entry.toRoute<ToolRoute>()
-                ToolScreen(
-                    toolId = route.id,
-                    onBack = { if (!navController.popBackStack()) onNavigateTop(TopDestination.TOOLS) },
-                )
-            }
-            composable<SettingsRoute> { SettingsScreen(onRunOnboarding = { onRunOnboarding("settings") }) }
         }
         LaunchedEffect(navController) { onNavHostReady(navController) }
         LaunchedEffect(navController, linkRoute) {

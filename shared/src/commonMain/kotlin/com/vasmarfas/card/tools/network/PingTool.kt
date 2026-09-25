@@ -19,11 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.Net
 import com.vasmarfas.card.core.NetCapabilities
 import com.vasmarfas.card.core.PingReply
 import com.vasmarfas.card.core.currentEpochMillis
 import com.vasmarfas.card.core.fmt
+import com.vasmarfas.card.core.httpPing
 import com.vasmarfas.card.core.icmpPing
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.core.tcpConnect
@@ -39,8 +39,6 @@ import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolInputField
-import io.ktor.client.plugins.timeout
-import io.ktor.client.request.head
 import kotlin.math.sqrt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -96,8 +94,7 @@ private fun PingScreen() {
                     PingMode.TCP -> tcpConnect(target, p, 3000).let { ms -> if (ms == null) PingReply(seq, null, null, null, null) else PingReply(seq, ms.toDouble(), null, "$target:$p") }
                     PingMode.HTTP -> runCatching {
                         val url = if (host.contains("://")) host.trim() else "https://$target"
-                        Net.client.head(url) { timeout { requestTimeoutMillis = 5000 } }
-                        PingReply(seq, (currentEpochMillis() - started).toDouble(), null, url)
+                        PingReply(seq, httpPing(url, 5000).toDouble(), null, url)
                     }.getOrElse { PingReply(seq, null, null, null, it.message ?: "error") }
                 }
                 replies += reply

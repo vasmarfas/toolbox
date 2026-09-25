@@ -10,6 +10,8 @@ expect class PdfRaster {
 
     suspend fun render(page: Int, width: Int): ImageBitmap
 
+    suspend fun render(page: Int, pageWidth: Int, x: Int, y: Int, w: Int, h: Int): ImageBitmap
+
     // safe mid-render, the renderer goes away after the page being drawn
     fun close()
 

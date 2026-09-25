@@ -1,5 +1,6 @@
 package com.vasmarfas.card.tools.network
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -21,27 +23,32 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.data.LocalSettings
 import com.vasmarfas.card.resources.*
+import com.vasmarfas.card.ui.components.monoFamily
 
 private const val WIDE_COLUMN_UNIT = 110
 
 @Composable
-fun TableRow(cells: List<String>, header: Boolean = false, weights: List<Float>? = null, mono: Boolean = true) {
+fun TableRow(cells: List<String>, header: Boolean = false, weights: List<Float>? = null, mono: Boolean = true, highlight: Boolean = false) {
     val wide = LocalSettings.current.wideTables
     val style = when {
         header -> MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-        mono -> MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+        mono -> MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily())
         else -> MaterialTheme.typography.bodySmall
     }
-    val color = if (header) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+    val color = when {
+        highlight -> MaterialTheme.colorScheme.onPrimaryContainer
+        header -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val tint = if (highlight) Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(6.dp)) else Modifier
     Row(
-        modifier = if (wide) Modifier.padding(vertical = 4.dp) else Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = (if (wide) Modifier else Modifier.fillMaxWidth()).then(tint).padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         cells.forEachIndexed { index, cell ->
@@ -66,10 +73,10 @@ fun TableBlock(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
 }
 
 @Composable
-fun SimpleTable(header: List<String>, rows: List<List<String>>, weights: List<Float>? = null, mono: Boolean = true) {
+fun SimpleTable(header: List<String>, rows: List<List<String>>, weights: List<Float>? = null, mono: Boolean = true, highlight: Int? = null) {
     val wide = LocalSettings.current.wideTables
     val headerStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-    val cellStyle = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodySmall
+    val cellStyle = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily()) else MaterialTheme.typography.bodySmall
     val measurer = rememberTextMeasurer()
     BoxWithConstraints {
         val available = constraints.maxWidth - with(LocalDensity.current) { 8.dp.roundToPx() } * (header.size - 1)
@@ -87,21 +94,22 @@ fun SimpleTable(header: List<String>, rows: List<List<String>>, weights: List<Fl
             TableBlock {
                 TableRow(header, header = true, weights = weights)
                 HorizontalDivider()
-                rows.forEach { TableRow(it, weights = weights, mono = mono) }
+                rows.forEachIndexed { index, row -> TableRow(row, weights = weights, mono = mono, highlight = index == highlight) }
             }
         } else {
-            StackedRows(header, rows, cellStyle)
+            StackedRows(header, rows, cellStyle, highlight)
         }
     }
 }
 
 @Composable
-private fun StackedRows(header: List<String>, rows: List<List<String>>, style: TextStyle) {
+private fun StackedRows(header: List<String>, rows: List<List<String>>, style: TextStyle, highlight: Int?) {
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         rows.forEachIndexed { index, row ->
             if (index > 0) HorizontalDivider()
-            SelectionContainer {
+            val tint = if (index == highlight) Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(6.dp)).padding(4.dp) else Modifier
+            SelectionContainer(tint) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(row.first(), style = style.copy(fontWeight = FontWeight.Bold))
                     row.drop(1).forEachIndexed { i, cell ->

@@ -34,16 +34,20 @@ object ToolRegistry {
 
     private val byId: Map<String, Tool> by lazy { all.associateBy { it.id } }
 
-    // in the order the Popular shelf shows them
+    // in the order the Popular shelf shows them: everyday jobs a phone does not come with, so no calculator,
+    // timer, stopwatch, compass or torch
     val popular: List<Tool> by lazy {
         listOf(
-            "calculator", "percentage", "unit-converter", "currency-converter", "ruler", "bubble-level", "compass",
-            "countdown-timer", "stopwatch", "qr-generator", "photo-editor", "image-compressor", "image-converter",
-            "video-editor", "video-converter", "images-to-pdf", "merge-pdf", "document-converter", "password-generator", "speed-test",
+            "pdf-editor", "image-compressor", "currency-converter", "percentage", "qr-generator", "speed-test",
+            "document-converter", "video-converter", "unit-converter", "images-to-pdf", "loan-calculator", "image-converter",
+            "text-counter", "merge-pdf", "number-to-words", "bmi-body", "date-calculator", "password-generator",
+            "noise-generator", "photo-editor", "video-editor", "audio-editor", "decision-wheel",
         ).map { id -> checkNotNull(byId(id)) { "Unknown popular tool $id" } }
     }
 
-    fun byId(id: String): Tool? = byId[id]
+    private val merged = mapOf("regex-builder" to "regex-tester", "color-palette" to "color-converter")
+
+    fun byId(id: String): Tool? = byId[id] ?: merged[id]?.let { byId[it] }
 
     fun byCategory(category: ToolCategory): List<Tool> = all.filter { it.category == category }
 }

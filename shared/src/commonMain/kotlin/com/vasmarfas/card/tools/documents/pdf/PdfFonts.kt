@@ -9,6 +9,9 @@ internal abstract class PdfFont {
     var code = 0L
         protected set
 
+    var style = FontStyle(bold = false, italic = false, serif = false, mono = false)
+        internal set
+
     abstract fun read(bytes: ByteArray, pos: Int): Int
 
     abstract fun text(code: Long, length: Int): String?
@@ -136,8 +139,24 @@ internal object PdfFonts {
         val dict = doc.resolve(entry) as? PdfDict ?: return null
         doc.fontCache[dict]?.let { return it }
         val font = if (dict.name("Subtype", doc) == "Type0") composite(doc, dict) else simple(doc, dict)
+        font.style = style(doc, dict)
         doc.fontCache[dict] = font
         return font
+    }
+
+    private fun style(doc: PdfDocument, dict: PdfDict): FontStyle {
+        val descendant = if (dict.name("Subtype", doc) == "Type0") dict.array("DescendantFonts", doc)?.resolved(0, doc) as? PdfDict else null
+        val descriptor = (descendant ?: dict).dict("FontDescriptor", doc)
+        val name = dict.name("BaseFont", doc)?.lowercase().orEmpty()
+        val flags = descriptor?.int("Flags", doc) ?: 0
+        val weight = descriptor?.number("FontWeight", doc) ?: 0.0
+        val mono = flags and 1 != 0 || "courier" in name || "mono" in name || "consol" in name
+        return FontStyle(
+            bold = weight >= 600 || flags and (1 shl 18) != 0 || listOf("bold", "black", "heavy", "semibold", "demi").any { it in name },
+            italic = flags and (1 shl 6) != 0 || "italic" in name || "oblique" in name,
+            serif = !mono && (flags and 2 != 0 || listOf("times", "georgia", "garamond", "cambria", "roman").any { it in name } || ("serif" in name && "sans" !in name)),
+            mono = mono,
+        )
     }
 
     private fun toUnicode(doc: PdfDocument, dict: PdfDict): CMap? {

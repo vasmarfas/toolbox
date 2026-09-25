@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,10 +21,13 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
+import com.vasmarfas.card.ui.components.ToolSection
+import org.jetbrains.compose.resources.StringResource
 
 val waterAndMacrosTool = Tool(
     id = "water-and-macros",
@@ -36,6 +37,21 @@ val waterAndMacrosTool = Tool(
     icon = Icons.Filled.Restaurant,
     keywords = listOf("macros", "protein", "carbs", "fat", "cutting", "bulking", "meals", "макросы", "белок", "углеводы", "жиры", "сушка", "набор"),
 ) { WaterAndMacrosScreen() }
+
+private class PerKg(val title: StringResource, val grams: String)
+
+private val proteinLevels = listOf(
+    PerKg(Res.string.protein_level_sedentary, "1"),
+    PerKg(Res.string.protein_level_training, "1.6"),
+    PerKg(Res.string.protein_level_muscle, "1.8"),
+    PerKg(Res.string.protein_level_cutting, "2"),
+)
+
+private val fatLevels = listOf(
+    PerKg(Res.string.fat_level_minimum, "0.6"),
+    PerKg(Res.string.fat_level_usual, "0.9"),
+    PerKg(Res.string.fat_level_high, "1.2"),
+)
 
 @Composable
 private fun WaterAndMacrosScreen() {
@@ -80,6 +96,24 @@ private fun WaterAndMacrosScreen() {
             modifier = Modifier.weight(1f),
             suffix = Res.string.unit_kg.str(),
             isError = weightText.toDoubleLenient().let { it == null || it <= 0 },
+        )
+    }
+    ToolSection(Res.string.protein_per_kg.str()) {
+        Hint(Res.string.protein_hint.str())
+        ChoiceChips(
+            options = proteinLevels,
+            selected = proteinLevels.firstOrNull { it.grams.toDoubleLenient() == proteinText.toDoubleLenient() },
+            onSelect = { proteinText = it.grams },
+            label = { "${it.title.str()} · ${it.grams.toDoubleLenient()?.fmt(1)} ${Res.string.unit_g.str()}" },
+        )
+    }
+    ToolSection(Res.string.fat_per_kg.str()) {
+        Hint(Res.string.fat_hint.str())
+        ChoiceChips(
+            options = fatLevels,
+            selected = fatLevels.firstOrNull { it.grams.toDoubleLenient() == fatText.toDoubleLenient() },
+            onSelect = { fatText = it.grams },
+            label = { "${it.title.str()} · ${it.grams.toDoubleLenient()?.fmt(1)} ${Res.string.unit_g.str()}" },
         )
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -169,9 +203,5 @@ private fun WaterAndMacrosScreen() {
             weights = listOf(0.5f, 1f, 1f, 1f, 1.2f),
         )
     }
-    Text(
-        text = Res.string.macros_water_is_not_part.str(),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    Hint(Res.string.macros_water_is_not_part.str())
 }

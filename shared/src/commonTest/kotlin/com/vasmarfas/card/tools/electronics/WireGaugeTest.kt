@@ -22,4 +22,11 @@ class WireGaugeTest {
         assertEquals(32.0, awg14.chassisAmps, 1e-9)
         assertEquals(8.28, awg14.ohmsPerKm, 0.05)
     }
+
+    @Test
+    fun metricSections() {
+        assertEquals(1.784, WireGauge.diameterFromArea(2.5), 0.001)
+        assertEquals("13", WireGauge.nearest(WireGauge.awgFromArea(2.5)).label)
+        assertEquals(6.9, WireGauge.ohmsPerKm(2.5), 0.01)
+    }
 }

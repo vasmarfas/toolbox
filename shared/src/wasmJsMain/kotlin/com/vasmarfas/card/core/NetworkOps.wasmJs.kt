@@ -1,5 +1,8 @@
 package com.vasmarfas.card.core
 
+import kotlinx.coroutines.await
+import kotlin.js.Promise
+
 actual fun platformNetCapabilities() = PlatformNetCapabilities(
     icmpPing = false,
     tcp = false,
@@ -12,6 +15,15 @@ actual suspend fun icmpPing(host: String, sequence: Int, timeoutMs: Int, ttl: In
     PingReply(sequence, null, null, null, "unsupported")
 
 actual suspend fun tcpConnect(host: String, port: Int, timeoutMs: Int): Long? = null
+
+private fun jsOpaqueHead(url: String, timeoutMs: Int): Promise<JsAny?> =
+    js("fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(timeoutMs) })")
+
+actual suspend fun httpPing(url: String, timeoutMs: Int): Long {
+    val started = currentEpochMillis()
+    jsOpaqueHead(url, timeoutMs).await<JsAny?>()
+    return currentEpochMillis() - started
+}
 
 actual suspend fun resolveHost(host: String): List<String> = emptyList()
 

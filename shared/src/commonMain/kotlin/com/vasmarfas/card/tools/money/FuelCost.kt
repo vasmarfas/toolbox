@@ -38,13 +38,13 @@ object FuelCost {
         consumptionUnit: ConsumptionUnit,
         price: Double,
         priceUnit: PriceUnit,
-        passengers: Int,
+        payers: Int,
         roundTrip: Boolean,
     ): FuelResult {
         val km = distance * distanceUnit.km * (if (roundTrip) 2 else 1)
         val litres = km / 100 * litresPer100km(consumption, consumptionUnit)
         val cost = litres * price / priceUnit.litres
         val costPer100km = if (km == 0.0) 0.0 else cost / km * 100
-        return FuelResult(km, litres, cost, cost / passengers.coerceAtLeast(1), costPer100km)
+        return FuelResult(km, litres, cost, cost / payers.coerceAtLeast(1), costPer100km)
     }
 }

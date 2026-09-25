@@ -204,6 +204,25 @@ class MorseTest {
         assertTrue(steps[0].tone)
         assertEquals(Morse.UNIT_MS * 3, steps[2].ms)
     }
+
+    @Test
+    fun scheduleKnowsWhichLetterSounds() {
+        val steps = Morse.schedule("... --- / ...")
+        assertEquals(listOf(0, 1, 2), steps.filter { it.tone }.map { it.letter }.distinct())
+        assertEquals(listOf("...", "---", "..."), Morse.codes("... --- / ..."))
+        assertEquals('e', Morse.letters(MorseAlphabet.LATIN)["."])
+        assertEquals('э', Morse.letters(MorseAlphabet.CYRILLIC)["..-.."])
+        assertEquals(listOf(0, 1, 2), Morse.schedule("...").filter { it.tone }.map { it.symbol })
+    }
+
+    @Test
+    fun everyChartCodeHasItsOwnCell() {
+        for (alphabet in MorseAlphabet.entries) {
+            val codes = Morse.letters(alphabet).keys.flatMap { code -> (1..code.length).map { code.take(it) } }.toSet()
+            val cells = codes.map { it.first() to chartCell(it) }
+            assertEquals(cells.size, cells.toSet().size)
+        }
+    }
 }
 
 class CiphersTest {

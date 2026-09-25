@@ -1,10 +1,41 @@
 package com.vasmarfas.card.tools.design
 
+class WifiConfig(val ssid: String, val password: String, val security: String, val hidden: Boolean)
+
 object QrPayload {
     fun escape(value: String): String = value.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace(":", "\\:").replace("\"", "\\\"")
 
     fun wifi(ssid: String, password: String, security: String, hidden: Boolean): String =
         "WIFI:T:$security;S:${escape(ssid)};P:${escape(password)};H:$hidden;;"
+
+    fun parseWifi(text: String): WifiConfig? {
+        if (!text.startsWith("WIFI:", ignoreCase = true)) return null
+        val fields = mutableMapOf<String, String>()
+        val key = StringBuilder()
+        val value = StringBuilder()
+        var inValue = false
+        var escaped = false
+        for (c in text.substring(5)) {
+            val target = if (inValue) value else key
+            when {
+                escaped -> {
+                    target.append(c)
+                    escaped = false
+                }
+                c == '\\' -> escaped = true
+                !inValue && c == ':' -> inValue = true
+                inValue && c == ';' -> {
+                    fields[key.toString().uppercase()] = value.toString()
+                    key.clear()
+                    value.clear()
+                    inValue = false
+                }
+                else -> target.append(c)
+            }
+        }
+        val ssid = fields["S"] ?: return null
+        return WifiConfig(ssid, fields["P"].orEmpty(), fields["T"].orEmpty().ifEmpty { "nopass" }, fields["H"].equals("true", ignoreCase = true))
+    }
 
     fun vcard(name: String, org: String, phone: String, email: String, url: String): String = buildString {
         append("BEGIN:VCARD\nVERSION:3.0\n")

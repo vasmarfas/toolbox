@@ -36,8 +36,10 @@ object WireGauge {
     val table: List<WireRow> = (-3..40).map { awg ->
         val (chassis, transmission) = ampacity.getValue(awg)
         val area = areaMm2(awg)
-        WireRow(awg, label(awg), diameterMm(awg), area, chassis, transmission, COPPER_RESISTIVITY / area)
+        WireRow(awg, label(awg), diameterMm(awg), area, chassis, transmission, ohmsPerKm(area))
     }
+
+    val metric = listOf(0.35, 0.5, 0.75, 1.0, 1.5, 2.5, 4.0, 6.0, 10.0, 16.0, 25.0, 35.0, 50.0, 70.0, 95.0, 120.0)
 
     fun label(awg: Int): String = when (awg) {
         -3 -> "4/0"
@@ -53,7 +55,11 @@ object WireGauge {
 
     fun awgFromDiameter(mm: Double): Double = 36 - 39 * ln(mm / 0.127) / ln(92.0)
 
-    fun awgFromArea(mm2: Double): Double = awgFromDiameter(sqrt(4 * mm2 / PI))
+    fun diameterFromArea(mm2: Double): Double = sqrt(4 * mm2 / PI)
+
+    fun awgFromArea(mm2: Double): Double = awgFromDiameter(diameterFromArea(mm2))
+
+    fun ohmsPerKm(mm2: Double): Double = COPPER_RESISTIVITY / mm2
 
     fun nearest(awg: Double): WireRow = table.minBy { abs(it.awg - awg) }
 }

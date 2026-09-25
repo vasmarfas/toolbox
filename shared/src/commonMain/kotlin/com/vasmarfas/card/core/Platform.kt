@@ -44,6 +44,10 @@ expect fun openUrl(url: String)
 
 expect fun setWindowTitle(title: String)
 
+expect val pullToReload: Boolean
+
+expect fun reloadPage()
+
 @Composable
 expect fun platformDynamicColorScheme(dark: Boolean): ColorScheme?
 

@@ -134,7 +134,7 @@ fun ToolsScreen(onOpenTool: (String) -> Unit) {
     val browsing = query.isBlank() && shelf == null
     val filtered = remember(query, shelf, settings.myTools) {
         val q = query.trim()
-        (shelf?.tools(settings.myTools) ?: ToolRegistry.all)
+        (if (q.isNotEmpty()) ToolRegistry.all else shelf?.tools(settings.myTools) ?: ToolRegistry.all)
             .filter { it.matches(query) }
             .sortedBy { if (q.isNotEmpty() && it.title.matches(q)) 0 else 1 }
     }
@@ -200,8 +200,8 @@ fun ToolsScreen(onOpenTool: (String) -> Unit) {
                     ShelfTile(item, item.tools(settings.myTools), onClick = { select(item.key) })
                 }
             } else {
-                val groups = if (shelf == null || shelf is Shelf.Of) {
-                    filtered.groupBy { it.category }.map { (cat, tools) -> Shelf.Of(cat) to tools }
+                val groups = if (query.isNotBlank() || shelf == null || shelf is Shelf.Of) {
+                    filtered.groupBy { it.category }.map { (cat, tools) -> Shelf.Of(cat) to tools }.sortedBy { (group, _) -> if (group == shelf) 0 else 1 }
                 } else {
                     listOf(shelf to filtered).filter { it.second.isNotEmpty() }
                 }

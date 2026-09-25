@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -20,9 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Prefs
 import com.vasmarfas.card.core.currentEpochMillis
 import com.vasmarfas.card.core.playTone
 import com.vasmarfas.card.core.str
@@ -37,12 +38,16 @@ import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.expandedTextStyle
+import com.vasmarfas.card.ui.components.monoFamily
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 private enum class TimerMode { TIMER, POMODORO }
 
-private enum class PomodoroPhase { WORK, BREAK }
+private val timerPresets = listOf(1, 3, 5, 10, 15, 30, 60)
+
+// how long the end of a timer rings when nobody switches it off
+private const val RING_MS = 60_000L
 
 val countdownTimerTool = Tool(
     id = "countdown-timer",
@@ -57,60 +62,56 @@ val countdownTimerTool = Tool(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CountdownTimerScreen() {
-    var mode by rememberSaveable { mutableStateOf(TimerMode.TIMER) }
     var hText by rememberSaveable { mutableStateOf("0") }
     var mText by rememberSaveable { mutableStateOf("5") }
     var sText by rememberSaveable { mutableStateOf("0") }
     var workText by rememberSaveable { mutableStateOf("25") }
     var breakText by rememberSaveable { mutableStateOf("5") }
-    var running by rememberSaveable { mutableStateOf(false) }
-    var started by rememberSaveable { mutableStateOf(false) }
-    var endAt by rememberSaveable { mutableStateOf(0L) }
-    var remainingPaused by rememberSaveable { mutableStateOf(0L) }
-    var totalMs by rememberSaveable { mutableStateOf(0L) }
-    var phase by rememberSaveable { mutableStateOf(PomodoroPhase.WORK) }
-    var cycles by rememberSaveable { mutableStateOf(0) }
-    var alarmSeq by remember { mutableStateOf(0) }
+    var longText by rememberSaveable { mutableStateOf("15") }
+    var state by remember { mutableStateOf(TimerState.decode(Prefs.store.get(TimerState.PREF_KEY)) ?: TimerState()) }
+    var mode by rememberSaveable { mutableStateOf(if (state.pomodoro) TimerMode.POMODORO else TimerMode.TIMER) }
+    var ringing by remember { mutableStateOf(false) }
+    var finished by remember { mutableStateOf(false) }
+    var chime by remember { mutableStateOf(0) }
     var now by remember { mutableStateOf(currentEpochMillis()) }
+    fun update(next: TimerState) {
+        state = next
+        Prefs.store.put(TimerState.PREF_KEY, next.encode())
+    }
 
     val h = hText.trim().toIntOrNull()
     val m = mText.trim().toIntOrNull()
     val s = sText.trim().toIntOrNull()
-    val work = workText.trim().toIntOrNull()
-    val brk = breakText.trim().toIntOrNull()
     val timerMs = if (h != null && m != null && s != null && h >= 0 && m >= 0 && s >= 0) (h * 3600L + m * 60L + s) * 1000L else -1L
-    val workMs = if (work != null && work > 0) work * 60_000L else -1L
-    val breakMs = if (brk != null && brk > 0) brk * 60_000L else -1L
-    val configured = when (mode) {
-        TimerMode.TIMER -> timerMs
-        TimerMode.POMODORO -> if (phase == PomodoroPhase.WORK) workMs else breakMs
-    }
-    val valid = when (mode) {
-        TimerMode.TIMER -> timerMs > 0
-        TimerMode.POMODORO -> workMs > 0 && breakMs > 0
-    }
+    val workMs = workText.trim().toIntOrNull()?.takeIf { it > 0 }?.let { it * 60_000L } ?: -1L
+    val breakMs = breakText.trim().toIntOrNull()?.takeIf { it > 0 }?.let { it * 60_000L } ?: -1L
+    val longMs = longText.trim().toIntOrNull()?.takeIf { it >= 0 }?.let { it * 60_000L } ?: -1L
+    fun breakAfter(cycles: Int) = if (TimerState.isLongBreak(work = false, cycles = cycles, longBreakMs = longMs)) longMs else breakMs
+    val pomodoro = mode == TimerMode.POMODORO
+    val configured = if (pomodoro) workMs else timerMs
+    val valid = if (pomodoro) workMs > 0 && breakMs > 0 && longMs >= 0 else timerMs > 0
 
-    LaunchedEffect(running) {
-        while (running) {
-            delay(30)
+    LaunchedEffect(state.running) {
+        while (state.running) {
             now = currentEpochMillis()
-            if (now >= endAt) {
-                alarmSeq++
-                if (mode == TimerMode.POMODORO) {
-                    if (phase == PomodoroPhase.WORK) cycles++
-                    phase = if (phase == PomodoroPhase.WORK) PomodoroPhase.BREAK else PomodoroPhase.WORK
-                    val next = if (phase == PomodoroPhase.WORK) workMs else breakMs
-                    totalMs = next
-                    endAt = now + next
+            if (now >= state.endAt) {
+                if (state.pomodoro) {
+                    val cycles = if (state.work) state.cycles + 1 else state.cycles
+                    val next = if (state.work) breakAfter(cycles) else workMs
+                    update(state.copy(work = !state.work, cycles = cycles, total = next, endAt = now + next))
+                    chime++
                 } else {
-                    running = false
-                    started = false
+                    // a timer that ran out while the tool was closed long ago is only shown, not rung
+                    ringing = now - state.endAt < RING_MS
+                    finished = true
+                    update(TimerState())
                 }
             }
+            delay(30)
         }
     }
-    LaunchedEffect(alarmSeq) {
-        if (alarmSeq > 0) {
+    LaunchedEffect(chime) {
+        if (chime > 0) {
             vibrate(300)
             repeat(3) {
                 playTone(880.0, 400)
@@ -118,58 +119,66 @@ private fun CountdownTimerScreen() {
             }
         }
     }
-
-    val remaining = when {
-        running -> maxOf(0L, endAt - now)
-        started -> remainingPaused
-        else -> maxOf(0L, configured)
+    LaunchedEffect(ringing) {
+        var rang = 0L
+        while (ringing && rang < RING_MS) {
+            vibrate(300)
+            playTone(880.0, 400)
+            delay(600.milliseconds)
+            playTone(880.0, 400)
+            delay(1400.milliseconds)
+            rang += 2000
+        }
+        ringing = false
     }
-    val total = if (started || running) totalMs else configured
+
+    val remaining = if (state.started) state.left(now) else maxOf(0L, configured)
+    val total = if (state.started) state.total else configured
     val fraction = if (total > 0) (1f - remaining.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 0f
 
-    SegmentedChoice(
-        options = TimerMode.entries,
-        selected = mode,
-        onSelect = {
-            if (!started && !running) {
-                mode = it
-                phase = PomodoroPhase.WORK
-                cycles = 0
-            }
-        },
-        label = { if (it == TimerMode.TIMER) Res.string.timer.str() else "Pomodoro" },
-    )
-    if (mode == TimerMode.TIMER) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            NumberField(hText, { hText = it; started = false }, Res.string.hours_field.str(), Modifier.weight(1f), isError = h == null)
-            NumberField(mText, { mText = it; started = false }, Res.string.minutes_field.str(), Modifier.weight(1f), isError = m == null)
-            NumberField(sText, { sText = it; started = false }, Res.string.seconds_field.str(), Modifier.weight(1f), isError = s == null)
-        }
-        ChoiceChips(
-            options = listOf(1, 5, 10, 25),
-            selected = null,
-            onSelect = {
-                hText = "0"
-                mText = it.toString()
-                sText = "0"
-                started = false
-                running = false
-            },
-            label = { "$it ${Res.string.unit_min.str()}" },
+    if (!state.started) {
+        SegmentedChoice(
+            options = TimerMode.entries,
+            selected = mode,
+            onSelect = { mode = it },
+            label = { if (it == TimerMode.TIMER) Res.string.timer.str() else "Pomodoro" },
         )
-    } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            NumberField(workText, { workText = it; started = false }, Res.string.work_min.str(), Modifier.weight(1f), isError = workMs <= 0)
-            NumberField(breakText, { breakText = it; started = false }, Res.string.break_min.str(), Modifier.weight(1f), isError = breakMs <= 0)
+        if (mode == TimerMode.TIMER) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                NumberField(hText, { hText = it }, Res.string.hours_field.str(), Modifier.weight(1f), isError = h == null)
+                NumberField(mText, { mText = it }, Res.string.minutes_field.str(), Modifier.weight(1f), isError = m == null)
+                NumberField(sText, { sText = it }, Res.string.seconds_field.str(), Modifier.weight(1f), isError = s == null)
+            }
+            ChoiceChips(
+                options = timerPresets,
+                selected = if (h == 0 && s == 0) m else null,
+                onSelect = {
+                    hText = "0"
+                    mText = it.toString()
+                    sText = "0"
+                },
+                label = { "$it ${Res.string.unit_min.str()}" },
+            )
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                NumberField(workText, { workText = it }, Res.string.work_min.str(), Modifier.weight(1f), isError = workMs <= 0)
+                NumberField(breakText, { breakText = it }, Res.string.break_min.str(), Modifier.weight(1f), isError = breakMs <= 0)
+                NumberField(longText, { longText = it }, Res.string.long_break_min.str(), Modifier.weight(1f), isError = longMs < 0)
+            }
+            Text(Res.string.long_break_hint.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        if (!valid) ErrorText(Res.string.timer_enter_a_duration_greater.str())
     }
-    if (!valid) ErrorText(Res.string.timer_enter_a_duration_greater.str())
 
     ResultCard {
-        if (mode == TimerMode.POMODORO) {
+        if (state.pomodoro) {
+            val phase = when {
+                state.work -> Res.string.work
+                TimerState.isLongBreak(state.work, state.cycles, longMs) -> Res.string.long_break
+                else -> Res.string.break_
+            }
             Text(
-                text = (if (phase == PomodoroPhase.WORK) Res.string.work else Res.string.break_).str() +
-                    " · " + Res.string.cycles.str() + ": " + cycles,
+                text = phase.str() + " · " + Res.string.cycles.str() + ": " + state.cycles,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
@@ -177,12 +186,12 @@ private fun CountdownTimerScreen() {
         }
         Text(
             text = formatCountdown(remaining),
-            style = expandedTextStyle(MaterialTheme.typography.displayLarge.copy(fontFamily = FontFamily.Monospace)),
+            style = expandedTextStyle(MaterialTheme.typography.displayLarge.copy(fontFamily = monoFamily())),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
         LinearWavyProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
-        if (alarmSeq > 0 && !running && !started) {
+        if (finished && !state.started) {
             Text(
                 text = Res.string.time_is_up.str(),
                 style = MaterialTheme.typography.titleMedium,
@@ -192,46 +201,58 @@ private fun CountdownTimerScreen() {
             )
         }
     }
+    if (ringing) {
+        ActionButton(
+            text = Res.string.stop_alarm.str(),
+            onClick = { ringing = false },
+            icon = Icons.Filled.NotificationsOff,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        if (running) {
+        if (state.running) {
             ActionButton(
                 text = Res.string.pause.str(),
-                onClick = {
-                    remainingPaused = maxOf(0L, endAt - currentEpochMillis())
-                    running = false
-                },
+                onClick = { update(state.copy(running = false, remaining = state.left(currentEpochMillis()))) },
                 icon = Icons.Filled.Pause,
                 modifier = Modifier.weight(1f),
             )
         } else {
             ActionButton(
-                text = (if (started) Res.string.resume else Res.string.start).str(),
+                text = (if (state.started) Res.string.resume else Res.string.start).str(),
                 onClick = {
-                    val nowMs = currentEpochMillis()
-                    if (!started) {
-                        totalMs = configured
-                        remainingPaused = configured
-                        started = true
-                    }
-                    now = nowMs
-                    endAt = nowMs + remainingPaused
-                    running = true
+                    val t = currentEpochMillis()
+                    now = t
+                    ringing = false
+                    finished = false
+                    update(
+                        if (state.started) {
+                            state.copy(running = true, endAt = t + state.remaining)
+                        } else {
+                            TimerState(pomodoro = pomodoro, running = true, started = true, endAt = t + configured, total = configured)
+                        },
+                    )
                 },
-                enabled = valid,
+                enabled = state.started || valid,
                 icon = Icons.Filled.PlayArrow,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (state.started && !state.pomodoro) {
+            ActionButton(
+                text = Res.string.plus_minute.str(),
+                onClick = { update(state.plus(60_000)) },
                 modifier = Modifier.weight(1f),
             )
         }
         ActionButton(
             text = Res.string.reset.str(),
             onClick = {
-                running = false
-                started = false
-                phase = PomodoroPhase.WORK
-                cycles = 0
-                alarmSeq = 0
+                update(TimerState())
+                ringing = false
+                finished = false
             },
-            enabled = started || running || cycles > 0,
+            enabled = state.started || finished,
             icon = Icons.Filled.Refresh,
             modifier = Modifier.weight(1f),
         )

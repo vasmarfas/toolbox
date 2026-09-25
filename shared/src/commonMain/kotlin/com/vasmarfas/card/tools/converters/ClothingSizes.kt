@@ -7,12 +7,6 @@ class SizeTable(val title: StringResource, val columns: List<String>, val rows: 
     fun values(column: Int): List<String> = rows.map { it[column] }.distinct()
 
     fun lookup(column: Int, value: String): List<List<String>> = rows.filter { it[column] == value }
-
-    fun lines(header: List<String> = columns): List<String> {
-        val widths = columns.indices.map { c -> (rows.map { it[c].length } + header[c].length).max() + 2 }
-        return listOf(header.mapIndexed { c, name -> name.padEnd(widths[c]) }.joinToString("")) +
-            rows.map { row -> row.mapIndexed { c, cell -> cell.padEnd(widths[c]) }.joinToString("") }
-    }
 }
 
 object ClothingSizes {

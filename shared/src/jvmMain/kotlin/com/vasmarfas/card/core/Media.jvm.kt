@@ -20,8 +20,9 @@ import kotlin.math.roundToInt
 private const val PEAK_RATE = 8_000
 
 actual object MediaEngine {
-    internal val ffmpegPath: String by lazy { Loader.load(ffmpeg::class.java) }
-    private val ffprobePath: String by lazy { Loader.load(ffprobe::class.java) }
+    private val programs by lazy { runCatching { Loader.load(ffmpeg::class.java) to Loader.load(ffprobe::class.java) } }
+    internal val ffmpegPath: String get() = programs.getOrElse { throw loadFailure(it) }.first
+    private val ffprobePath: String get() = programs.getOrElse { throw loadFailure(it) }.second
 
     actual val formats: Set<MediaFormat> = MediaFormat.entries.toSet()
 
@@ -199,6 +200,17 @@ actual object MediaEngine {
         }
         return true
     }
+}
+
+private fun loadFailure(e: Throwable): Throwable {
+    if (e !is UnsatisfiedLinkError) return e
+    val library = Regex("""lib[\w.+-]+\.so[\d.]*(?=: cannot open)""").find(e.message.orEmpty())?.value ?: return MediaException(e.message ?: e.toString())
+    return MediaException(
+        Tr(
+            "FFmpeg cannot start without the system library $library. Install it with the package manager.",
+            "FFmpeg не запускается без системной библиотеки $library. Установите её через менеджер пакетов.",
+        )[appLang],
+    )
 }
 
 internal fun rgbaBitmap(rgba: ByteArray, width: Int, height: Int): ImageBitmap {

@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.AppConfig
 import com.vasmarfas.card.core.EncodedFormat
 import com.vasmarfas.card.core.encode
 import com.vasmarfas.card.core.saveBytes
@@ -87,8 +88,15 @@ val qrGeneratorTool = Tool(
 
 @Composable
 private fun QrGeneratorScreen() {
+    var scanning by rememberSaveable { mutableStateOf(false) }
+    CreateOrScan(scanning) { scanning = it }
+    if (scanning) CodeScanner() else QrCreator()
+}
+
+@Composable
+private fun QrCreator() {
     var preset by rememberSaveable { mutableStateOf(QrPreset.TEXT) }
-    var text by rememberSaveable { mutableStateOf("https://vasmarfas.dev") }
+    var text by rememberSaveable { mutableStateOf(AppConfig.site()) }
     var ssid by rememberSaveable { mutableStateOf("") }
     var wifiPassword by rememberSaveable { mutableStateOf("") }
     var wifiSecurity by rememberSaveable { mutableStateOf("WPA") }
@@ -126,8 +134,8 @@ private fun QrGeneratorScreen() {
     )
     when (preset) {
         QrPreset.TEXT -> ToolInputField(text, { text = it }, Res.string.text.str(), singleLine = false, minLines = 3)
-        QrPreset.URL -> ToolInputField(text, { text = it }, Res.string.link.str(), placeholder = "https://example.com")
-        QrPreset.TELEGRAM -> ToolInputField(text, { text = it }, Res.string.username.str(), placeholder = "@durov")
+        QrPreset.URL -> ToolInputField(text, { text = it }, Res.string.link.str(), placeholder = AppConfig.site())
+        QrPreset.TELEGRAM -> ToolInputField(text, { text = it }, Res.string.username.str(), placeholder = "@vasmarfas")
         QrPreset.PHONE -> ToolInputField(phone, { phone = it }, Res.string.phone_number.str(), placeholder = "+79781234567")
         QrPreset.WIFI -> ToolSection("Wi-Fi") {
             ToolInputField(ssid, { ssid = it }, "SSID")

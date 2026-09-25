@@ -21,6 +21,9 @@ val LocalChrome = staticCompositionLocalOf { ChromeState() }
 // lets shared widgets tell analytics which tool a copy or an error came from
 val LocalToolId = staticCompositionLocalOf<String?> { null }
 
+// one tool sends to another by id, a tool that is already right behind is gone back to instead of stacked again
+val LocalOpenTool = staticCompositionLocalOf<(String) -> Unit> { {} }
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun expandedHeight(normal: Dp, reserved: Dp): Dp {

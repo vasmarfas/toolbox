@@ -17,7 +17,6 @@ val developerTools: List<Tool> = listOf(
     cronParserTool,
     httpStatusCodesTool,
     stringEscapeTool,
-    regexBuilderTool,
     chmodCalculatorTool,
     semverTool,
     mimeTypesTool,

@@ -21,6 +21,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
@@ -68,6 +69,7 @@ private fun HeartRateZonesScreen() {
         label = Res.string.max_hr_formula.str(),
         text = { it.title.str() },
     )
+    Hint(Res.string.max_hr_formulas_hint.str())
     SwitchRow(
         Res.string.measured_max_hr.str(),
         useMeasured,
@@ -105,14 +107,15 @@ private fun HeartRateZonesScreen() {
         MaxHrFormula.entries.forEach {
             KeyValueRow(it.title.str(), "${HeartRate.maxHr(it, age).fmt(0)} ${Res.string.unit_bpm.str()}", mono = false, copyable = false)
         }
+        Hint(Res.string.heart_rate_reserve_hint.str())
     }
     ResultCard(Res.string.zones.str()) {
         SimpleTable(
             header = listOf(
                 Res.string.zone.str(),
                 "%",
-                "%HRmax",
-                Res.string.karvonen.str(),
+                Res.string.by_max_hr.str(),
+                Res.string.by_reserve.str(),
                 Res.string.trains.str(),
             ),
             rows = hrZones.map { zone ->

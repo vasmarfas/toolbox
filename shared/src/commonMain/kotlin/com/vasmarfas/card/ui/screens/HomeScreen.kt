@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
@@ -69,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vasmarfas.card.core.Analytics
 import com.vasmarfas.card.core.AnalyticsEvent
 import com.vasmarfas.card.core.AnalyticsParam
@@ -92,7 +92,6 @@ import com.vasmarfas.card.data.ThemeMode
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.LayoutSize
-import com.vasmarfas.card.ui.components.LinkChips
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.PromptChevron
@@ -134,8 +133,8 @@ fun HomeScreen(
                     FeaturedProjects(profile, onOpenProjects)
                     SupportLine(profile)
                     LatestArticles(profile, onOpenProjects)
-                    ResumeTeaser(onOpenResume)
                     ContactCard(profile, Res.string.contact_title.str(), Res.string.contact_body.str(), "contact")
+                    ResumeTeaser(onOpenResume)
                     AboutSection(profile)
                     Footer(profile)
                 }
@@ -212,35 +211,48 @@ private fun Hero(profile: Profile) {
                 }
             }
         }
-        HeroBlocks(profile, compact)
+        HeroBlocks(profile)
+    }
+}
+
+private val HeroTilesMinWidth = 760.dp
+
+// the width is taken here and not inside the cards: the row below asks them for intrinsic heights, which
+// a subcomposition cannot answer
+@Composable
+private fun HeroBlocks(profile: Profile) {
+    val contacts = profile.links.filter { it.active && it.type in ContactTypes }
+    val resources = profile.links.filter { it.active && it.type !in ContactTypes && it.type != "support" }
+    BoxWithConstraints {
+        if (maxWidth < HeroTilesMinWidth) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                HeroBlock(Res.string.contact_me.str(), Modifier.fillMaxWidth()) { contacts.forEach { LinkRow(it, "hero") } }
+                HeroBlock(Res.string.my_resources.str(), Modifier.fillMaxWidth()) { resources.forEach { LinkRow(it, "resources") } }
+            }
+        } else {
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                HeroBlock(Res.string.contact_me.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(contacts, 1, "hero") }
+                HeroBlock(Res.string.my_resources.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(resources, 2, "resources") }
+            }
+        }
     }
 }
 
 @Composable
-private fun HeroBlocks(profile: Profile, compact: Boolean) {
-    @Composable
-    fun Contacts(modifier: Modifier) = HeroBlock(Res.string.contact_me.str(), modifier) {
-        ContactRows(profile.links.filter { it.active && it.type in ContactTypes }, "hero")
-    }
-
-    @Composable
-    fun Resources(modifier: Modifier) = HeroBlock(Res.string.my_resources.str(), modifier) {
-        LinkChips(
-            profile.links.filter { it.active && it.type !in ContactTypes && it.type != "support" },
-            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            source = "resources",
-        )
-    }
-
-    if (compact) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Contacts(Modifier.fillMaxWidth())
-            Resources(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Contacts(Modifier.weight(1f).fillMaxHeight())
-            Resources(Modifier.weight(1f).fillMaxHeight())
+private fun LinkTiles(links: List<Link>, columns: Int, source: String) {
+    Column(Modifier.fillMaxHeight().padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        links.chunked(columns).forEach { row ->
+            Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach {
+                    LinkRow(
+                        it,
+                        source,
+                        Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        inset = 12.dp,
+                    )
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
         }
     }
 }
@@ -254,7 +266,7 @@ private fun HeroBlock(title: String, modifier: Modifier, content: @Composable ()
         Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
@@ -263,9 +275,10 @@ private fun HeroBlock(title: String, modifier: Modifier, content: @Composable ()
     }
 }
 
-// the address is copied rather than opened: plenty of visitors have no mail client set up
+// the address is copied rather than opened: plenty of visitors have no mail client set up. Only that
+// needs an icon, every other row opens its link
 @Composable
-private fun ContactRows(links: List<Link>, source: String) {
+private fun LinkRow(link: Link, source: String, modifier: Modifier = Modifier, inset: Dp = 16.dp) {
     val copy = rememberCopy()
     var copied by remember { mutableStateOf(false) }
     LaunchedEffect(copied) {
@@ -274,48 +287,47 @@ private fun ContactRows(links: List<Link>, source: String) {
             copied = false
         }
     }
-    links.forEach { link ->
-        val email = link.type == "email"
-        val address = link.url.removePrefix("mailto:")
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(role = Role.Button) {
-                    Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, source))
-                    if (email) {
-                        copy(address)
-                        copied = true
-                    } else {
-                        openUrl(link.url)
-                    }
+    val email = link.type == "email"
+    val address = link.url.removePrefix("mailto:")
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button) {
+                Analytics.log(AnalyticsEvent.LINK_OPEN, linkParams(link.type, source))
+                if (email) {
+                    copy(address)
+                    copied = true
+                } else {
+                    openUrl(link.url)
                 }
-                .pointerHoverIcon(PointerIcon.Hand)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(linkIcon(link.type), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(if (email) address else link.label?.str() ?: linkDefaultLabel(link.type), style = MaterialTheme.typography.bodyLarge)
-                val hint = when {
-                    email && copied -> Res.string.copied.str()
-                    link.type == "telegram" -> "@" + link.url.trimEnd('/').substringAfterLast('/')
-                    else -> null
-                }
-                hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
+            .pointerHoverIcon(PointerIcon.Hand)
+            .padding(horizontal = inset, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(linkIcon(link.type), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(inset))
+        Column(Modifier.weight(1f)) {
+            Text(if (email) address else link.label?.str() ?: linkDefaultLabel(link.type), style = MaterialTheme.typography.bodyLarge)
+            val hint = if (email && copied) Res.string.copied.str() else linkHint(link.url)
+            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        }
+        if (email) {
             Icon(
-                when {
-                    email && copied -> Icons.Filled.Check
-                    email -> Icons.Filled.ContentCopy
-                    else -> Icons.AutoMirrored.Filled.OpenInNew
-                },
-                contentDescription = if (email) Res.string.copy.str() else Res.string.open.str(),
+                if (copied) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                contentDescription = Res.string.copy.str(),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
             )
         }
     }
+}
+
+// a Telegram link reads as its handle, the rest of the web as the site it leads to
+private fun linkHint(url: String): String? = when {
+    url.startsWith("https://t.me/") -> "@" + url.trimEnd('/').substringAfterLast('/')
+    url.startsWith("http") -> url.substringAfter("://").substringBefore('/').removePrefix("www.")
+    else -> null
 }
 
 @Composable
@@ -562,7 +574,7 @@ internal fun ContactCard(profile: Profile, title: String, body: String, source: 
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 Text(body, style = MaterialTheme.typography.bodyMedium)
             }
-            ContactRows(contacts, source)
+            contacts.forEach { LinkRow(it, source) }
         }
     }
 }
@@ -616,8 +628,8 @@ private fun Footer(profile: Profile) {
 @Composable
 private fun FooterButton(icon: ImageVector, label: String, onClick: () -> Unit) {
     TextButton(onClick = onClick, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), maxLines = 1)
     }
 }

@@ -19,7 +19,6 @@ class ClothingSizesTest {
     fun tables() {
         ClothingSizes.tables.forEach { table ->
             assertTrue(table.rows.all { it.size == table.columns.size })
-            assertEquals(table.rows.size + 1, table.lines().size)
         }
         assertTrue("M" in ClothingSizes.menClothing.values(4))
     }

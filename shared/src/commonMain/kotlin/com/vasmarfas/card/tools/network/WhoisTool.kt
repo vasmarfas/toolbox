@@ -78,7 +78,7 @@ private val rdapLabels: Map<String, StringResource> = mapOf(
     "Administrative" to Res.string.rdap_administrative,
 )
 
-private object Rdap {
+object Rdap {
     fun url(query: String): String {
         val q = query.trim().lowercase()
         return when {
@@ -127,11 +127,12 @@ private object Rdap {
         return rows
     }
 
-    private fun vcardValue(entity: JsonObject, field: String): String? {
+    fun vcardValue(entity: JsonObject, field: String): String? {
         val vcard = (entity["vcardArray"] as? JsonArray)?.getOrNull(1) as? JsonArray ?: return null
         for (item in vcard) {
             val arr = item as? JsonArray ?: continue
             if ((arr.getOrNull(0) as? JsonPrimitive)?.content == field) {
+                ((arr.getOrNull(1) as? JsonObject)?.get("label") as? JsonPrimitive)?.content?.let { return it }
                 val value: JsonElement = arr.getOrNull(3) ?: continue
                 return when (value) {
                     is JsonPrimitive -> value.content

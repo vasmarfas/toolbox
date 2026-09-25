@@ -28,6 +28,8 @@ data class WorkoutPlan(
 
 object WorkoutPlans {
     const val PREF_KEY = "workout.plans"
+
+    const val START_KEY = "workout.start"
     const val SECONDS_PER_REP = 3
 
     private var counter = 0

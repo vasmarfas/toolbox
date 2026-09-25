@@ -21,10 +21,12 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
+import com.vasmarfas.card.ui.components.ToolSection
 import kotlin.math.floor
 
 private enum class BodyUnits { METRIC, IMPERIAL }
@@ -162,36 +164,39 @@ private fun BmiBodyScreen() {
         label = Res.string.activity.str(),
         text = { it.title.str() },
     )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        NumberField(
-            value = waistText,
-            onValueChange = { waistText = it },
-            label = Res.string.waist.str(),
-            modifier = Modifier.weight(1f),
-            suffix = lengthUnit,
-            isError = waistText.isNotBlank() && waist == null,
-        )
-        NumberField(
-            value = neckText,
-            onValueChange = { neckText = it },
-            label = Res.string.neck.str(),
-            modifier = Modifier.weight(1f),
-            suffix = lengthUnit,
-            isError = neckText.isNotBlank() && neck == null,
-        )
-        if (sex == Sex.FEMALE) {
+    ToolSection(Res.string.body_fat_section.str()) {
+        Hint(Res.string.body_fat_section_hint.str())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             NumberField(
-                value = hipText,
-                onValueChange = { hipText = it },
-                label = Res.string.hips.str(),
+                value = waistText,
+                onValueChange = { waistText = it },
+                label = Res.string.waist.str(),
                 modifier = Modifier.weight(1f),
                 suffix = lengthUnit,
-                isError = hipText.isNotBlank() && hip == null,
+                isError = waistText.isNotBlank() && waist == null,
             )
+            NumberField(
+                value = neckText,
+                onValueChange = { neckText = it },
+                label = Res.string.neck.str(),
+                modifier = Modifier.weight(1f),
+                suffix = lengthUnit,
+                isError = neckText.isNotBlank() && neck == null,
+            )
+            if (sex == Sex.FEMALE) {
+                NumberField(
+                    value = hipText,
+                    onValueChange = { hipText = it },
+                    label = Res.string.hips.str(),
+                    modifier = Modifier.weight(1f),
+                    suffix = lengthUnit,
+                    isError = hipText.isNotBlank() && hip == null,
+                )
+            }
         }
     }
     if (heightCm != null && weightKg != null) {
@@ -210,10 +215,12 @@ private fun BmiBodyScreen() {
                 KeyValueRow(Res.string.tdee_with_activity.str(), "${tdee.fmt(0)} ${Res.string.unit_kcal.str()}")
                 KeyValueRow(Res.string.weight_loss_15.str(), "${(tdee * 0.85).fmt(0)} ${Res.string.unit_kcal.str()}")
                 KeyValueRow(Res.string.weight_gain_15.str(), "${(tdee * 1.15).fmt(0)} ${Res.string.unit_kcal.str()}")
+                Hint(Res.string.daily_energy_hint.str())
             }
         }
         ResultCard(Res.string.ideal_weight.str()) {
             Body.idealWeights(sex, heightCm).forEach { KeyValueRow(it.formula, weight(it.kg)) }
+            Hint(Res.string.ideal_weight_hint.str())
         }
         if (waist != null && neck != null && (sex == Sex.MALE || hip != null)) {
             val fat = Body.navyBodyFat(sex, heightCm, waist, neck, hip ?: 0.0)

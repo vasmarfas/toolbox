@@ -18,6 +18,7 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
@@ -42,6 +43,7 @@ private fun HbA1cScreen() {
     var mode by rememberSaveable { mutableStateOf(A1cInput.PERCENT) }
     var text by rememberSaveable { mutableStateOf("6.5") }
 
+    Hint(Res.string.hba1c_intro.str())
     SegmentedChoice(
         options = A1cInput.entries,
         selected = mode,
@@ -89,6 +91,16 @@ private fun HbA1cScreen() {
     }
 
     ResultCard {
+        KeyValueRow(
+            Res.string.a1c_meaning.str(),
+            when (Glycemia.category(a1c)) {
+                0 -> Res.string.a1c_normal
+                1 -> Res.string.a1c_prediabetes
+                else -> Res.string.a1c_diabetes
+            }.str(),
+            mono = false,
+            copyable = false,
+        )
         KeyValueRow(Res.string.a1c_dcct.str(), "${a1c.fmt(2)} %", copyable = false)
         KeyValueRow(
             Res.string.a1c_ifcc.str(),
@@ -105,6 +117,7 @@ private fun HbA1cScreen() {
             "${Glycemia.eagMgDl(a1c).fmt(0)} ${Res.string.unit_mg_per_dl.str()}",
             copyable = false,
         )
+        Hint(Res.string.a1c_average_hint.str())
     }
     Text(
         Res.string.hba1c_note.str(),

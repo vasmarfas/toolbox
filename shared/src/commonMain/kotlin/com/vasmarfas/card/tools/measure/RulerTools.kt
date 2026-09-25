@@ -2,7 +2,7 @@ package com.vasmarfas.card.tools.measure
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -180,7 +180,7 @@ private fun RulerScreen() {
     val measurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelSmall.copy(color = onSurface, fontSize = 10.sp)
     val majorStyle = MaterialTheme.typography.titleMedium.copy(color = onSurface, fontSize = 18.sp)
-    val vertical = chrome.immersive || axis == RulerAxis.ALONG
+    val vertical = axis == RulerAxis.ALONG
 
     fun save(value: Float, screen: String? = null) {
         val scale = value.coerceIn(1f, 40f)
@@ -306,19 +306,21 @@ private fun RulerScreen() {
         else -> 200.dp
     }
 
-    Box(Modifier.fillMaxWidth()) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val along = if (chrome.immersive) height >= maxWidth else vertical
+        LaunchedEffect(along) { measured = null }
         Canvas(
             Modifier
                 .fillMaxWidth()
                 .height(height)
-                .pointerInput(pxPerMm, vertical) {
-                    val point: (Offset) -> Unit = { measured = if (vertical) it.y else it.x }
+                .pointerInput(pxPerMm, along) {
+                    val point: (Offset) -> Unit = { measured = if (along) it.y else it.x }
                     trackTouch(onStart = point, onMove = point)
                 },
         ) {
             drawRect(container)
-            drawRuler(vertical, pxPerMm, onSurface, measurer, labelStyle, majorStyle)
-            measured?.let { drawMeasurement(vertical, it, primary) }
+            drawRuler(along, pxPerMm, onSurface, measurer, labelStyle, majorStyle)
+            measured?.let { drawMeasurement(along, it, primary) }
         }
         Surface(
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),

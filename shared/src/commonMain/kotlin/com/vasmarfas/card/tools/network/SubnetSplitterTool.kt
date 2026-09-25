@@ -21,6 +21,7 @@ import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 val subnetSplitterTool = Tool(
     id = "subnet-splitter",
@@ -34,8 +35,9 @@ val subnetSplitterTool = Tool(
 private enum class SplitMode(val title: StringResource) {
     EQUAL(Res.string.equal_split),
     VLSM(Res.string.vlsm_by_hosts),
-    SUMMARIZE(Res.string.summarize),
+    CIDR(Res.string.cidr_to_range),
     RANGE(Res.string.range_to_cidr),
+    SUMMARIZE(Res.string.summarize),
 }
 
 object SubnetMath {
@@ -103,6 +105,7 @@ private fun SubnetSplitterScreen() {
     var list by rememberSaveable { mutableStateOf("10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/23") }
     var rangeStart by rememberSaveable { mutableStateOf("192.168.1.10") }
     var rangeEnd by rememberSaveable { mutableStateOf("192.168.1.250") }
+    var blocks by rememberSaveable { mutableStateOf("10.0.0.0/22\n192.168.1.64/26\n2a02:6b8::/32") }
 
     ChoiceChips(options = SplitMode.entries, selected = mode, onSelect = { mode = it }, label = { it.title.str() })
     when (mode) {
@@ -158,6 +161,13 @@ private fun SubnetSplitterScreen() {
             }
         }
 
+        SplitMode.CIDR -> {
+            ToolInputField(value = blocks, onValueChange = { blocks = it }, label = Res.string.networks_one_per_line.str(), singleLine = false, minLines = 3, monospace = true)
+            val lines = blocks.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            if (lines.isEmpty()) ErrorText(Res.string.enter_at_least_one_network.str())
+            lines.forEach { CidrRange(it) }
+        }
+
         SplitMode.RANGE -> {
             ToolInputField(value = rangeStart, onValueChange = { rangeStart = it }, label = Res.string.first_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
             ToolInputField(value = rangeEnd, onValueChange = { rangeEnd = it }, label = Res.string.last_address.str(), keyboardType = KeyboardType.Uri, monospace = true)
@@ -171,5 +181,30 @@ private fun SubnetSplitterScreen() {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CidrRange(text: String) {
+    val v4 = Ipv4.parseSubnet(text)
+    val v6 = if (v4 == null) Ipv6Address.parseWithPrefix(text) else null
+    when {
+        v4 != null -> ResultCard("${Ipv4.format(v4.network)}/${v4.prefix}") {
+            KeyValueRow(Res.string.range.str(), "${Ipv4.format(v4.network)} – ${Ipv4.format(v4.broadcast)}")
+            KeyValueRow(Res.string.total_addresses.str(), v4.totalAddresses.fmtGrouped(), copyable = false)
+            KeyValueRow(Res.string.host_range.str(), "${Ipv4.format(v4.firstHost)} – ${Ipv4.format(v4.lastHost)} · ${v4.usableHosts.fmtGrouped()}")
+            KeyValueRow(Res.string.netmask.str(), Ipv4.format(v4.mask))
+        }
+
+        v6 != null -> {
+            val (address, prefix) = v6
+            val hostBits = 128 - prefix
+            ResultCard("${address.withPrefix(prefix).compressed()}/$prefix") {
+                KeyValueRow(Res.string.range.str(), "${address.withPrefix(prefix).compressed()} – ${address.lastInPrefix(prefix).compressed()}")
+                KeyValueRow(Res.string.total_addresses.str(), if (hostBits >= 63) "2^$hostBits" else (1L shl hostBits).fmtGrouped(), copyable = false)
+            }
+        }
+
+        else -> ErrorText(stringResource(Res.string.cidr_not_recognized, text))
     }
 }

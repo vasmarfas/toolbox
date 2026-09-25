@@ -36,7 +36,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -49,6 +48,7 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 
 val markdownPreviewTool = Tool(
     id = "markdown-preview",
@@ -125,7 +125,7 @@ private fun BlockView(block: MdBlock) {
             }
             Text(
                 block.code,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily()),
                 softWrap = false,
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
             )
@@ -168,6 +168,7 @@ private fun InlineText(
 private fun annotate(spans: List<MdSpan>): AnnotatedString {
     val codeBackground = MaterialTheme.colorScheme.surfaceContainerHighest
     val linkColor = MaterialTheme.colorScheme.primary
+    val code = monoFamily()
     return buildAnnotatedString {
         spans.forEach { span ->
             when (span) {
@@ -176,7 +177,7 @@ private fun annotate(spans: List<MdSpan>): AnnotatedString {
                 is MdSpan.Italic -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(span.text) }
                 is MdSpan.BoldItalic -> withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)) { append(span.text) }
                 is MdSpan.Strike -> withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) { append(span.text) }
-                is MdSpan.Code -> withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = codeBackground)) { append(span.text) }
+                is MdSpan.Code -> withStyle(SpanStyle(fontFamily = code, background = codeBackground)) { append(span.text) }
                 is MdSpan.Link -> withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
                     append(span.text.ifEmpty { span.url })
                 }

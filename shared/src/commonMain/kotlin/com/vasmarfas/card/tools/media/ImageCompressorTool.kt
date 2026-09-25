@@ -1,5 +1,7 @@
 package com.vasmarfas.card.tools.media
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Compress
@@ -13,6 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.PickKind
 import com.vasmarfas.card.core.formatBytes
 import com.vasmarfas.card.core.limitedTo
@@ -24,6 +29,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolSection
 import io.github.vinceglb.filekit.PlatformFile
@@ -47,7 +53,8 @@ val imageCompressorTool = Tool(
     ),
 ) { ImageCompressorScreen() }
 
-private val limits = listOf(50_000L, 100_000L, 200_000L, 500_000L, 1_000_000L, 2_000_000L, 5_000_000L)
+private const val CUSTOM_LIMIT = -1L
+private val limits = listOf(50_000L, 100_000L, 200_000L, 500_000L, 1_000_000L, 2_000_000L, 5_000_000L, CUSTOM_LIMIT)
 
 @Composable
 private fun ImageCompressorScreen() {
@@ -55,6 +62,8 @@ private fun ImageCompressorScreen() {
     val files = remember { mutableStateListOf<PlatformFile>() }
     var bySize by rememberSaveable { mutableStateOf(true) }
     var limit by rememberSaveable { mutableStateOf(500_000L) }
+    var customSize by rememberSaveable { mutableStateOf("300") }
+    var customUnit by rememberSaveable { mutableStateOf(1_000L) }
     var quality by rememberSaveable { mutableStateOf(75) }
     var target by rememberSaveable { mutableStateOf(ImageTarget.JPEG) }
     var longSide by rememberSaveable { mutableStateOf(0) }
@@ -62,6 +71,7 @@ private fun ImageCompressorScreen() {
     var failed by remember { mutableStateOf<List<String>>(emptyList()) }
     val task = remember { TaskState() }
     val unreadable = Res.string.image_not_readable.str()
+    val chosenLimit = if (limit == CUSTOM_LIMIT) ((customSize.replace(',', '.').toDoubleOrNull() ?: 0.0) * customUnit).toLong() else limit
 
     PickButton(Res.string.choose_images.str(), imageExtensions, PickKind.IMAGE, multiple = true, icon = Icons.Filled.AddPhotoAlternate, empty = files.isEmpty()) { picked ->
         files.clear()
@@ -83,7 +93,24 @@ private fun ImageCompressorScreen() {
     )
     if (bySize) {
         ToolSection(Res.string.target_size.str()) {
-            ChoiceChips(options = limits, selected = limit, onSelect = { limit = it }, label = { formatBytes(it, binary = false) })
+            ChoiceChips(
+                options = limits,
+                selected = limit,
+                onSelect = { limit = it },
+                label = { if (it == CUSTOM_LIMIT) Res.string.custom_size.str() else formatBytes(it, binary = false) },
+            )
+            if (limit == CUSTOM_LIMIT) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    NumberField(customSize, { customSize = it }, Res.string.target_size.str(), Modifier.weight(1f), isError = chosenLimit <= 0)
+                    SegmentedChoice(
+                        options = listOf(1_000L, 1_000_000L),
+                        selected = customUnit,
+                        onSelect = { customUnit = it },
+                        label = { if (it == 1_000L) "kB" else "MB" },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
     } else if (target != ImageTarget.PNG) {
         LabeledSlider(Res.string.image_quality.str(), "$quality", quality.toFloat(), 10f..100f) { quality = it.roundToInt() }
@@ -103,13 +130,13 @@ private fun ImageCompressorScreen() {
     ActionButton(
         text = Res.string.compress.str(),
         icon = Icons.Filled.Compress,
-        enabled = !task.running,
+        enabled = !task.running && (!bySize || chosenLimit > 0),
         onClick = {
             outputs = emptyList()
             failed = emptyList()
             val sources = files.toList()
             val format = target
-            val size = if (bySize) limit else 0L
+            val size = if (bySize) chosenLimit else 0L
             task.launch(scope) { progress ->
                 val taken = mutableSetOf<String>()
                 val done = ArrayList<ImageOutput>()

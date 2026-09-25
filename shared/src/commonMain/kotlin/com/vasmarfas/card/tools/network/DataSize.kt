@@ -1,4 +1,4 @@
-package com.vasmarfas.card.tools.converters
+package com.vasmarfas.card.tools.network
 
 import com.vasmarfas.card.core.Lang
 import com.vasmarfas.card.core.appLang

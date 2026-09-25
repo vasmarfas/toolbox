@@ -34,6 +34,7 @@ import platform.CoreGraphics.CGPDFDocumentRef
 import platform.CoreGraphics.CGPDFDocumentRelease
 import platform.CoreGraphics.CGPDFPageGetBoxRect
 import platform.CoreGraphics.CGPDFPageGetRotationAngle
+import platform.CoreGraphics.CGPDFPageRef
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.kCGBitmapByteOrder32Big
 import platform.CoreGraphics.kCGPDFCropBox
@@ -46,49 +47,68 @@ actual class PdfRaster private constructor(private val document: CGPDFDocumentRe
 
     actual suspend fun render(page: Int, width: Int): ImageBitmap = gate.use {
         withContext(Dispatchers.Default) {
-            val source = CGPDFDocumentGetPage(document, (page + 1).convert()) ?: throw IllegalArgumentException("No page ${page + 1}")
-            val (x, y, w, h) = CGPDFPageGetBoxRect(source, kCGPDFCropBox).useContents { listOf(origin.x, origin.y, size.width, size.height) }
-            val angle = ((CGPDFPageGetRotationAngle(source) % 360) + 360) % 360
-            val turned = angle % 180 != 0
-            val pageWidth = if (turned) h else w
-            val pageHeight = if (turned) w else h
+            val source = page(page)
+            val (pageWidth, pageHeight) = size(source)
             val scale = width / pageWidth
-            val height = (pageHeight * scale).roundToInt().coerceAtLeast(1)
-            val rgba = ByteArray(width * height * 4)
-            val space = CGColorSpaceCreateDeviceRGB()
-            rgba.usePinned { pinned ->
-                val context = CGBitmapContextCreate(
-                    pinned.addressOf(0), width.convert(), height.convert(), 8u, (width * 4).convert(), space,
-                    CGImageAlphaInfo.kCGImageAlphaPremultipliedLast.value or kCGBitmapByteOrder32Big,
-                )
-                CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 1.0)
-                CGContextFillRect(context, CGRectMake(0.0, 0.0, width.toDouble(), height.toDouble()))
-                CGContextScaleCTM(context, scale, scale)
-                when (angle) {
-                    90 -> {
-                        CGContextTranslateCTM(context, 0.0, pageHeight)
-                        CGContextRotateCTM(context, -PI / 2)
-                    }
-                    180 -> {
-                        CGContextTranslateCTM(context, pageWidth, pageHeight)
-                        CGContextRotateCTM(context, PI)
-                    }
-                    270 -> {
-                        CGContextTranslateCTM(context, pageWidth, 0.0)
-                        CGContextRotateCTM(context, PI / 2)
-                    }
-                }
-                CGContextTranslateCTM(context, -x, -y)
-                CGContextDrawPDFPage(context, source)
-                CGContextRelease(context)
-            }
-            CGColorSpaceRelease(space)
-            val pixels = IntArray(width * height) {
-                val o = it * 4
-                (0xFF shl 24) or ((rgba[o].toInt() and 0xFF) shl 16) or ((rgba[o + 1].toInt() and 0xFF) shl 8) or (rgba[o + 2].toInt() and 0xFF)
-            }
-            imageBitmapOf(pixels, width, height)
+            draw(source, scale, width, (pageHeight * scale).roundToInt().coerceAtLeast(1), 0.0, 0.0)
         }
+    }
+
+    actual suspend fun render(page: Int, pageWidth: Int, x: Int, y: Int, w: Int, h: Int): ImageBitmap = gate.use {
+        withContext(Dispatchers.Default) {
+            val source = page(page)
+            val (points, pointsHigh) = size(source)
+            val scale = pageWidth / points
+            draw(source, scale, w, h, -x.toDouble(), -(pointsHigh * scale - y - h))
+        }
+    }
+
+    private fun page(index: Int): CGPDFPageRef = CGPDFDocumentGetPage(document, (index + 1).convert()) ?: throw IllegalArgumentException("No page ${index + 1}")
+
+    private fun size(source: CGPDFPageRef): Pair<Double, Double> {
+        val (w, h) = CGPDFPageGetBoxRect(source, kCGPDFCropBox).useContents { size.width to size.height }
+        return if (CGPDFPageGetRotationAngle(source) % 180 != 0) h to w else w to h
+    }
+
+    private fun draw(source: CGPDFPageRef, scale: Double, width: Int, height: Int, shiftX: Double, shiftY: Double): ImageBitmap {
+        val (x, y) = CGPDFPageGetBoxRect(source, kCGPDFCropBox).useContents { origin.x to origin.y }
+        val (pageWidth, pageHeight) = size(source)
+        val angle = ((CGPDFPageGetRotationAngle(source) % 360) + 360) % 360
+        val rgba = ByteArray(width * height * 4)
+        val space = CGColorSpaceCreateDeviceRGB()
+        rgba.usePinned { pinned ->
+            val context = CGBitmapContextCreate(
+                pinned.addressOf(0), width.convert(), height.convert(), 8u, (width * 4).convert(), space,
+                CGImageAlphaInfo.kCGImageAlphaPremultipliedLast.value or kCGBitmapByteOrder32Big,
+            )
+            CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 1.0)
+            CGContextFillRect(context, CGRectMake(0.0, 0.0, width.toDouble(), height.toDouble()))
+            CGContextTranslateCTM(context, shiftX, shiftY)
+            CGContextScaleCTM(context, scale, scale)
+            when (angle) {
+                90 -> {
+                    CGContextTranslateCTM(context, 0.0, pageHeight)
+                    CGContextRotateCTM(context, -PI / 2)
+                }
+                180 -> {
+                    CGContextTranslateCTM(context, pageWidth, pageHeight)
+                    CGContextRotateCTM(context, PI)
+                }
+                270 -> {
+                    CGContextTranslateCTM(context, pageWidth, 0.0)
+                    CGContextRotateCTM(context, PI / 2)
+                }
+            }
+            CGContextTranslateCTM(context, -x, -y)
+            CGContextDrawPDFPage(context, source)
+            CGContextRelease(context)
+        }
+        CGColorSpaceRelease(space)
+        val pixels = IntArray(width * height) {
+            val o = it * 4
+            (0xFF shl 24) or ((rgba[o].toInt() and 0xFF) shl 16) or ((rgba[o + 1].toInt() and 0xFF) shl 8) or (rgba[o + 2].toInt() and 0xFF)
+        }
+        return imageBitmapOf(pixels, width, height)
     }
 
     actual fun close() {

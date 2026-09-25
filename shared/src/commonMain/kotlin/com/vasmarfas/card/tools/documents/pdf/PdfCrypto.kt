@@ -254,7 +254,7 @@ internal class PdfSecurity private constructor(
         }
 
         // revision 5 hashes once with SHA-256, revision 6 runs the iterated hash of ISO 32000-2, 7.6.4.3.4
-        private fun hash(revision: Int, password: ByteArray, salt: ByteArray, userData: ByteArray): ByteArray {
+        internal fun hash(revision: Int, password: ByteArray, salt: ByteArray, userData: ByteArray): ByteArray {
             var k = Sha256.digest(password + salt + userData)
             if (revision == 5) return k
             var round = 0

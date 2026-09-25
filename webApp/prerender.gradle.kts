@@ -57,15 +57,17 @@ fun page(lang: String): String {
         val url = link["url"].toString()
         return if (link["type"] == "email") """<a href="${esc(url)}" data-show-address>${esc(url.removePrefix("mailto:"))}</a>""" else anchor(link)
     }
-    val contacts = contactLinks.joinToString("") { link ->
-        val handle = if (link["type"] == "telegram") {
-            """ <span class="pre-muted">@${esc(link["url"].toString().trimEnd('/').substringAfterLast('/'))}</span>"""
-        } else {
-            ""
+    fun hint(link: Map<String, Any?>): String {
+        val url = link["url"].toString()
+        val text = when {
+            url.startsWith("https://t.me/") -> "@" + url.trimEnd('/').substringAfterLast('/')
+            url.startsWith("http") -> url.substringAfter("://").substringBefore('/').removePrefix("www.")
+            else -> return ""
         }
-        "<li>${contactAnchor(link)}$handle</li>"
+        return """ <span class="pre-muted">${esc(text)}</span>"""
     }
-    val resources = links.filter { it["type"] !in contactTypes && it["type"] != "support" }.joinToString(" ") { anchor(it) }
+    val contacts = contactLinks.joinToString("") { link -> "<li>${contactAnchor(link)}${hint(link)}</li>" }
+    val resources = links.filter { it["type"] !in contactTypes && it["type"] != "support" }.joinToString("") { "<li>${anchor(it)}${hint(it)}</li>" }
     val projects = (profile["projects"] as List<Map<String, Any?>>).filter { it["featured"] == true }.joinToString("") { project ->
         val meta = listOf(project["year"]?.toString().orEmpty(), (project["platforms"] as List<String>? ?: emptyList()).joinToString(" · "))
             .filter { it.isNotBlank() }.joinToString("  ·  ")
@@ -94,11 +96,11 @@ fun page(lang: String): String {
         """<header><h1 class="pre-name">${esc(tr(person["name"], lang))}</h1><p class="pre-title">${esc(tr(person["title"], lang))}</p>""" +
         """<p class="pre-muted">${esc(tr(person["location"], lang))}</p></header>""" +
         """<div class="pre-blocks"><section class="pre-block"><h2>${s.getValue("contact_me")}</h2><ul class="pre-rows">$contacts</ul></section>""" +
-        """<section class="pre-block"><h2>${s.getValue("my_resources")}</h2><p class="pre-chips">$resources</p></section></div>""" +
+        """<section class="pre-block"><h2>${s.getValue("my_resources")}</h2><ul class="pre-rows pre-links">$resources</ul></section></div>""" +
         """<section><h2>${s.getValue("featured_projects")}</h2><div class="pre-grid">$projects</div></section>""" +
         """<section><h2>${s.getValue("latest_articles")}</h2><ul class="pre-rows">$articles</ul></section>""" +
-        resumeSection +
         """<section><h2>${s.getValue("contact_title")}</h2><p>${s.getValue("contact_body")}</p><ul class="pre-rows">$contacts</ul></section>""" +
+        resumeSection +
         """<section><h2>${s.getValue("about_me")}</h2>$about</section>""" +
         """<p class="pre-chips">$footer</p></div>"""
 }

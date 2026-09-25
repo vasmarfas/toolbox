@@ -22,6 +22,7 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
@@ -150,7 +151,8 @@ private fun BodyMetricsScreen() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    ResultCard("FFMI") {
+    ResultCard(Res.string.ffmi_title.str()) {
+        Hint(Res.string.ffmi_hint.str())
         KeyValueRow(
             Res.string.lean_mass_used.str(),
             "${leanForFfmi.fmt(1)} ${Res.string.unit_kg.str()} · " +

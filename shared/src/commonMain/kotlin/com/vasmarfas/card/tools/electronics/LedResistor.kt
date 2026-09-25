@@ -1,6 +1,7 @@
 package com.vasmarfas.card.tools.electronics
 
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
@@ -28,12 +29,22 @@ object LedResistor {
         return if (candidate != null) candidate * decade else series.first() * decade * 10
     }
 
+    fun previousInSeries(value: Double, series: List<Double>): Double {
+        val decade = 10.0.pow(floor(log10(value)))
+        val normalized = value / decade
+        val candidate = series.lastOrNull { it <= normalized + 1e-9 }
+        return if (candidate != null) candidate * decade else series.last() * decade / 10
+    }
+
     fun nearestInSeries(value: Double, series: List<Double>): Double {
         if (value <= 0) return series.first()
         val decade = 10.0.pow(floor(log10(value)))
         val candidates = series.map { it * decade } + series.first() * decade * 10
         return candidates.minBy { abs(it - value) }
     }
+
+    // one chain takes as many LEDs as leave the resistor some voltage of its own
+    fun maxInSeries(supply: Double, forward: Double): Int = ceil(supply / forward).toInt() - 1
 
     fun compute(supply: Double, forward: Double, currentMa: Double, ledsInSeries: Int): LedResult? {
         val drop = supply - forward * ledsInSeries

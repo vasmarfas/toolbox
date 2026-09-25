@@ -18,7 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.currentEpochMillis
@@ -33,6 +32,7 @@ import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 import kotlinx.coroutines.delay
 
 val totpTool = Tool(
@@ -90,7 +90,7 @@ private fun TotpScreen() {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 code.chunked(if (activeDigits == 8) 4 else 3).joinToString(" "),
-                style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.displaySmall.copy(fontFamily = monoFamily()),
                 modifier = Modifier.weight(1f),
             )
             CopyIconButton(code)

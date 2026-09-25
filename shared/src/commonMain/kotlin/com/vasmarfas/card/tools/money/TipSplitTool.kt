@@ -20,7 +20,7 @@ import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SwitchRow
 
-private val tipPresets = listOf(5, 10, 12, 15, 18, 20, 25)
+private val tipPresets = listOf(0, 5, 10, 12, 15, 18, 20, 25)
 
 val tipSplitTool = Tool(
     id = "tip-split",

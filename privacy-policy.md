@@ -58,8 +58,10 @@ The statistics are collected and processed by their operators, not by us:
   version, the country derived from the IP address, and session data. https://policies.google.com/privacy
 - **Google, Firebase Crashlytics** (Android). On a crash it sends the stack trace, the device model,
   the OS and application version and an installation identifier.
-- **Google, Firebase Performance Monitoring** (Android). Measures startup time, screen rendering and
-  the duration of the App's own network requests.
+- **Google, Firebase Performance Monitoring** (Android). Measures startup time, screen rendering, memory
+  and CPU use. For every HTTP request the App makes it records the address without the query string, the
+  response code, the size and the duration. The network tools make such requests too, so a domain or an
+  IP address you look up with them can reach these reports as part of the request address.
 - **Yandex, Yandex.Metrica** (website, both domains). Sets its own cookie and collects the IP address,
   user agent, the pages and screens visited, the referrer and the events listed above. Session
   replay (Webvisor) and the click map are turned off. https://yandex.com/legal/metrica_termsofuse/
@@ -75,7 +77,8 @@ The App keeps a small amount of data locally so that it works the way you left i
   home screen sections
 - the answers to the first-start questions, so that asking again starts from them
 - data you enter into tools that offer to remember it: saved Wake-on-LAN devices, world clock
-  zones, counters, the scratchpad, countdown events, calibration values, speed test sources
+  zones, counters, the scratchpad, countdown events, the running stopwatch and timer, workout plans,
+  calibration values, speed test sources
 - a cached copy of the profile file (`profile.json`) that describes the site's content
 - a cached copy of currency exchange rates
 
@@ -107,11 +110,17 @@ them.
 - **Whois / RDAP.** The domain, IP address or AS number you typed is sent to `rdap.org` and the
   registry it redirects to, and, where sockets are available, to whois servers on port 43.
 - **IP info.** `ipwho.is` (with `ipapi.co` as a fallback) receives the IP address you typed. When you
-  ask for your own address, the request itself reveals your public IP to that service.
-- **MAC address lookup.** The address prefix you typed is sent to `api.maclookup.app`.
+  ask for your own address, the request itself reveals your public IP to that service, and
+  `api.ipify.org` or `api6.ipify.org` is asked for the address of the other IP version. The network
+  owner comes from `rdap.org` and the regional registry it redirects to, the host name from a reverse
+  DNS query to `cloudflare-dns.com`. A host name you typed is resolved there too.
+- **MAC address lookup.** The vendor is looked up in the IEEE registry that ships with the app and the
+  site, nothing leaves the device for that. When you press "Check online" in the apps, the first nine hex
+  digits of the address go to `api.maclookup.app` and `api.macvendors.com`: they name the block, the rest
+  of the address stays on the device. The website does not make these requests.
 - **Speed test.** Random data is downloaded from and uploaded to the source you pick:
-  `speed.cloudflare.com`, the Yandex Internetometer at `yandex.ru/internet`, an OpenSpeedTest server
-  of your own or a file URL you enter. The uploaded bytes carry no information.
+  `speed.cloudflare.com`, the Yandex Internetometer at `yandex.ru/internet` (apps only), an
+  OpenSpeedTest server of your own or a file URL you enter. The uploaded bytes carry no information.
 - **HTTP request.** The request you compose is sent to the URL you entered, exactly as written.
 - **Ping (HTTP mode), TLS certificate.** These connect to the host you entered.
 - **Currency converter.** Exchange rates are fetched from `open.er-api.com`. The request contains no
@@ -138,8 +147,10 @@ requires it, after you grant the permission:
   short history shown in the chart.
 - **Microphone.** The sound meter, the spectrum analyzer and the tuner analyse the audio input on
   the fly. No audio is recorded or saved.
-- **Camera flash.** The torch tool toggles the LED. The camera itself is not used and no image is
-  captured.
+- **Camera** (Android, browser). The QR code and barcode scanner shows the camera picture on screen
+  and reads the codes in it on the device. No image is stored or transmitted. A picture you pick for
+  the scanner is read the same way.
+- **Camera flash.** The torch tool toggles the LED without taking any image.
 - **Vibration.** Used by the vibration test and by a few tools as haptic feedback.
 - **Network state.** Used to show the connection details in the network interfaces tool.
 
@@ -163,7 +174,8 @@ consoles, which carry no name, e-mail or any other detail that identifies you.
 
 The App has no switch that stops the collection. In the browser you can block the counters with an
 extension, or clear the site's cookies and `localStorage`, which removes the Yandex.Metrica
-identifier. On Android you can reset the advertising identifier in the system settings. Events that
+identifier. On Android the analytics identifier belongs to the installation: clearing the App's data
+or reinstalling it starts a new one. The App does not read the Android advertising identifier. Events that
 were already sent are stored by Google and Yandex under their own terms, and you can request access
 or deletion from them directly through the links in section 1.
 

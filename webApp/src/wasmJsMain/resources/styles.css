@@ -223,6 +223,17 @@ html[lang="ru"] .pre[lang="en"] {
     padding: 6px 0;
 }
 
+.pre-links {
+    display: grid;
+    column-gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.pre-links .pre-muted {
+    display: block;
+    margin: 0;
+}
+
 .pre-chips {
     margin: 8px 0 0;
 }

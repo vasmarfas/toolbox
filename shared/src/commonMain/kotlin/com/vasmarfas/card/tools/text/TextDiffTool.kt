@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.TextDecoding
 import com.vasmarfas.card.core.fmt
@@ -58,6 +57,7 @@ import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 import com.vasmarfas.card.ui.theme.LocalStatusColors
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.size
@@ -369,7 +369,7 @@ private fun UnifiedLine(
 private fun LineNumber(number: Int?, digits: Int) {
     Text(
         (number?.toString() ?: "").padStart(digits) + " ",
-        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+        style = MaterialTheme.typography.labelSmall.copy(fontFamily = monoFamily()),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 1.dp),
     )
@@ -398,7 +398,7 @@ private fun FoldRow(fold: DiffItem.Fold, onExpand: (DiffItem.Fold) -> Unit) {
 }
 
 @Composable
-private fun codeStyle() = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+private fun codeStyle() = MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily())
 
 private fun DiffPalette.wordColor(kind: DiffKind, old: Boolean): Color = when (kind) {
     DiffKind.CHANGED -> changedWord

@@ -6,6 +6,8 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>The QR and barcode scanners read codes from the camera image on the device. No photos are taken, stored or sent anywhere.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>The GPS tool shows your coordinates and speed on screen. Nothing is stored or sent anywhere.</string>
 	<key>NSMotionUsageDescription</key>

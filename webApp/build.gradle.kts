@@ -28,17 +28,22 @@ kotlin {
             implementation(npm("mediabunny", libs.versions.mediabunny.get()))
             implementation(npm("@mediabunny/mp3-encoder", libs.versions.mediabunny.get()))
             implementation(npm("pdfjs-dist", libs.versions.pdfjs.get()))
+            implementation(npm("zxing-wasm", libs.versions.zxingWasm.get()))
         }
         wasmJsMain.get().resources.srcDir(layout.buildDirectory.dir("vendor"))
     }
 }
 
-// Browser media and PDF libraries are loaded on demand from vendor/, so they stay out of the app bundle.
+// Browser media, PDF and barcode libraries are loaded on demand from vendor/, so they stay out of the app bundle.
 val vendorScripts by tasks.registering(Sync::class) {
     dependsOn(":kotlinWasmNpmInstall")
     val modules = rootProject.layout.buildDirectory.dir("wasm/node_modules")
     from(modules.map { it.dir("mediabunny/dist/bundles") }) { include("mediabunny.min.mjs") }
     from(modules.map { it.dir("@mediabunny/mp3-encoder/dist/bundles") }) { include("mediabunny-mp3-encoder.min.mjs") }
+    from(modules.map { it.dir("zxing-wasm/dist") }) {
+        include("es/**", "reader/zxing_reader.wasm")
+        into("zxing")
+    }
     from(modules.map { it.dir("pdfjs-dist") }) {
         include("build/pdf.min.mjs", "build/pdf.worker.min.mjs", "cmaps/**", "standard_fonts/**", "wasm/**", "iccs/**")
         into("pdfjs")

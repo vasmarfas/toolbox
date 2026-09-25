@@ -24,13 +24,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.Prefs
 import com.vasmarfas.card.core.currentEpochMillis
 import com.vasmarfas.card.core.str
@@ -48,6 +49,7 @@ import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
 import com.vasmarfas.card.ui.components.ToolSection
+import com.vasmarfas.card.ui.components.monoFamily
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -80,16 +82,20 @@ private fun WorldClockScreen() {
         }
     }
     val localOffset = timeZoneOffsetSeconds(systemZone, now) ?: 0
+    val cities by produceState(emptyList<ClockCity>()) {
+        value = runCatching { Cities.parse(Res.readBytes("files/cities.json").decodeToString()) }.getOrDefault(emptyList())
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        zones.forEach { zone ->
+        zones.forEach { entry ->
             ZoneRow(
-                zone = zone,
+                zone = WorldClock.zoneOf(entry),
+                name = entryName(entry, cities),
                 now = now,
                 localOffset = localOffset,
-                isLocal = zone == systemZone,
+                isLocal = entry == systemZone,
                 onRemove = {
-                    zones.remove(zone)
+                    zones.remove(entry)
                     save()
                 },
             )
@@ -103,11 +109,19 @@ private fun WorldClockScreen() {
             value = query,
             onValueChange = { query = it },
             label = Res.string.search.str(),
-            placeholder = "Berlin · Asia/… · America/…",
+            placeholder = Res.string.world_clock_search_hint.str(),
         )
         val q = query.trim()
-        val matches = remember(q, zones.size) {
-            if (q.length < 2) emptyList() else allIds.filter { it.contains(q, ignoreCase = true) && it !in zones }.take(24)
+        val matches = remember(q, zones.size, cities) {
+            if (q.length < 2) {
+                emptyList()
+            } else {
+                val found = Cities.search(cities, q)
+                val byCity = found.map { "${it.zone}|${it.en}" }
+                val names = found.map { it.en }.toSet()
+                val byZone = allIds.filter { it.contains(q, ignoreCase = true) && it.substringAfterLast('/').replace('_', ' ') !in names }
+                (byCity + byZone).filter { it !in zones }.take(24)
+            }
         }
         if (matches.isNotEmpty()) {
             ChoiceChips(
@@ -118,7 +132,7 @@ private fun WorldClockScreen() {
                     save()
                     query = ""
                 },
-                label = { it },
+                label = { entryName(it, cities) },
             )
         } else if (q.length >= 2) {
             Text(Res.string.nothing_found.str(), style = MaterialTheme.typography.bodyMedium)
@@ -134,7 +148,7 @@ private fun WorldClockScreen() {
             selected = fromZone,
             onSelect = { fromZone = it },
             label = Res.string.zone.str(),
-            text = { it },
+            text = { entryName(it, cities) },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             DateField(dateText, { dateText = it }, Res.string.date.str(), Modifier.weight(1f), isError = parseDate(dateText) == null)
@@ -154,16 +168,16 @@ private fun WorldClockScreen() {
             ErrorText(Res.string.enter_a_date_as_yyyy_mm_dd_and_a_time_as_hh.str())
         } else {
             val epoch = Timestamps.epochSecondsOf(LocalDateTime(date, LocalTime(minutes / 60, minutes % 60))) {
-                timeZoneOffsetSeconds(fromZone, it) ?: 0
+                timeZoneOffsetSeconds(WorldClock.zoneOf(fromZone), it) ?: 0
             }
             ResultCard {
-                zones.forEach { zone ->
-                    val offset = timeZoneOffsetSeconds(zone, epoch)
+                zones.forEach { entry ->
+                    val offset = timeZoneOffsetSeconds(WorldClock.zoneOf(entry), epoch)
                     val text = if (offset == null) "—" else {
                         val t = WorldClock.wallTime(epoch, offset)
                         "${t.date.iso()} ${t.hour.pad2()}:${t.minute.pad2()} (${t.date.dayOfWeek.shortTitle().str()})"
                     }
-                    KeyValueRow(zone, text)
+                    KeyValueRow(entryName(entry, cities), text)
                 }
             }
         }
@@ -171,7 +185,7 @@ private fun WorldClockScreen() {
 }
 
 @Composable
-private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean, onRemove: () -> Unit) {
+private fun ZoneRow(zone: String, name: String, now: Long, localOffset: Int, isLocal: Boolean, onRemove: () -> Unit) {
     val offset = timeZoneOffsetSeconds(zone, now)
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(
@@ -180,7 +194,7 @@ private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean,
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = zoneName(zone) + if (isLocal) " · " + Res.string.world_clock_local.str() else "",
+                    text = name + if (isLocal) " · " + Res.string.world_clock_local.str() else "",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(zone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -206,7 +220,7 @@ private fun ZoneRow(zone: String, now: Long, localOffset: Int, isLocal: Boolean,
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${t.hour.pad2()}:${t.minute.pad2()}:${t.second.pad2()}",
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = monoFamily()),
                     )
                     Text(
                         text = "${t.date.dayOfWeek.shortTitle().str()}, ${t.date.day} ${monthNamesInDate[t.date.month.number - 1].str()}",
@@ -268,3 +282,9 @@ private val zoneNames: Map<String, StringResource> = mapOf(
 // translated for well-known zones, the IANA name otherwise
 @Composable
 private fun zoneName(zone: String): String = zoneNames[zone]?.str() ?: WorldClock.shortName(zone)
+
+@Composable
+private fun entryName(entry: String, cities: List<ClockCity>): String {
+    val city = WorldClock.cityOf(entry)?.let { name -> cities.firstOrNull { it.en == name } }
+    return city?.name(LocalLang.current) ?: zoneName(WorldClock.zoneOf(entry))
+}

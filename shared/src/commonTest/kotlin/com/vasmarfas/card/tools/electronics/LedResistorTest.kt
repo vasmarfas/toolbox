@@ -12,6 +12,9 @@ class LedResistorTest {
         assertEquals(160.0, LedResistor.nextInSeries(151.0, LedResistor.e24), 1e-9)
         assertEquals(1000.0, LedResistor.nextInSeries(950.0, LedResistor.e12), 1e-9)
         assertEquals(150.0, LedResistor.nearestInSeries(160.0, LedResistor.e12), 1e-9)
+        assertEquals(150.0, LedResistor.previousInSeries(179.0, LedResistor.e12), 1e-9)
+        assertEquals(180.0, LedResistor.previousInSeries(180.0, LedResistor.e12), 1e-9)
+        assertEquals(82.0, LedResistor.previousInSeries(99.0, LedResistor.e12), 1e-9)
     }
 
     @Test
@@ -23,5 +26,13 @@ class LedResistorTest {
         assertEquals(0.06, result.power, 1e-9)
         assertEquals(0.125, result.ratingW, 1e-9)
         assertNull(LedResistor.compute(3.0, 2.0, 20.0, 2))
+    }
+
+    @Test
+    fun chainLength() {
+        assertEquals(2, LedResistor.maxInSeries(5.0, 2.0))
+        assertEquals(2, LedResistor.maxInSeries(6.0, 2.0))
+        assertEquals(3, LedResistor.maxInSeries(12.0, 3.2))
+        assertEquals(0, LedResistor.maxInSeries(1.5, 2.0))
     }
 }

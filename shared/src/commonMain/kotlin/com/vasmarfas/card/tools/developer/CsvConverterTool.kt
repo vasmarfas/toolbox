@@ -8,16 +8,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.vasmarfas.card.core.TextDecoding
+import com.vasmarfas.card.core.renamed
+import com.vasmarfas.card.core.saveBytes
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.media.SaveButton
 import com.vasmarfas.card.tools.text.OutputCard
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.LoadedFile
+import com.vasmarfas.card.ui.components.LoadedFileCard
+import com.vasmarfas.card.ui.components.OpenFileButton
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
+import io.github.vinceglb.filekit.size
 import kotlinx.serialization.json.JsonArray
 import org.jetbrains.compose.resources.StringResource
 
@@ -36,22 +46,46 @@ val csvConverterTool = Tool(
     keywords = listOf("csv", "tsv", "json", "markdown", "table", "convert", "spreadsheet", "таблица", "конвертер", "разделитель"),
 ) { CsvConverterScreen() }
 
+// an opened file stays out of saved state: an Android bundle does not take megabytes
+private class OpenedText(val file: LoadedFile, val text: String)
+
+private const val MAX_FILE_BYTES = 20L * 1024 * 1024
+
 @Composable
 private fun CsvConverterScreen() {
     var target by rememberSaveable { mutableStateOf(CsvTarget.JSON) }
-    var input by rememberSaveable { mutableStateOf("") }
+    var typed by rememberSaveable { mutableStateOf("") }
+    var opened by remember { mutableStateOf<OpenedText?>(null) }
+    var fileError by remember { mutableStateOf<String?>(null) }
     var hasHeader by rememberSaveable { mutableStateOf(true) }
     var semicolonOut by rememberSaveable { mutableStateOf(false) }
+    val tooLarge = Res.string.csv_file_too_large.str()
     SegmentedChoice(options = CsvTarget.entries, selected = target, onSelect = { target = it }, label = { it.title.str() })
-    ToolInputField(
-        value = input,
-        onValueChange = { input = it },
-        label = if (target == CsvTarget.CSV) Res.string.json_array_of_objects.str() else "CSV / TSV",
-        singleLine = false,
-        minLines = 6,
-        placeholder = if (target == CsvTarget.CSV) "[{\"name\": \"Ann\", \"age\": 30}]" else "name,age\nAnn,30",
-        monospace = true,
-    )
+    val file = opened
+    if (file == null) {
+        ToolInputField(
+            value = typed,
+            onValueChange = { typed = it },
+            label = if (target == CsvTarget.CSV) Res.string.json_array_of_objects.str() else "CSV / TSV",
+            singleLine = false,
+            minLines = 6,
+            placeholder = if (target == CsvTarget.CSV) "[{\"name\": \"Ann\", \"age\": 30}]" else "name,age\nAnn,30",
+            monospace = true,
+        )
+    } else {
+        LoadedFileCard(file.file) { opened = null }
+    }
+    OpenFileButton(setOf("csv", "tsv", "txt", "json")) { picked ->
+        fileError = null
+        if (picked.size() > MAX_FILE_BYTES) {
+            fileError = tooLarge
+        } else {
+            val bytes = picked.readBytes()
+            runCatching { TextDecoding.decode(bytes) }.onSuccess { opened = OpenedText(LoadedFile(picked.name, bytes), it) }.onFailure { fileError = it.message ?: it.toString() }
+        }
+    }
+    fileError?.let { ErrorText(it) }
+    val input = file?.text ?: typed
     if (target == CsvTarget.CSV) {
         SwitchRow(Res.string.use_semicolon_as_delimiter.str(), semicolonOut, { semicolonOut = it })
     } else {
@@ -76,6 +110,7 @@ private fun CsvConverterScreen() {
             }
             OutputCard(csv)
             KeyValueRow(Res.string.rows.str(), element.size.toString(), copyable = false)
+            SaveButton { saveBytes(csv.encodeToByteArray(), renamed(file?.file?.name ?: "table", "csv")) }
         }
 
         else -> {
@@ -93,6 +128,7 @@ private fun CsvConverterScreen() {
                 if (target == CsvTarget.JSON) JsonTools.format(Csv.toJson(table, hasHeader), 2) else Csv.toMarkdown(table, hasHeader)
             }
             OutputCard(output)
+            SaveButton { saveBytes(output.encodeToByteArray(), renamed(file?.file?.name ?: "table", if (target == CsvTarget.JSON) "json" else "md")) }
         }
     }
 }

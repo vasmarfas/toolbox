@@ -31,7 +31,8 @@ object JsonTools {
         Result.failure(e)
     }
 
-    fun errorMessage(e: Throwable): String = (e.message ?: "Invalid JSON").substringBefore("\nJSON input")
+    // the parser adds a hint for the Json builder and a dump of the input after the first line, both are noise here
+    fun errorMessage(e: Throwable): String = (e.message ?: "Invalid JSON").substringBefore("\n").removeSuffix(" at path: $")
 
     fun format(element: JsonElement, indent: Int): String =
         (if (indent == 4) pretty4 else pretty2).encodeToString(JsonElement.serializer(), element)

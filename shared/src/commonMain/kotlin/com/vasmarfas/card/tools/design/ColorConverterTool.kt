@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,12 +34,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Prefs
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
@@ -46,6 +50,7 @@ import com.vasmarfas.card.ui.components.ToolInputField
 import com.vasmarfas.card.ui.components.ToolSection
 import com.vasmarfas.card.ui.components.expandedHeight
 import com.vasmarfas.card.ui.components.expandedSquare
+import com.vasmarfas.card.ui.components.rememberCopy
 import com.vasmarfas.card.ui.components.trackTouch
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -62,24 +67,35 @@ private enum class PaletteShape(val title: StringResource) {
 
 private enum class ChannelSet { RGB, HSL }
 
+private enum class ColorTab { PICK, PALETTE }
+
+// another tool leaves a color here and opens this one to show it
+const val COLOR_HANDOFF_KEY = "color.handoff"
+
+private val quickColors = listOf("#00696D", "#3F51B5", "#B3261E", "#9C4400", "#006E1C", "#7B4E7F")
+
 val colorConverterTool = Tool(
     id = "color-converter",
     category = ToolCategory.DESIGN,
     title = Res.string.color_converter,
     description = Res.string.color_converter_description,
     icon = Icons.Filled.ColorLens,
-    keywords = listOf("hex", "rgb", "hsl", "hsv", "cmyk", "alpha", "color picker", "color wheel", "color", "цвет", "конвертер", "палитра", "цветовой круг", "прозрачность", "код цвета"),
+    keywords = listOf(
+        "hex", "rgb", "hsl", "hsv", "cmyk", "alpha", "color picker", "color wheel", "color", "palette", "harmony", "complementary", "triadic", "tints",
+        "цвет", "конвертер", "палитра", "цветовой круг", "прозрачность", "код цвета", "гармония", "оттенки",
+    ),
     expandable = true,
 ) { ColorConverterScreen() }
 
 @Composable
 private fun ColorConverterScreen() {
     var input by rememberSaveable { mutableStateOf("#3F51B5") }
-    var withAlpha by rememberSaveable { mutableStateOf(false) }
-    var shape by rememberSaveable { mutableStateOf(PaletteShape.SQUARE) }
-    var channels by rememberSaveable { mutableStateOf(ChannelSet.RGB) }
-    var storedHue by rememberSaveable { mutableStateOf(0f) }
-    var storedSaturation by rememberSaveable { mutableStateOf(1f) }
+    var tab by rememberSaveable { mutableStateOf(ColorTab.PICK) }
+    LaunchedEffect(Unit) {
+        val sent = Prefs.store.get(COLOR_HANDOFF_KEY) ?: return@LaunchedEffect
+        Prefs.store.remove(COLOR_HANDOFF_KEY)
+        input = sent
+    }
     val parsed = remember(input) { ColorMath.parse(input) }
     ToolInputField(
         value = input,
@@ -89,19 +105,39 @@ private fun ColorConverterScreen() {
         isError = input.isNotBlank() && parsed == null,
         monospace = true,
     )
-    SwitchRow(
-        label = Res.string.with_transparency.str(),
-        checked = withAlpha,
-        onCheckedChange = { on ->
-            withAlpha = on
-            parsed?.let { input = if (on) it.hex(withAlpha = true) else it.copy(a = 255).hex() }
-        },
-        description = Res.string.color_alpha_channel_in_hex.str(),
+    ChoiceChips(options = quickColors, selected = input.uppercase(), onSelect = { input = it }, label = { it })
+    SegmentedChoice(
+        options = ColorTab.entries,
+        selected = tab,
+        onSelect = { tab = it },
+        label = { if (it == ColorTab.PICK) Res.string.color_tab_pick.str() else Res.string.palette.str() },
     )
     if (parsed == null) {
         ErrorText(Res.string.unknown_color_format.str())
         return
     }
+    when (tab) {
+        ColorTab.PICK -> ColorPicker(parsed) { input = it }
+        ColorTab.PALETTE -> PaletteTab(parsed.copy(a = 255))
+    }
+}
+
+@Composable
+private fun ColorPicker(parsed: Rgba, onInput: (String) -> Unit) {
+    var withAlpha by rememberSaveable { mutableStateOf(false) }
+    var shape by rememberSaveable { mutableStateOf(PaletteShape.SQUARE) }
+    var channels by rememberSaveable { mutableStateOf(ChannelSet.RGB) }
+    var storedHue by rememberSaveable { mutableStateOf(0f) }
+    var storedSaturation by rememberSaveable { mutableStateOf(1f) }
+    SwitchRow(
+        label = Res.string.with_transparency.str(),
+        checked = withAlpha,
+        onCheckedChange = { on ->
+            withAlpha = on
+            onInput(if (on) parsed.hex(withAlpha = true) else parsed.copy(a = 255).hex())
+        },
+        description = Res.string.color_alpha_channel_in_hex.str(),
+    )
     val color = if (withAlpha) parsed else parsed.copy(a = 255)
     val hsl = ColorMath.toHsl(color)
     val hsv = ColorMath.toHsv(color)
@@ -114,7 +150,7 @@ private fun ColorConverterScreen() {
     fun show(value: Rgba, h: Float = hue, s: Float = saturation) {
         storedHue = h
         storedSaturation = s
-        input = value.hex(withAlpha)
+        onInput(value.hex(withAlpha))
     }
 
     ToolSection(Res.string.palette.str()) {
@@ -205,6 +241,54 @@ private fun ColorConverterScreen() {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun PaletteTab(base: Rgba) {
+    val copy = rememberCopy()
+    WideSwatch(base, base.hex(), ColorMath.hslString(base)) { copy(base.hex()) }
+    Hint(Res.string.palette_copy_hint.str())
+    val groups = listOf(
+        Res.string.complementary to Palette.complementary(base),
+        Res.string.analogous to Palette.analogous(base),
+        Res.string.triadic to Palette.triadic(base),
+        Res.string.tetradic to Palette.tetradic(base),
+        Res.string.split_complementary to Palette.splitComplementary(base),
+        Res.string.tints to Palette.tints(base),
+        Res.string.shades to Palette.shades(base),
+    )
+    groups.forEach { (title, colors) ->
+        ResultCard(title.str()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                colors.forEach { color ->
+                    ColorSwatch(
+                        color = color,
+                        label = color.hex(),
+                        modifier = Modifier.weight(1f),
+                        onClick = { copy(color.hex()) },
+                    )
+                }
+            }
+            Text(
+                text = colors.joinToString(", ") { it.hex() },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    ResultCard(Res.string.tonal_ramp.str()) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            Palette.tonalRamp(base).forEach { (tone, color) ->
+                ColorSwatch(
+                    color = color,
+                    label = tone.toString(),
+                    modifier = Modifier.weight(1f),
+                    height = 52.dp,
+                    onClick = { copy(color.hex()) },
+                )
+            }
+        }
     }
 }
 

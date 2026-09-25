@@ -47,4 +47,15 @@ class BarcodeTest {
         assertEquals("mailto:a@b.c?subject=Hi%20there", QrPayload.mailto("a@b.c", "Hi there", ""))
         assertTrue(QrPayload.vcard("Ann", "", "+7", "", "").startsWith("BEGIN:VCARD"))
     }
+
+    @Test
+    fun wifiCodesAreReadBack() {
+        val wifi = assertNotNull(QrPayload.parseWifi(QrPayload.wifi("home; 5G", "pa;ss:1\\", "WPA", true)))
+        assertEquals("home; 5G", wifi.ssid)
+        assertEquals("pa;ss:1\\", wifi.password)
+        assertEquals("WPA", wifi.security)
+        assertTrue(wifi.hidden)
+        assertEquals("nopass", QrPayload.parseWifi("WIFI:S:cafe;;")?.security)
+        assertNull(QrPayload.parseWifi("https://example.com"))
+    }
 }

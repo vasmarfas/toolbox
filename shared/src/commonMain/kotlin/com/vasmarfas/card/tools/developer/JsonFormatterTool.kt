@@ -30,10 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.LocalLang
+import com.vasmarfas.card.core.TextDecoding
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.fmtGrouped
 import com.vasmarfas.card.core.str
@@ -47,10 +47,14 @@ import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LoadingRow
 import com.vasmarfas.card.ui.components.MonoText
+import com.vasmarfas.card.ui.components.OpenFileButton
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
+import io.github.vinceglb.filekit.readBytes
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -62,6 +66,7 @@ private enum class JsonMode { FORMAT, TREE, MINIFY, ESCAPE, UNESCAPE }
 private const val MAX_INPUT_CHARS = 8 * 1024 * 1024
 private const val MAX_VISIBLE_CHARS = 200_000
 private const val EDITABLE_CHARS = 100_000
+private const val PREVIEW_CHARS = 2_000
 private const val DEBOUNCE_MS = 400L
 
 private class JsonOutcome(
@@ -92,6 +97,7 @@ private fun JsonFormatterScreen() {
     var sortKeys by rememberSaveable { mutableStateOf(false) }
     var outcome by remember { mutableStateOf<JsonOutcome?>(null) }
     var busy by remember { mutableStateOf(false) }
+    var fileError by remember { mutableStateOf<String?>(null) }
     val lang = LocalLang.current
     LaunchedEffect(input, mode, indent, sortKeys, lang) {
         val text = input
@@ -131,12 +137,22 @@ private fun JsonFormatterScreen() {
             }
         },
     )
+    OpenFileButton(setOf("json", "geojson", "txt")) { file ->
+        fileError = null
+        if (file.size() > MAX_INPUT_CHARS) {
+            fileError = theInputIsLargerThan8MbSplitTheDocuText
+            return@OpenFileButton
+        }
+        runCatching { TextDecoding.decode(file.readBytes()) }.onSuccess { input = it }.onFailure { fileError = it.message ?: it.toString() }
+    }
+    fileError?.let { ErrorText(it) }
     if (input.length > EDITABLE_CHARS) {
-        LoadedDocument(input.length) { input = "" }
+        LoadedDocument(input) { input = "" }
     } else {
         ToolInputField(
             value = input,
-            onValueChange = { input = it },
+            // a long paste swaps the field for the card, and on the web the field then reports its stale empty text
+            onValueChange = { if (input.length <= EDITABLE_CHARS) input = it },
             label = when (mode) {
                 JsonMode.ESCAPE -> Res.string.text.str()
                 JsonMode.UNESCAPE -> Res.string.escaped_string.str()
@@ -190,16 +206,22 @@ private fun JsonFormatterScreen() {
 }
 
 @Composable
-private fun LoadedDocument(length: Int, onClear: () -> Unit) {
+private fun LoadedDocument(text: String, onClear: () -> Unit) {
     ResultCard {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                Tr("Document of ${length.fmtGrouped()} characters", "Документ на ${length.fmtGrouped()} символов").str(),
+                Tr("Document of ${text.length.fmtGrouped()} characters", "Документ на ${text.length.fmtGrouped()} символов").str(),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
             TextButton(onClick = onClear) { Text(Res.string.clear.str()) }
         }
+        Text(
+            text.take(PREVIEW_CHARS),
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily()),
+            maxLines = 8,
+            overflow = TextOverflow.Ellipsis,
+        )
         Text(
             Res.string.json_input_field_is_hidden.str(),
             style = MaterialTheme.typography.bodySmall,
@@ -291,7 +313,7 @@ private fun JsonTreeView(outcome: JsonOutcome) {
 
 @Composable
 private fun JsonTreeRow(row: JsonRow, selected: Boolean, onClick: () -> Unit) {
-    val mono = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+    val mono = MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily())
     val guide = MaterialTheme.colorScheme.outlineVariant
     Row(
         modifier = Modifier

@@ -4,16 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.AppPermission
+import com.vasmarfas.card.core.ensurePermission
 import com.vasmarfas.card.core.fmt
+import com.vasmarfas.card.core.locationFlow
+import com.vasmarfas.card.core.locationSupported
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.core.systemTimeZoneId
 import com.vasmarfas.card.core.timeZoneOffsetSeconds
@@ -21,6 +27,7 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.DateField
 import com.vasmarfas.card.ui.components.ErrorText
@@ -28,6 +35,10 @@ import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import kotlin.math.roundToInt
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -35,6 +46,8 @@ import kotlinx.datetime.toInstant
 import org.jetbrains.compose.resources.StringResource
 
 private class City(val name: StringResource, val lat: Double, val lon: Double)
+
+private const val LOCATE_TIMEOUT_MS = 20_000L
 
 private val cities = listOf(
     City(Res.string.city_simferopol, 44.95, 34.10),
@@ -66,6 +79,30 @@ private fun SunriseSunsetScreen() {
         (timeZoneOffsetSeconds(systemTimeZoneId(), noonUtc) ?: 0) / 3600.0
     }
     var offsetText by rememberSaveable { mutableStateOf(systemOffsetHours.fmt(2)) }
+    var locating by remember { mutableStateOf(false) }
+    var locateError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val noAccess = Res.string.gps_location_access_is_needed.str()
+    val noFix = Res.string.location_no_fix.str()
+
+    fun locate() {
+        scope.launch {
+            locating = true
+            locateError = null
+            if (!ensurePermission(AppPermission.LOCATION)) {
+                locateError = noAccess
+            } else {
+                runCatching { withTimeout(LOCATE_TIMEOUT_MS) { locationFlow().first() } }
+                    .onSuccess {
+                        latText = it.latitude.fmt(4)
+                        lonText = it.longitude.fmt(4)
+                        offsetText = systemOffsetHours.fmt(2)
+                    }
+                    .onFailure { locateError = if (it is TimeoutCancellationException) noFix else it.message ?: noFix }
+            }
+            locating = false
+        }
+    }
 
     ChoiceChips(
         options = cities,
@@ -76,6 +113,15 @@ private fun SunriseSunsetScreen() {
         },
         label = { it.name.str() },
     )
+    if (locationSupported()) {
+        ActionButton(
+            text = if (locating) Res.string.waiting_for_a_fix.str() else Res.string.my_location.str(),
+            icon = Icons.Filled.MyLocation,
+            enabled = !locating,
+            onClick = ::locate,
+        )
+    }
+    locateError?.let { ErrorText(it) }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         NumberField(latText, { latText = it }, Res.string.latitude.str(), Modifier.weight(1f), suffix = "°")
         NumberField(lonText, { lonText = it }, Res.string.longitude.str(), Modifier.weight(1f), suffix = "°")

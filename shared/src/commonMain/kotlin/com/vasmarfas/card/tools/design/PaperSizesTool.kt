@@ -14,7 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
@@ -25,6 +24,7 @@ import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolSection
+import com.vasmarfas.card.ui.components.monoFamily
 
 val paperSizesTool = Tool(
     id = "paper-sizes",
@@ -88,7 +88,7 @@ private fun PaperRow(size: PaperSize, dpi: Int, landscape: Boolean) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text("$pixels px", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace))
+            Text("$pixels px", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = monoFamily()))
         }
         CopyIconButton(pixels)
     }

@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Check
@@ -35,8 +38,10 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PhoneIphone
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Shop
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.AssistChip
@@ -45,6 +50,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,11 +63,13 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -73,7 +81,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,11 +91,15 @@ import com.vasmarfas.card.core.Analytics
 import com.vasmarfas.card.core.AnalyticsEvent
 import com.vasmarfas.card.core.AnalyticsParam
 import com.vasmarfas.card.core.PlatformKind
+import com.vasmarfas.card.core.formatBytes
 import com.vasmarfas.card.core.openUrl
+import com.vasmarfas.card.core.pickFiles
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.data.Link
 import com.vasmarfas.card.resources.*
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 val ContentMaxWidth = 1080.dp
@@ -225,8 +236,69 @@ fun ToolInputField(
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         trailingIcon = trailingIcon,
-        textStyle = if (monospace) textStyle.copy(fontFamily = FontFamily.Monospace) else textStyle,
+        textStyle = if (monospace) textStyle.copy(fontFamily = monoFamily()) else textStyle,
     )
+}
+
+@Composable
+fun Hint(text: String, modifier: Modifier = Modifier) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
+}
+
+@Composable
+fun Stepper(label: String, value: Int, range: IntRange, modifier: Modifier = Modifier, onChange: (Int) -> Unit) {
+    var text by remember(value) { mutableStateOf(value.toString()) }
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        FilledTonalIconButton(onClick = { onChange((value - 1).coerceIn(range)) }, enabled = value > range.first) {
+            Icon(Icons.Filled.Remove, contentDescription = null)
+        }
+        OutlinedTextField(
+            value = text,
+            onValueChange = { typed ->
+                text = typed.filter { it.isDigit() }.take(4)
+                text.toIntOrNull()?.takeIf { it in range }?.let(onChange)
+            },
+            label = { Text(label, maxLines = 1) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Center),
+            isError = text.toIntOrNull()?.let { it !in range } ?: true,
+            modifier = Modifier.width(88.dp),
+        )
+        FilledTonalIconButton(onClick = { onChange((value + 1).coerceIn(range)) }, enabled = value < range.last) {
+            Icon(Icons.Filled.Add, contentDescription = null)
+        }
+    }
+}
+
+class LoadedFile(val name: String, val bytes: ByteArray)
+
+@Composable
+fun LoadedFileCard(file: LoadedFile, onClear: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(file.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Hint(formatBytes(file.bytes.size.toLong(), binary = false))
+            }
+            TextButton(onClick = onClear) { Text(Res.string.clear.str()) }
+        }
+    }
+}
+
+@Composable
+fun OpenFileButton(extensions: Set<String> = emptySet(), label: String = Res.string.open_file.str(), onPicked: suspend (PlatformFile) -> Unit) {
+    val scope = rememberCoroutineScope()
+    TextButton(
+        onClick = { scope.launch { runCatching { pickFiles(extensions) }.getOrNull()?.firstOrNull()?.let { onPicked(it) } } },
+        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+    ) {
+        Icon(Icons.Filled.FileOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(label)
+    }
 }
 
 @Composable
@@ -314,7 +386,7 @@ fun KeyValueRow(label: String, value: AnnotatedString, mono: Boolean = true, cop
             SelectionContainer {
                 Text(
                     value,
-                    style = if (mono) MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyMedium,
+                    style = if (mono) MaterialTheme.typography.bodyMedium.copy(fontFamily = monoFamily()) else MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -327,7 +399,7 @@ fun KeyValueRow(label: String, value: AnnotatedString, mono: Boolean = true, cop
 @Composable
 fun MonoText(text: String, modifier: Modifier = Modifier) {
     SelectionContainer(modifier) {
-        Text(text, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace))
+        Text(text, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = monoFamily()))
     }
 }
 
@@ -396,12 +468,14 @@ fun <T> SegmentedChoice(
         minFontSize = 11.sp,
         maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
     )
-    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+    // a label that wraps makes its segment taller, the others stretch to it so the outline stays one piece
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         options.forEachIndexed { index, option ->
             SegmentedButton(
                 selected = option == selected,
                 onClick = { onSelect(option) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                modifier = Modifier.fillMaxHeight(),
                 // The filled container already marks the selection, the check mark would only take 24 dp from the label.
                 icon = {},
                 label = {

@@ -2,6 +2,7 @@ package com.vasmarfas.card.core
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.ui.graphics.ImageBitmap
@@ -26,6 +27,22 @@ actual class PdfRaster private constructor(private val file: File, private val r
                 val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 bitmap.eraseColor(Color.WHITE)
                 source.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                bitmap.asImageBitmap()
+            }
+        }
+    }
+
+    actual suspend fun render(page: Int, pageWidth: Int, x: Int, y: Int, w: Int, h: Int): ImageBitmap = gate.use {
+        withContext(Dispatchers.IO) {
+            renderer.openPage(page).use { source ->
+                val scale = pageWidth.toFloat() / source.width.coerceAtLeast(1)
+                val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                bitmap.eraseColor(Color.WHITE)
+                val transform = Matrix().apply {
+                    setScale(scale, scale)
+                    postTranslate(-x.toFloat(), -y.toFloat())
+                }
+                source.render(bitmap, null, transform, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                 bitmap.asImageBitmap()
             }
         }

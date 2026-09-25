@@ -144,7 +144,7 @@ private fun ValueCard(value: ResistorValue) {
 }
 
 @Composable
-private fun ResistorImage(bands: List<ResistorColor>) {
+fun ResistorImage(bands: List<ResistorColor>) {
     val toleranceIndex = ResistorCode.digitCount(bands.size) + 1
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),

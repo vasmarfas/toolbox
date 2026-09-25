@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,14 +21,15 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.KeyValueRow
-import com.vasmarfas.card.ui.components.MonoTable
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
+import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolSection
 
 private enum class CookingMode { INGREDIENTS, OVEN }
@@ -108,6 +111,7 @@ private fun IngredientsSection() {
 private fun OvenSection() {
     var input by rememberSaveable { mutableStateOf("180") }
     var scale by rememberSaveable { mutableStateOf(TempScale.C) }
+    var fan by rememberSaveable { mutableStateOf(false) }
     val value = input.toDoubleLenient()
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -129,19 +133,26 @@ private fun OvenSection() {
             modifier = Modifier.weight(1f),
         )
     }
+    SwitchRow(Res.string.oven_recipe_for_fan.str(), fan, { fan = it }, description = Res.string.oven_fan_hint.str())
     if (value != null) {
         val celsius = if (scale == TempScale.C) value else Cooking.fahrenheitToCelsius(value)
-        val setting = Cooking.gasMark(celsius)
+        val conventional = if (fan) celsius + Cooking.FAN_OFFSET else celsius
+        val withFan = conventional - Cooking.FAN_OFFSET
+        val setting = Cooking.gasMark(conventional)
         ResultCard {
-            KeyValueRow("°C", celsius.fmt(0))
-            KeyValueRow("°F", Cooking.celsiusToFahrenheit(celsius).fmt(0))
+            KeyValueRow(Res.string.oven_conventional.str(), "${conventional.fmt(0)} °C · ${Cooking.celsiusToFahrenheit(conventional).fmt(0)} °F")
+            KeyValueRow(Res.string.oven_fan.str(), "${withFan.fmt(0)} °C · ${Cooking.celsiusToFahrenheit(withFan).fmt(0)} °F")
             KeyValueRow(Res.string.gas_mark.str(), setting.mark)
-            KeyValueRow(Res.string.oven.str(), setting.description.str(), mono = false, copyable = false)
+            KeyValueRow(Res.string.oven_heat.str(), setting.description.str(), mono = false, copyable = false)
         }
     }
     ToolSection(Res.string.gas_marks.str()) {
-        MonoTable(
-            listOf("Mark  °C    °F") + Cooking.oven.map { "${it.mark.padEnd(6)}${it.celsius.toString().padEnd(6)}${it.fahrenheit}" },
+        SimpleTable(
+            header = listOf(Res.string.gas_mark_short.str(), "°C", "°F", Res.string.oven_fan.str(), Res.string.oven_heat.str()),
+            rows = Cooking.oven.map { listOf(it.mark, "${it.celsius}", "${it.fahrenheit}", "${it.celsius - Cooking.FAN_OFFSET}", it.description.str()) },
+            weights = listOf(0.7f, 0.7f, 0.7f, 1f, 1.6f),
+            mono = false,
         )
+        Text(Res.string.gas_marks_note.str(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

@@ -65,7 +65,7 @@ enum class Interest(val id: String, val group: InterestGroup, val title: StringR
     DOCUMENTS(
         "documents", InterestGroup.EVERYDAY, Res.string.interest_documents, Icons.Filled.Description,
         listOf(
-            "images-to-pdf", "merge-pdf", "document-converter", "pdf-pages", "pdf-to-images", "pdf-to-text", "unlock-pdf",
+            "pdf-editor", "images-to-pdf", "merge-pdf", "document-converter", "pdf-pages", "pdf-to-images", "pdf-to-text", "unlock-pdf",
             "zip-archive", "qr-generator", "number-check", "number-to-words", "paper-sizes", "csv-converter",
         ),
     ),
@@ -76,8 +76,8 @@ enum class Interest(val id: String, val group: InterestGroup, val title: StringR
     TIME(
         "time", InterestGroup.EVERYDAY, Res.string.interest_time, Icons.Filled.Schedule,
         listOf(
-            "stopwatch", "countdown-timer", "date-calculator", "world-clock", "reminder-countdown", "calendar", "working-hours",
-            "age-calculator", "sunrise-sunset",
+            "date-calculator", "countdown-timer", "working-hours", "reminder-countdown", "world-clock", "age-calculator", "calendar",
+            "stopwatch", "sunrise-sunset",
         ),
     ),
     TRAVEL(
@@ -134,7 +134,7 @@ enum class Interest(val id: String, val group: InterestGroup, val title: StringR
     DESIGN(
         "design", InterestGroup.HOBBY, Res.string.interest_design, Icons.Filled.Palette,
         listOf(
-            "color-converter", "color-palette", "contrast-checker", "image-palette", "gradient-generator", "aspect-ratio",
+            "color-converter", "contrast-checker", "image-palette", "gradient-generator", "aspect-ratio",
             "typography-scale", "material-scheme", "css-units", "paper-sizes", "barcode-generator", "qr-generator", "lorem-ipsum",
         ),
     ),
@@ -149,7 +149,7 @@ enum class Interest(val id: String, val group: InterestGroup, val title: StringR
     PRINTING(
         "printing", InterestGroup.HOBBY, Res.string.interest_printing, Icons.Filled.Print,
         listOf(
-            "print-cost", "filament-length-weight", "flow-and-esteps", "layer-settings", "temperature-tower", "print-time-estimate",
+            "print-cost", "filament-guide", "filament-length-weight", "flow-and-esteps", "layer-settings", "temperature-tower", "print-time-estimate",
             "gcode-cheatsheet", "shrinkage-scale", "resin-cost",
         ),
     ),
@@ -180,7 +180,7 @@ enum class Interest(val id: String, val group: InterestGroup, val title: StringR
         "code", InterestGroup.WORK, Res.string.interest_code, Icons.Filled.Code,
         listOf(
             "json-formatter", "base64", "regex-tester", "jwt-decoder", "hash-generator", "uuid-generator", "url-tools",
-            "unix-timestamp", "text-diff", "http-status-codes", "string-escape", "regex-builder", "csv-converter",
+            "unix-timestamp", "text-diff", "http-status-codes", "string-escape", "csv-converter",
             "programmer-calculator", "float-inspector", "semver", "mime-types", "ascii-table", "unicode-inspector",
             "markdown-preview", "http-request", "css-units", "material-scheme", "clipboard-inspector", "lorem-ipsum",
         ),
@@ -201,7 +201,7 @@ enum class Role(val id: String, val title: StringResource, val hint: StringResou
     CREATOR("creator", Res.string.role_creator, Res.string.role_creator_hint, Icons.Filled.Brush, setOf(Interest.PHOTO, Interest.VIDEO, Interest.DESIGN, Interest.MUSIC)),
     SPORT("sport", Res.string.role_sport, Res.string.role_sport_hint, Icons.AutoMirrored.Filled.DirectionsRun, setOf(Interest.SPORT, Interest.HEALTH)),
     TRAVEL("travel", Res.string.role_travel, Res.string.role_travel_hint, Icons.Filled.Luggage, setOf(Interest.TRAVEL, Interest.AUTO)),
-    OTHER("other", Res.string.role_other, Res.string.role_other_hint, Icons.Filled.Explore, setOf(Interest.MONEY, Interest.TIME, Interest.REPAIR, Interest.DOCUMENTS)),
+    OTHER("other", Res.string.role_other, Res.string.role_other_hint, Icons.Filled.Explore, setOf(Interest.MONEY, Interest.DOCUMENTS, Interest.PHOTO, Interest.TIME)),
     ;
 
     companion object {
@@ -219,8 +219,8 @@ object Onboarding {
 
     // what a skipped onboarding leaves on the home screen, all of it runs everywhere
     val STARTER = listOf(
-        "calculator", "unit-converter", "currency-converter", "percentage",
-        "countdown-timer", "stopwatch", "qr-generator", "images-to-pdf",
+        "pdf-editor", "images-to-pdf", "image-compressor", "currency-converter",
+        "percentage", "unit-converter", "qr-generator", "speed-test",
     )
 
     private val runsHere: (String) -> Boolean = { id -> ToolRegistry.byId(id)?.availableHere == true }

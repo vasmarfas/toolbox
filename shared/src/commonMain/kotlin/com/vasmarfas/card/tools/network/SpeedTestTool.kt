@@ -249,7 +249,8 @@ private fun SpeedTestScreen() {
     var job by remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
     val lang = LocalLang.current
-    val sources = builtInSpeedSources + customSources
+    // Yandex answers without CORS headers, a browser page cannot read its probes at all
+    val sources = builtInSpeedSources.filter { currentPlatform != PlatformKind.WEB || it.kind != SpeedSourceKind.YANDEX } + customSources
     val selected = sources.firstOrNull { it.name == sourceName } ?: cloudflareSpeedSource
     val source = if (selected.baseUrl.isBlank()) selected.copy(baseUrl = baseUrl.trim()) else selected
     val titleText = source.title()

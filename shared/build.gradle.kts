@@ -73,6 +73,7 @@ kotlin {
             dependsOn(nonWebMain)
             dependencies {
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.zxing.core)
             }
         }
         jvmMain.get().dependsOn(jvmCommonMain)
@@ -99,6 +100,9 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.media3.transformer)
             implementation(libs.media3.effect)
+            implementation(libs.camerax.camera2)
+            implementation(libs.camerax.lifecycle)
+            implementation(libs.camerax.compose)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -125,6 +129,7 @@ kotlin {
         jvmTest.dependencies {
             // Compose Resources on the JVM loads through Skiko, which needs the desktop runtime present.
             implementation(compose.desktop.currentOs)
+            implementation(compose.desktop.uiTestJUnit4)
             implementation(libs.commons.imaging)
         }
         commonTest.dependencies {
@@ -273,7 +278,13 @@ tasks.matching { it.name.contains("Framework") }.configureEach {
 tasks.named<Test>("jvmTest") {
     systemProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl")
     systemProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.Jdk14Logger")
+    // store screenshots render only when asked: ./gradlew :shared:jvmTest --tests "*StoreShots*" -PstoreShots=<folder>
+    providers.gradleProperty("storeShots").orNull?.let { systemProperty("store.shots", it) }
+    providers.gradleProperty("storeOnly").orNull?.let { systemProperty("store.only", it) }
+    providers.gradleProperty("storePick").orNull?.let { systemProperty("store.pick", it) }
 }
+
+apply(from = "mac-vendors.gradle.kts")
 
 compose.resources {
     publicResClass = true

@@ -20,13 +20,13 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.tools.documents.pdf.PdfText
-import com.vasmarfas.card.tools.media.Hint
 import com.vasmarfas.card.tools.media.PickButton
 import com.vasmarfas.card.tools.media.SaveButton
 import com.vasmarfas.card.tools.media.TaskProgress
 import com.vasmarfas.card.tools.media.TaskState
 import com.vasmarfas.card.ui.components.CopyIconButton
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SelectableText
 import io.github.vinceglb.filekit.name

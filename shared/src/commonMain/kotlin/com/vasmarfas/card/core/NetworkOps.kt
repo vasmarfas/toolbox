@@ -88,6 +88,8 @@ expect suspend fun icmpPing(host: String, sequence: Int, timeoutMs: Int, ttl: In
 
 expect suspend fun tcpConnect(host: String, port: Int, timeoutMs: Int): Long?
 
+expect suspend fun httpPing(url: String, timeoutMs: Int): Long
+
 expect suspend fun resolveHost(host: String): List<String>
 
 expect suspend fun reverseLookup(address: String): String?

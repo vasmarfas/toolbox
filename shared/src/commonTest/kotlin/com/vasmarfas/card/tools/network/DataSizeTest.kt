@@ -1,4 +1,4 @@
-package com.vasmarfas.card.tools.converters
+package com.vasmarfas.card.tools.network
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

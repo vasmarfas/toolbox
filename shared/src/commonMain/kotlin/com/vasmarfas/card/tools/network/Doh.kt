@@ -42,6 +42,8 @@ enum class DnsResolver(val label: StringResource, val dohUrl: String?, val dohFl
     DNS4EU(Res.string.dns4eu_86_54_11_1, "https://unfiltered.joindns4.eu/dns-query", DohFlavour.AUTO, "86.54.11.1", Res.string.eu_public_resolver_unfiltered),
     COMSS(Res.string.comss_one, "https://dns.comss.one/dns-query", DohFlavour.AUTO, null, Res.string.nodes_in_russia_and_europe),
     YANDEX(Res.string.yandex_77_88_8_8, null, DohFlavour.AUTO, "77.88.8.8", Res.string.udp_only),
+    YANDEX_SAFE(Res.string.yandex_safe_77_88_8_88, null, DohFlavour.AUTO, "77.88.8.88", Res.string.yandex_dns_safe),
+    YANDEX_FAMILY(Res.string.yandex_family_77_88_8_7, null, DohFlavour.AUTO, "77.88.8.7", Res.string.yandex_dns_family),
     CUSTOM(Res.string.custom_udp_server, null, DohFlavour.AUTO, null, Res.string.any_dns_server_over_udp_53);
 
     val usableHere: Boolean get() = dohUrl != null || (udpAddress != null || this == CUSTOM) && NetCapabilities.udp

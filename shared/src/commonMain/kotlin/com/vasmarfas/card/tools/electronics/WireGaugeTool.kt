@@ -13,15 +13,19 @@ import com.vasmarfas.card.core.toDoubleLenient
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.DropdownChoice
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
-import com.vasmarfas.card.ui.components.MonoTable
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.ToolSection
+import kotlin.math.abs
 
 private enum class WireLookup { AWG, AREA, DIAMETER }
+
+private enum class WireTable { AWG, METRIC }
 
 val wireGaugeTool = Tool(
     id = "wire-gauge",
@@ -37,7 +41,10 @@ private fun WireGaugeScreen() {
     var lookup by rememberSaveable { mutableStateOf(WireLookup.AWG) }
     var awg by rememberSaveable { mutableStateOf(14) }
     var valueText by rememberSaveable { mutableStateOf("2.5") }
+    var table by rememberSaveable { mutableStateOf(WireTable.AWG) }
     val value = valueText.toDoubleLenient()?.takeIf { it > 0 }
+    val mm = Res.string.unit_mm.str()
+    val mm2 = Res.string.unit_mm2.str()
     SegmentedChoice(
         options = WireLookup.entries,
         selected = lookup,
@@ -45,7 +52,7 @@ private fun WireGaugeScreen() {
         label = {
             when (it) {
                 WireLookup.AWG -> "AWG"
-                WireLookup.AREA -> Res.string.unit_mm2.str()
+                WireLookup.AREA -> mm2
                 WireLookup.DIAMETER -> Res.string.diameter.str()
             }
         },
@@ -57,7 +64,7 @@ private fun WireGaugeScreen() {
                 selected = WireGauge.table.first { it.awg == awg },
                 onSelect = { awg = it.awg },
                 label = "AWG",
-                text = { "AWG ${it.label} · ${it.areaMm2.fmt(2)} ${Res.string.unit_mm2.str()}" },
+                text = { "AWG ${it.label} · ${it.areaMm2.fmt(2)} $mm2" },
             )
             WireGauge.table.first { it.awg == awg }
         }
@@ -66,7 +73,7 @@ private fun WireGaugeScreen() {
                 value = valueText,
                 onValueChange = { valueText = it },
                 label = Res.string.cross_section.str(),
-                suffix = Res.string.unit_mm2.str(),
+                suffix = mm2,
                 isError = valueText.isNotBlank() && value == null,
             )
             value?.let { WireGauge.nearest(WireGauge.awgFromArea(it)) }
@@ -76,7 +83,7 @@ private fun WireGaugeScreen() {
                 value = valueText,
                 onValueChange = { valueText = it },
                 label = Res.string.conductor_diameter.str(),
-                suffix = Res.string.unit_mm.str(),
+                suffix = mm,
                 isError = valueText.isNotBlank() && value == null,
             )
             value?.let { WireGauge.nearest(WireGauge.awgFromDiameter(it)) }
@@ -89,21 +96,32 @@ private fun WireGaugeScreen() {
                 KeyValueRow(Res.string.exact_awg.str(), exact.fmt(2))
             }
             KeyValueRow(Res.string.nearest_awg.str(), row.label)
-            KeyValueRow(Res.string.diameter.str(), "${row.diameterMm.fmt(3)} ${Res.string.unit_mm.str()}")
-            KeyValueRow(Res.string.cross_section.str(), "${row.areaMm2.fmt(3)} ${Res.string.unit_mm2.str()}")
+            KeyValueRow(Res.string.diameter.str(), "${row.diameterMm.fmt(3)} $mm")
+            KeyValueRow(Res.string.cross_section.str(), "${row.areaMm2.fmt(3)} $mm2")
             KeyValueRow(Res.string.copper_resistance.str(), "${row.ohmsPerKm.fmt(3)} ${Res.string.unit_ohm_km.str()}")
             KeyValueRow(Res.string.ampacity_chassis_wiring.str(), "${row.chassisAmps.fmt(2)} ${Res.string.unit_a.str()}")
             KeyValueRow(Res.string.ampacity_power_transmission.str(), "${row.transmissionAmps.fmt(3)} ${Res.string.unit_a.str()}")
+            Hint(Res.string.wire_current_hint.str())
         }
     }
     ToolSection(Res.string.awg_table_copper.str()) {
-        val header = listOf("AWG", Res.string.unit_mm.str(), Res.string.unit_mm2.str(), Res.string.unit_ohm_km.str(), Res.string.wire_header_chassis.str(), Res.string.wire_header_power.str())
-        MonoTable(
-            listOf(header.zip(listOf(6, 8, 9, 10, 11, 0)) { name, width -> name.padEnd(width) }.joinToString("")) +
-                WireGauge.table.map {
-                    it.label.padEnd(6) + it.diameterMm.fmt(3).padEnd(8) + it.areaMm2.fmt(3).padEnd(9) +
-                        it.ohmsPerKm.fmt(3).padEnd(10) + it.chassisAmps.fmt(2).padEnd(11) + it.transmissionAmps.fmt(3)
-                },
-        )
+        SegmentedChoice(options = WireTable.entries, selected = table, onSelect = { table = it }, label = { if (it == WireTable.AWG) "AWG" else mm2 })
+        when (table) {
+            WireTable.AWG -> SimpleTable(
+                header = listOf("AWG", mm2, "Ø $mm", Res.string.wire_header_chassis.str()),
+                rows = WireGauge.table.map { listOf(it.label, it.areaMm2.fmt(3), it.diameterMm.fmt(3), it.chassisAmps.fmt(2)) },
+                highlight = row?.let { WireGauge.table.indexOf(it) },
+            )
+            WireTable.METRIC -> {
+                val area = if (lookup == WireLookup.AREA) value else row?.areaMm2
+                SimpleTable(
+                    header = listOf(mm2, "Ø $mm", "≈ AWG", Res.string.unit_ohm_km.str()),
+                    rows = WireGauge.metric.map {
+                        listOf(it.fmt(2), WireGauge.diameterFromArea(it).fmt(2), WireGauge.nearest(WireGauge.awgFromArea(it)).label, WireGauge.ohmsPerKm(it).fmt(2))
+                    },
+                    highlight = area?.let { a -> WireGauge.metric.indices.minBy { abs(WireGauge.metric[it] - a) } },
+                )
+            }
+        }
     }
 }

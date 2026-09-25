@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,9 +16,15 @@ import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.LoadedFile
+import com.vasmarfas.card.ui.components.OpenFileButton
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
+import io.github.vinceglb.filekit.size
 
 private const val MAX_ROWS = 60
 
@@ -30,9 +37,18 @@ val mimeTypesTool = Tool(
     keywords = listOf("mime", "media type", "content-type", "extension", "file type", "тип файла", "расширение", "content type"),
 ) { MimeTypesScreen() }
 
+private const val PROBE_BYTES = 2 * 1024 * 1024
+private const val MAX_READ_BYTES = 256L * 1024 * 1024
+
 @Composable
 private fun MimeTypesScreen() {
     var query by rememberSaveable { mutableStateOf("") }
+    var probed by remember { mutableStateOf<LoadedFile?>(null) }
+    OpenFileButton(label = Res.string.mime_detect_file.str()) { picked ->
+        val bytes = if (picked.size() > MAX_READ_BYTES) ByteArray(0) else picked.readBytes()
+        probed = LoadedFile(picked.name, if (bytes.size > PROBE_BYTES) bytes.copyOf(PROBE_BYTES / 2) + bytes.copyOfRange(bytes.size - PROBE_BYTES / 2, bytes.size) else bytes)
+    }
+    probed?.let { FileTypeCard(it) { probed = null } }
     ToolInputField(
         value = query,
         onValueChange = { query = it },
@@ -52,5 +68,29 @@ private fun MimeTypesScreen() {
         if (found.size > MAX_ROWS) {
             Text(Tr("Only the first $MAX_ROWS are shown, refine the search.", "Показаны первые $MAX_ROWS, уточните запрос.").str(), style = MaterialTheme.typography.bodySmall)
         }
+    }
+}
+
+@Composable
+private fun FileTypeCard(file: LoadedFile, onClear: () -> Unit) {
+    val content = remember(file) { FileSignatures.detect(file.bytes) }
+    val extension = file.name.substringAfterLast('.', "").lowercase()
+    val byName = MimeTypes.all.firstOrNull { t -> extension.isNotEmpty() && extension in t.extensions }
+    ResultCard(file.name) {
+        KeyValueRow(
+            Res.string.mime_by_content.str(),
+            content?.let { kind -> MimeTypes.all.firstOrNull { it.type == kind.mime }?.let { "${kind.mime} · ${it.description}" } ?: kind.mime }
+                ?: Res.string.mime_not_recognised.str(),
+            mono = false,
+        )
+        KeyValueRow(
+            Res.string.mime_by_extension.str(),
+            byName?.let { "${it.type} · ${it.description}" } ?: Res.string.mime_not_recognised.str(),
+            mono = false,
+        )
+        if (content != null && byName != null && content.mime != byName.type && content.extension != extension) {
+            Hint(Res.string.mime_mismatch.str())
+        }
+        TextButton(onClick = onClear) { Text(Res.string.clear.str()) }
     }
 }

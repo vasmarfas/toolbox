@@ -45,6 +45,7 @@ private fun FuelCostScreen() {
     var priceUnit by rememberSaveable { mutableStateOf(PriceUnit.LITRE) }
     var passengersText by rememberSaveable { mutableStateOf("1") }
     var roundTrip by rememberSaveable { mutableStateOf(false) }
+    var driverFree by rememberSaveable { mutableStateOf(false) }
     val distance = distanceText.toDoubleLenient()?.takeIf { it >= 0 }
     val consumption = consumptionText.toDoubleLenient()?.takeIf { it > 0 }
     val price = priceText.toDoubleLenient()?.takeIf { it >= 0 }
@@ -123,12 +124,23 @@ private fun FuelCostScreen() {
         checked = roundTrip,
         onCheckedChange = { roundTrip = it },
     )
+    SwitchRow(
+        label = Res.string.driver_does_not_pay.str(),
+        checked = driverFree,
+        onCheckedChange = { driverFree = it },
+        description = Res.string.driver_does_not_pay_hint.str(),
+    )
     if (distance != null && consumption != null && price != null && passengers != null) {
-        val result = FuelCost.compute(distance, distanceUnit, consumption, consumptionUnit, price, priceUnit, passengers, roundTrip)
+        val payers = if (driverFree) passengers - 1 else passengers
+        val result = FuelCost.compute(distance, distanceUnit, consumption, consumptionUnit, price, priceUnit, payers, roundTrip)
         AnswerCard(result.cost.fmt(2, grouping = true), Res.string.trip_cost.str(), copyValue = result.cost.fmt(2))
         ResultCard {
             KeyValueRow(Res.string.fuel_needed.str(), "${result.litres.fmt(1)} ${Res.string.unit_l.str()}")
-            if (passengers > 1) KeyValueRow(Res.string.per_person.str(), result.perPerson.fmt(2, grouping = true))
+            if (driverFree && payers >= 1) {
+                KeyValueRow(Res.string.per_passenger.str(), result.perPerson.fmt(2, grouping = true))
+            } else if (!driverFree && payers > 1) {
+                KeyValueRow(Res.string.per_person.str(), result.perPerson.fmt(2, grouping = true))
+            }
             KeyValueRow(Res.string.cost_per_100_km.str(), result.costPer100km.fmt(2, grouping = true))
             KeyValueRow(Res.string.total_distance.str(), "${result.distanceKm.fmt(1)} ${Res.string.unit_km.str()}")
             KeyValueRow("${Res.string.unit_l.str()}/100 ${Res.string.unit_km.str()}", FuelCost.litresPer100km(consumption, consumptionUnit).fmt(2), copyable = false)

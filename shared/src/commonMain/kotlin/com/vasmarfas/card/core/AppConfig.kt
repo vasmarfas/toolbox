@@ -16,4 +16,15 @@ object AppConfig {
         if (siteHost()?.endsWith("vasmarfas.ru") == true) "$SITE_RU/content" else RAW_BASE
 
     fun contentUrl(name: String): String = "${contentBase()}/$name"
+
+    // the site the visitor is on, in the apps the one of the interface language. Examples in tools point here
+    fun site(): String {
+        val host = siteHost()
+        return when {
+            host?.endsWith("vasmarfas.ru") == true -> SITE_RU
+            host != null -> SITE_COM
+            appLang == Lang.RU -> SITE_RU
+            else -> SITE_COM
+        }
+    }
 }

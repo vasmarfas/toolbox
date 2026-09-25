@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.LocalLang
@@ -22,6 +21,7 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 
 val phoneticAlphabetTool = Tool(
     id = "phonetic-alphabet",
@@ -56,7 +56,7 @@ private fun PhoneticAlphabetScreen() {
             Row {
                 Text(
                     item.char.toString(),
-                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = monoFamily(), fontWeight = FontWeight.Bold),
                     modifier = Modifier.width(40.dp),
                 )
                 Text(item.word ?: if (item.char == ' ') space else "—", style = MaterialTheme.typography.bodyLarge)

@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.VideoFile
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -227,9 +225,4 @@ internal fun qualityLabel(quality: VideoQuality): String = when (quality) {
     VideoQuality.HIGH -> Res.string.quality_high.str()
     VideoQuality.MEDIUM -> Res.string.quality_medium.str()
     VideoQuality.LOW -> Res.string.quality_low.str()
-}
-
-@Composable
-internal fun Hint(text: String) {
-    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

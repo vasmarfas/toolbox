@@ -2,7 +2,7 @@ package com.vasmarfas.card.tools.text
 
 enum class MorseAlphabet { LATIN, CYRILLIC }
 
-data class MorseStep(val tone: Boolean, val ms: Int)
+data class MorseStep(val tone: Boolean, val ms: Int, val letter: Int = -1, val symbol: Int = -1)
 
 object Morse {
     const val UNIT_MS = 80
@@ -33,6 +33,11 @@ object Morse {
     private val latinDecode = (latin + common).entries.associate { it.value to it.key }
     private val cyrillicDecode = (cyrillic.filterKeys { it != 'ё' } + common).entries.associate { it.value to it.key }
 
+    fun letters(alphabet: MorseAlphabet): Map<String, Char> =
+        (if (alphabet == MorseAlphabet.LATIN) latin else cyrillic.filterKeys { it != 'ё' }).entries.associate { it.value to it.key }
+
+    fun codes(morse: String): List<String> = Regex("[.-]+").findAll(morse).map { it.value }.toList()
+
     fun encode(text: String): String {
         val words = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
         return words.joinToString(" / ") { word ->
@@ -55,16 +60,20 @@ object Morse {
 
     fun schedule(morse: String): List<MorseStep> {
         val steps = mutableListOf<MorseStep>()
+        var letter = -1
+        var symbol = 0
         var i = 0
         while (i < morse.length) {
-            when (morse[i]) {
-                '.' -> {
-                    steps += MorseStep(true, UNIT_MS)
-                    steps += MorseStep(false, UNIT_MS)
-                }
-                '-' -> {
-                    steps += MorseStep(true, UNIT_MS * 3)
-                    steps += MorseStep(false, UNIT_MS)
+            val c = morse[i]
+            if ((c == '.' || c == '-') && (i == 0 || morse[i - 1] != '.' && morse[i - 1] != '-')) {
+                letter++
+                symbol = 0
+            }
+            when (c) {
+                '.', '-' -> {
+                    steps += MorseStep(true, if (c == '.') UNIT_MS else UNIT_MS * 3, letter, symbol)
+                    steps += MorseStep(false, UNIT_MS, letter, symbol)
+                    symbol++
                 }
                 '/' -> steps += MorseStep(false, UNIT_MS * 7)
                 ' ' -> {

@@ -24,6 +24,12 @@ private fun jsLanguage(): String = js("(navigator.language || 'en')")
 
 private fun jsPlatform(): String = js("(navigator.platform || '')")
 
+private fun jsCoarsePointer(): Boolean = js("window.matchMedia('(pointer: coarse)').matches")
+
+actual val pullToReload: Boolean = jsCoarsePointer()
+
+actual fun reloadPage() = window.location.reload()
+
 fun hideWebSplash() = jsHideSplash()
 
 private fun detectOs(ua: String): Pair<String, String> {

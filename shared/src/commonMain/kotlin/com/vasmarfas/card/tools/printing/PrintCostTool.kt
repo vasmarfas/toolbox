@@ -20,6 +20,7 @@ import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
@@ -53,19 +54,6 @@ private fun PrintCostScreen() {
     var failureText by rememberSaveable { mutableStateOf("10") }
     var markupText by rememberSaveable { mutableStateOf("100") }
 
-    DropdownChoice(
-        options = FilamentMaterial.entries,
-        selected = material,
-        onSelect = { material = it },
-        label = Res.string.material.str(),
-        text = { it.title.str() },
-    )
-    SegmentedChoice(
-        options = filamentDiameters,
-        selected = diameter,
-        onSelect = { diameter = it },
-        label = { "${it.fmt(2)} ${Res.string.unit_mm.str()}" },
-    )
     SegmentedChoice(
         options = AmountMode.entries,
         selected = mode,
@@ -84,6 +72,20 @@ private fun PrintCostScreen() {
             isError = weight == null || weight <= 0,
         )
     } else {
+        DropdownChoice(
+            options = FilamentMaterial.entries,
+            selected = material,
+            onSelect = { material = it },
+            label = Res.string.material.str(),
+            text = { it.title.str() },
+        )
+        SegmentedChoice(
+            options = filamentDiameters,
+            selected = diameter,
+            onSelect = { diameter = it },
+            label = { "${it.fmt(2)} ${Res.string.unit_mm.str()}" },
+        )
+        Hint(Res.string.print_cost_material_hint.str())
         NumberField(
             value = lengthText,
             onValueChange = { lengthText = it },
@@ -186,12 +188,13 @@ private fun PrintCostScreen() {
     }
 
     val totalHours = hours + minutes / 60.0
-    val metres = Filament.lengthM(grams, diameter, material.density)
     val cost = PrintEconomics.printCost(grams, price, totalHours, power, kwh, failure, markup)
     ResultCard(Res.string.material.str()) {
         KeyValueRow(Res.string.weight.str(), "${grams.fmt(1)} ${Res.string.unit_g.str()}")
-        KeyValueRow(Res.string.filament_length.str(), "${metres.fmt(2)} ${Res.string.unit_m.str()}")
-        KeyValueRow(Res.string.volume.str(), "${(grams / material.density).fmt(2)} ${Res.string.unit_cm3.str()}")
+        if (mode == AmountMode.LENGTH && length != null) {
+            KeyValueRow(Res.string.filament_length.str(), "${length.fmt(2)} ${Res.string.unit_m.str()}")
+            KeyValueRow(Res.string.volume.str(), "${(grams / material.density).fmt(2)} ${Res.string.unit_cm3.str()}")
+        }
         KeyValueRow(Res.string.share_of_a_spool.str(), "${(grams / spool * 100).fmt(1)} %")
         KeyValueRow(Res.string.prints_per_spool.str(), (spool / grams).fmt(1))
     }

@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.keyboardDialogProperties
@@ -150,7 +149,7 @@ private fun SearchDialog(title: String, labels: List<String>, selected: Int, onS
 fun MonoTable(lines: List<String>, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
         lines.forEach { line ->
-            Text(line, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), softWrap = false)
+            Text(line, style = MaterialTheme.typography.bodySmall.copy(fontFamily = monoFamily()), softWrap = false)
         }
     }
 }

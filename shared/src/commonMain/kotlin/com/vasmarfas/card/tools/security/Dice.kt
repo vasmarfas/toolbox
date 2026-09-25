@@ -1,6 +1,6 @@
 package com.vasmarfas.card.tools.security
 
-data class DiceRoll(val notation: String, val rolls: List<Int>, val modifier: Int) {
+data class DiceRoll(val notation: String, val sides: Int, val rolls: List<Int>, val modifier: Int) {
     val total: Int get() = rolls.sum() + modifier
 }
 
@@ -13,7 +13,7 @@ object Dice {
         val sides = m.groupValues[2].toIntOrNull() ?: return null
         if (count !in 1..100 || sides !in 2..1000) return null
         val modifier = m.groupValues[3].takeIf { it.isNotEmpty() }?.toIntOrNull() ?: 0
-        return DiceRoll(text.trim(), List(count) { PasswordGen.randomInt(sides) + 1 }, modifier)
+        return DiceRoll(text.trim(), sides, List(count) { PasswordGen.randomInt(sides) + 1 }, modifier)
     }
 
     fun intInRange(from: Int, to: Int): Int = from + PasswordGen.randomInt(to - from + 1)

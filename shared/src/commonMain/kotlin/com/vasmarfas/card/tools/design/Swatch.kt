@@ -20,11 +20,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vasmarfas.card.ui.components.monoFamily
 
 fun Rgba.toColor(): Color = Color(r / 255f, g / 255f, b / 255f, a / 255f)
 
@@ -85,7 +85,7 @@ fun ColorSwatch(
             if (caption != null) {
                 Text(
                     text = caption,
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = monoFamily()),
                     color = color.readableOn(),
                     textAlign = TextAlign.Center,
                     maxLines = 1,

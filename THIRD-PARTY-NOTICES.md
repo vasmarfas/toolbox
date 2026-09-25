@@ -22,6 +22,9 @@ Full text: [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt)
 | OkHttp | Square, Inc. |
 | Firebase Crashlytics, Firebase Performance Monitoring | Google LLC |
 | AndroidX Media3 (transformer, effect, common) | The Android Open Source Project |
+| AndroidX CameraX (camera-camera2, camera-lifecycle, camera-compose) | The Android Open Source Project |
+| ZXing core (Android and desktop builds) | ZXing authors |
+| zxing-cpp, compiled to WebAssembly inside `zxing-wasm` (website) | Axel Waggershauser and zxing-cpp contributors |
 | Apache PDFBox with FontBox and pdfbox-io (desktop builds) | The Apache Software Foundation |
 | Apache Commons Logging, pulled in by PDFBox (desktop builds) | The Apache Software Foundation |
 | JavaCPP (desktop builds) | Samuel Audet |
@@ -34,6 +37,8 @@ Full text: [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt)
 **qrose** — Copyright (c) 2023 Alexander Zhirkevich
 
 **FileKit** — Copyright (c) 2026 Vincent Guillebaud
+
+**zxing-wasm** (website, loaded from its own `vendor/` folder when the scanner opens) — Copyright (c) 2023 Ze-Zheng Wu
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 > and associated documentation files (the "Software"), to deal in the Software without

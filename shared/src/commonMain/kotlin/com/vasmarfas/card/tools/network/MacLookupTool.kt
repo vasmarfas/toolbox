@@ -9,28 +9,29 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import com.vasmarfas.card.core.Net
+import com.vasmarfas.card.core.LocalLang
+import com.vasmarfas.card.core.PlatformKind
+import com.vasmarfas.card.core.currentPlatform
+import com.vasmarfas.card.core.regionName
 import com.vasmarfas.card.core.secureRandomBytes
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
-import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LoadingRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonObject
+import org.jetbrains.compose.resources.stringResource
 
 val macLookupTool = Tool(
     id = "mac-lookup",
@@ -47,6 +48,8 @@ object MacAddress {
         return if (hex.length == 12) hex else null
     }
 
+    fun prefix(input: String): String? = input.trim().replace(Regex("[^0-9A-Fa-f]"), "").uppercase().takeIf { it.length in 6..12 }
+
     fun colon(hex: String) = hex.chunked(2).joinToString(":")
     fun hyphen(hex: String) = hex.chunked(2).joinToString("-")
     fun dotted(hex: String) = hex.lowercase().chunked(4).joinToString(".")
@@ -61,50 +64,69 @@ object MacAddress {
 
 @Composable
 private fun MacLookupScreen() {
-    val notFoundUnregisteredOrRandomizedText = Res.string.mac_not_found_unregistered.str()
+    val lang = LocalLang.current
     var input by rememberSaveable { mutableStateOf("4C:5E:0C:12:34:56") }
-    var loading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var vendor by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
-    val scope = rememberCoroutineScope()
+    val registry by produceState<MacRegistry?>(null) { value = runCatching { MacVendors.registry() }.getOrNull() }
     val hex = MacAddress.normalize(input)
-
-    fun lookup() {
-        val mac = hex ?: return
-        loading = true; error = null; vendor = null
-        scope.launch {
-            runCatching {
-                val text = Net.client.get("https://api.maclookup.app/v2/macs/${MacAddress.colon(mac)}").bodyAsText()
-                val json = Net.json.parseToJsonElement(text).jsonObject
-                fun s(k: String) = (json[k] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() && it != "null" }
-                if (s("found") == "false") listOf("Vendor" to notFoundUnregisteredOrRandomizedText)
-                else listOfNotNull(
-                    s("company")?.let { "Vendor" to it },
-                    s("address")?.let { "Address" to it },
-                    s("country")?.let { "Country" to it },
-                    s("macPrefix")?.let { "Prefix" to it },
-                    s("blockStart")?.let { "Block" to "$it – ${s("blockEnd") ?: ""} (${s("blockType") ?: ""})" },
-                    s("updated")?.let { "Updated" to it },
-                )
-            }.onSuccess { vendor = it }.onFailure { error = it.message ?: it.toString() }
-            loading = false
-        }
-    }
+    val prefix = MacAddress.prefix(input)
+    var answers by remember(prefix) { mutableStateOf<List<MacAnswer>?>(null) }
+    var checking by remember(prefix) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     ToolInputField(
         value = input,
         onValueChange = { input = it },
         label = Res.string.mac_address.str(),
         placeholder = "00:1A:2B:3C:4D:5E · 001a.2b3c.4d5e · 001A2B3C4D5E",
-        isError = input.isNotBlank() && hex == null,
+        isError = input.isNotBlank() && prefix == null,
         monospace = true,
     )
+    val online = currentPlatform != PlatformKind.WEB
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ActionButton(text = Res.string.find_vendor.str(), onClick = ::lookup, enabled = hex != null && !loading)
-        TextButton(onClick = { input = MacAddress.colon(MacAddress.random()); vendor = null }) { Text(Res.string.random_mac.str()) }
+        if (online) {
+            ActionButton(
+                text = Res.string.mac_check_online.str(),
+                onClick = {
+                    val mac = prefix ?: return@ActionButton
+                    checking = true
+                    scope.launch {
+                        answers = MacVendors.online(mac)
+                        checking = false
+                    }
+                },
+                enabled = prefix != null && !checking,
+            )
+        }
+        TextButton(onClick = { input = MacAddress.colon(MacAddress.random()) }) { Text(Res.string.random_mac.str()) }
     }
-    if (loading) LoadingRow()
-    error?.let { ErrorText(it) }
+    if (!online) Hint(Res.string.mac_web_no_vendor.str())
+    if (prefix != null) {
+        val block = registry?.find(prefix)
+        ResultCard {
+            when {
+                block != null -> {
+                    KeyValueRow(Res.string.mac_vendor.str(), block.vendor, mono = false)
+                    block.country?.let { KeyValueRow(Res.string.country.str(), regionName(it, lang) ?: it, mono = false, copyable = false) }
+                    KeyValueRow(Res.string.mac_block.str(), "${block.type} · ${MacAddress.colon(block.first)} – ${MacAddress.colon(block.last)}", copyable = false)
+                }
+                registry == null -> LoadingRow()
+                MacAddress.isLocal(prefix) -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_local_no_vendor.str(), mono = false, copyable = false)
+                else -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_not_found_unregistered.str(), mono = false, copyable = false)
+            }
+            registry?.let { KeyValueRow(Res.string.source.str(), stringResource(Res.string.mac_ieee_registry, it.date), mono = false, copyable = false) }
+            if (checking) LoadingRow()
+            answers?.forEach { answer ->
+                val vendor = answer.vendor
+                val text = when {
+                    answer.failed -> Res.string.mac_no_answer.str()
+                    vendor == null -> Res.string.mac_not_found_short.str()
+                    block != null && MacVendors.sameVendor(block.vendor, vendor) -> Res.string.mac_same.str()
+                    else -> vendor
+                }
+                KeyValueRow(answer.source, text, mono = false, copyable = text == vendor)
+            }
+        }
+    }
     if (hex != null) {
         ResultCard {
             KeyValueRow(Res.string.mac_format_colon.str(), MacAddress.colon(hex))
@@ -121,7 +143,6 @@ private fun MacLookupScreen() {
             KeyValueRow("EUI-64", hex.substring(0, 6) + "FFFE" + hex.substring(6), mono = true)
             val modified = ((hex.substring(0, 2).toInt(16) xor 0x02).toString(16).padStart(2, '0').uppercase()) + hex.substring(2, 6) + "FFFE" + hex.substring(6)
             KeyValueRow("IPv6 link-local", "fe80::" + modified.lowercase().chunked(4).joinToString(":").replace(Regex("(^|:)0+(?=[0-9a-f])"), "$1"))
-            vendor?.forEach { (k, v) -> KeyValueRow(k, v, mono = false) }
         }
     }
 }

@@ -6,15 +6,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
-import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
@@ -23,9 +22,13 @@ import com.vasmarfas.card.tools.text.OutputCard
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.MonoTable
 import com.vasmarfas.card.ui.components.ResultCard
+import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 import com.vasmarfas.card.ui.theme.LocalStatusColors
+
+private enum class RegexTab { TEST, BUILD }
 
 val regexTesterTool = Tool(
     id = "regex-tester",
@@ -33,16 +36,58 @@ val regexTesterTool = Tool(
     title = Res.string.regex_tester,
     description = Res.string.regex_tester_description,
     icon = Icons.Filled.FindInPage,
-    keywords = listOf("regex", "regexp", "regular expression", "pattern", "match", "groups", "регулярное выражение", "регулярка", "шаблон"),
+    keywords = listOf(
+        "regex", "regexp", "regular expression", "pattern", "match", "groups", "builder", "generator", "library",
+        "регулярное выражение", "регулярка", "шаблон", "конструктор", "библиотека",
+    ),
 ) { RegexTesterScreen() }
 
 @Composable
 private fun RegexTesterScreen() {
+    var tab by rememberSaveable { mutableStateOf(RegexTab.TEST) }
     var pattern by rememberSaveable { mutableStateOf("") }
     var text by rememberSaveable { mutableStateOf("") }
-    var replacement by rememberSaveable { mutableStateOf("") }
     var ignoreCase by rememberSaveable { mutableStateOf(false) }
     var multiline by rememberSaveable { mutableStateOf(false) }
+    val blocks = remember {
+        mutableStateListOf(RegexBlock(RegexBlockKind.CHARACTERS, set = RegexCharSet.DIGIT, quantifier = RegexQuantifier.ONE_OR_MORE))
+    }
+    SegmentedChoice(
+        options = RegexTab.entries,
+        selected = tab,
+        onSelect = { tab = it },
+        label = { if (it == RegexTab.TEST) Res.string.regex_tab_test.str() else Res.string.regex_tab_build.str() },
+    )
+    when (tab) {
+        RegexTab.TEST -> RegexTest(pattern, { pattern = it }, text, { text = it }, ignoreCase, { ignoreCase = it }, multiline, { multiline = it })
+        RegexTab.BUILD -> RegexBuilderPanel(
+            blocks = blocks,
+            sample = text,
+            onSample = { text = it },
+            ignoreCase = ignoreCase,
+            onIgnoreCase = { ignoreCase = it },
+            multiline = multiline,
+            onMultiline = { multiline = it },
+            onTest = {
+                pattern = it
+                tab = RegexTab.TEST
+            },
+        )
+    }
+}
+
+@Composable
+private fun RegexTest(
+    pattern: String,
+    onPattern: (String) -> Unit,
+    text: String,
+    onText: (String) -> Unit,
+    ignoreCase: Boolean,
+    onIgnoreCase: (Boolean) -> Unit,
+    multiline: Boolean,
+    onMultiline: (Boolean) -> Unit,
+) {
+    var replacement by rememberSaveable { mutableStateOf("") }
     var dotAll by rememberSaveable { mutableStateOf(false) }
     var showCheatSheet by rememberSaveable { mutableStateOf(false) }
     val result = remember(pattern, text, replacement, ignoreCase, multiline, dotAll) {
@@ -50,19 +95,19 @@ private fun RegexTesterScreen() {
     }
     ToolInputField(
         value = pattern,
-        onValueChange = { pattern = it },
+        onValueChange = onPattern,
         label = Res.string.pattern.str(),
         placeholder = "(\\w+)@(\\w+)\\.com",
         isError = result.error != null,
         supportingText = result.error,
         monospace = true,
     )
-    SwitchRow(Res.string.ignore_case_i.str(), ignoreCase, { ignoreCase = it })
-    SwitchRow(Tr("Multiline: ^ and $ per line (m)", "Многострочный: ^ и $ на каждой строке (m)").str(), multiline, { multiline = it })
+    SwitchRow(Res.string.ignore_case_i.str(), ignoreCase, onIgnoreCase)
+    SwitchRow(Res.string.multiline_and_per_line_m.str(), multiline, onMultiline)
     SwitchRow(Res.string.dot_matches_newline_s.str(), dotAll, { dotAll = it })
     ToolInputField(
         value = text,
-        onValueChange = { text = it },
+        onValueChange = onText,
         label = Res.string.test_text.str(),
         singleLine = false,
         minLines = 4,
@@ -99,7 +144,7 @@ private fun RegexTesterScreen() {
         }
     }
     ResultCard(Res.string.highlighted.str()) {
-        Text(highlighted, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace))
+        Text(highlighted, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = monoFamily()))
     }
     ResultCard(Res.string.match_list.str()) {
         val groupsLabel = Res.string.regex_groups.str()

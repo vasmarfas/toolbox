@@ -1,32 +1,31 @@
 package com.vasmarfas.card.tools.developer
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CallSplit
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
-import com.vasmarfas.card.tools.Tool
-import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.CopyIconButton
@@ -43,25 +42,50 @@ import com.vasmarfas.card.ui.components.ToolSection
 
 private const val SHOWN_MATCHES = 10
 
-val regexBuilderTool = Tool(
-    id = "regex-builder",
-    category = ToolCategory.DEVELOPER,
-    title = Res.string.regex_builder,
-    description = Res.string.regex_builder_description,
-    icon = Icons.AutoMirrored.Filled.CallSplit,
-    keywords = listOf("regex", "regexp", "builder", "pattern", "generator", "library", "регулярка", "конструктор", "шаблон", "генератор", "библиотека"),
-) { RegexBuilderScreen() }
-
 @Composable
-private fun RegexBuilderScreen() {
-    val blocks = remember {
-        mutableStateListOf(RegexBlock(RegexBlockKind.CHARACTERS, set = RegexCharSet.DIGIT, quantifier = RegexQuantifier.ONE_OR_MORE))
-    }
-    var sample by rememberSaveable { mutableStateOf("ivan@example.com, +7 (999) 123-45-67, 2024-02-29") }
-    var ignoreCase by rememberSaveable { mutableStateOf(false) }
-    var multiline by rememberSaveable { mutableStateOf(false) }
+fun RegexBuilderPanel(
+    blocks: SnapshotStateList<RegexBlock>,
+    sample: String,
+    onSample: (String) -> Unit,
+    ignoreCase: Boolean,
+    onIgnoreCase: (Boolean) -> Unit,
+    multiline: Boolean,
+    onMultiline: (Boolean) -> Unit,
+    onTest: (String) -> Unit,
+) {
     var presetIndex by rememberSaveable { mutableStateOf(0) }
     val pattern = RegexBuilder.pattern(blocks)
+    ToolSection(Res.string.pattern_library.str()) {
+        DropdownChoice(
+            options = RegexBuilder.presets.indices.toList(),
+            selected = presetIndex,
+            onSelect = { presetIndex = it },
+            label = Res.string.ready_pattern.str(),
+            text = { RegexBuilder.presets[it].title.str() },
+        )
+        val preset = RegexBuilder.presets[presetIndex]
+        ResultCard {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                MonoText(preset.pattern, Modifier.weight(1f))
+                CopyIconButton(preset.pattern)
+            }
+            Text(preset.description.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            KeyValueRow(Res.string.sample.str(), preset.sample)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ActionButton(
+                    text = Res.string.regex_try_in_tester.str(),
+                    onClick = {
+                        if (sample.isBlank()) onSample(preset.sample)
+                        onTest(preset.pattern)
+                    },
+                    icon = Icons.Filled.PlayArrow,
+                )
+                TextButton(onClick = { blocks.add(RegexBlock(RegexBlockKind.GROUP, text = preset.pattern, capture = false)) }) {
+                    Text(Res.string.insert_as_a_block.str())
+                }
+            }
+        }
+    }
     ToolSection(Res.string.add_a_block.str()) {
         ChoiceChips(
             options = RegexBlockKind.entries,
@@ -84,67 +108,46 @@ private fun RegexBuilderScreen() {
             onRemove = { blocks.removeAt(index) },
         )
     }
-    SwitchRow(Res.string.ignore_case_i.str(), ignoreCase, { ignoreCase = it })
-    SwitchRow(Res.string.multiline_and_per_line_m.str(), multiline, { multiline = it })
+    SwitchRow(Res.string.ignore_case_i.str(), ignoreCase, onIgnoreCase)
+    SwitchRow(Res.string.multiline_and_per_line_m.str(), multiline, onMultiline)
     ResultCard(Res.string.pattern.str()) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             MonoText(pattern.ifEmpty { "—" }, Modifier.weight(1f))
             CopyIconButton(pattern)
         }
         KeyValueRow(Res.string.with_flags.str(), RegexBuilder.literal(pattern, ignoreCase, multiline))
+        if (pattern.isNotEmpty()) {
+            ActionButton(text = Res.string.regex_try_in_tester.str(), onClick = { onTest(pattern) }, icon = Icons.Filled.PlayArrow)
+        }
     }
     ToolInputField(
         value = sample,
-        onValueChange = { sample = it },
+        onValueChange = onSample,
         label = Res.string.regex_sample_text.str(),
         singleLine = false,
         minLines = 3,
     )
-    if (pattern.isNotEmpty()) {
-        val test = remember(pattern, sample, ignoreCase, multiline) {
-            RegexTester.run(pattern, sample, ignoreCase, multiline, dotAll = false, replacement = null)
-        }
-        ResultCard(Res.string.test.str()) {
-            if (test.error != null) {
-                ErrorText(test.error)
-            } else {
-                KeyValueRow(
-                    Res.string.matches.str(),
-                    if (test.matches.size >= RegexTester.MAX_MATCHES) "${test.matches.size}+" else test.matches.size.toString(),
-                    copyable = false,
-                )
-                if (test.matches.isNotEmpty()) {
-                    MonoTable(
-                        listOf("#    " + Res.string.regex_header_range.str().padEnd(13) + Res.string.regex_header_match.str()) +
-                            test.matches.take(SHOWN_MATCHES).map { match ->
-                                "${(match.index + 1).toString().padEnd(5)}${"[${match.start}, ${match.end})".padEnd(13)}${match.value}"
-                            },
-                    )
-                }
-            }
-        }
+    if (pattern.isEmpty()) return
+    val test = remember(pattern, sample, ignoreCase, multiline) {
+        RegexTester.run(pattern, sample, ignoreCase, multiline, dotAll = false, replacement = null)
     }
-    ToolSection(Res.string.pattern_library.str()) {
-        DropdownChoice(
-            options = RegexBuilder.presets.indices.toList(),
-            selected = presetIndex,
-            onSelect = { presetIndex = it },
-            label = Res.string.ready_pattern.str(),
-            text = { RegexBuilder.presets[it].title.str() },
-        )
-        val preset = RegexBuilder.presets[presetIndex]
-        ResultCard {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                MonoText(preset.pattern, Modifier.weight(1f))
-                CopyIconButton(preset.pattern)
-            }
-            Text(preset.description.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            KeyValueRow(Res.string.sample.str(), preset.sample)
-            ActionButton(
-                text = Res.string.insert_as_a_block.str(),
-                onClick = { blocks.add(RegexBlock(RegexBlockKind.GROUP, text = preset.pattern, capture = false)) },
-                icon = Icons.Filled.Add,
+    ResultCard(Res.string.test.str()) {
+        if (test.error != null) {
+            ErrorText(test.error)
+        } else {
+            KeyValueRow(
+                Res.string.matches.str(),
+                if (test.matches.size >= RegexTester.MAX_MATCHES) "${test.matches.size}+" else test.matches.size.toString(),
+                copyable = false,
             )
+            if (test.matches.isNotEmpty()) {
+                MonoTable(
+                    listOf("#    " + Res.string.regex_header_range.str().padEnd(13) + Res.string.regex_header_match.str()) +
+                        test.matches.take(SHOWN_MATCHES).map { match ->
+                            "${(match.index + 1).toString().padEnd(5)}${"[${match.start}, ${match.end})".padEnd(13)}${match.value}"
+                        },
+                )
+            }
         }
     }
 }

@@ -71,9 +71,10 @@ private fun NoiseGeneratorScreen() {
     val player = remember { PcmPlayer() }
     val controls = remember { NoiseControls() }
     val scope = rememberCoroutineScope()
+    val level = if (fading) 0.0 else volume.toDouble() * volume
     SideEffect {
         controls.color = color
-        controls.volume = if (fading) 0.0 else volume.toDouble() * volume
+        controls.volume = level
     }
     DisposableEffect(Unit) { onDispose { player.stop() } }
     LaunchedEffect(playing) {
@@ -81,7 +82,6 @@ private fun NoiseGeneratorScreen() {
             player.stop()
             return@LaunchedEffect
         }
-        fading = false
         val generator = NoiseGenerator(currentEpochMillis())
         player.start(NOISE_RATE, 1) { buffer ->
             generator.fill(buffer, controls.color, controls.volume, NOISE_RATE)
@@ -139,6 +139,7 @@ private fun NoiseGeneratorScreen() {
         icon = if (playing) Icons.Filled.Stop else Icons.Filled.PlayArrow,
         onClick = {
             if (!playing) {
+                fading = false
                 playing = true
             } else {
                 scope.launch {

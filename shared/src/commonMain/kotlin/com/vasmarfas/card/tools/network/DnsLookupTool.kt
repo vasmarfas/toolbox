@@ -84,7 +84,7 @@ private fun DnsLookupScreen() {
         val effectiveType = if (looksLikeIp(query)) "PTR" else type
         val effectiveName = when {
             Ipv4.parse(query) != null -> Ipv4.ptrName(Ipv4.parse(query)!!)
-            Ipv6Address.parse(query) != null -> Ipv6Address.parse(query)!!.expanded().replace(":", "").reversed().toCharArray().joinToString(".") + ".ip6.arpa"
+            Ipv6Address.parse(query) != null -> Ipv6Address.parse(query)!!.ptrName()
             else -> query
         }
         state = DnsState(loading = true)

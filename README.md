@@ -19,22 +19,22 @@ provides them, and the catalogue marks each tool with the platforms it supports.
 |---|---|
 | Measure and sensors | ruler, bubble level, compass, protractor, GPS and speedometer, light meter, pedometer, metal detector, accelerometer, barometer |
 | Calculators | scientific, percentages, fractions with the working shown, renovation (wallpaper, paint, laminate, tiles), tire size |
-| Converters | units, cooking measures, clothing sizes, data sizes, numbers to words, Roman numerals, number bases |
+| Converters | units, cooking measures, clothing sizes, numbers to words, Roman numerals, number bases |
 | Money | currencies, cryptocurrencies, loans, discounts and VAT, tips, expense splitting, unit price, compound interest, fuel cost, electricity cost |
 | Photo, video and audio | image converter and compressor, photo editor, video converter, multitrack video editor, audio converter and editor, GIF maker, photo metadata, frame from video |
-| Documents and PDF | document converter (DOCX, ODT, EPUB, FB2, HTML, Markdown, RTF), images to PDF, merging, page editing, PDF to images and text, removing a password, ZIP |
+| Documents and PDF | PDF editor (editing the page's own text and pictures, signatures, forms, highlights, redaction, watermark, page numbers, password), document converter (DOCX, ODT, EPUB, FB2, HTML, Markdown, RTF), images to PDF, merging, page editing, PDF to images and text, removing a password, ZIP |
 | Time | stopwatch, timer with Pomodoro, chess clock, world clock, date and age calculators, event countdowns, calendar, sunrise and sunset, working hours, Unix time |
 | Everyday | dice, decision wheel, team splitter, tally counter, notepad, number checker (cards, IBAN, INN, SNILS, OGRN, bank accounts, IMEI, ISBN, EAN, VIN) |
 | Text | counters, case, diff, find and replace, transliteration, keyboard layout, cleanup, mojibake fixer, line tools, lorem ipsum, Morse, phonetic alphabet, ciphers, Unicode, ASCII |
 | Sport and health | workout timer and builder, breathing exercise, BMI, body metrics, calorie burn, pace, water, macros, sleep, heart-rate zones, one-rep max, blood pressure, caffeine, blood alcohol, VO2 max, HbA1c, reaction time |
 | Sound | sound meter, tone and noise generators, metronome, spectrum analyzer, tuner |
-| Color and design | QR and barcodes, color converter, palettes and a palette from a photo, gradients, contrast, Material 3 scheme, typography, CSS units, aspect ratio, paper sizes |
+| Color and design | QR and barcodes, color codes and palettes, a palette from a photo with an eyedropper, gradients, contrast, Material 3 scheme, typography, CSS units, aspect ratio, paper sizes |
 | Security | password generator and strength, breach check (HIBP k-anonymity), TOTP, random data, checksum comparison |
 | Device | device info, screen test, battery, display, touch and keyboard testers, screen light and torch, vibration, benchmarks, stress test, clipboard |
 | Developer | JSON, Base64, hashes and HMAC, UUID, programmer calculator, floating-point inspector, regex tester and builder, URL and punycode, JWT, Markdown, CSV, cron, HTTP codes, escaping, chmod, semver, MIME |
-| Network | speed test, my IP, ping (ICMP/TCP/HTTP), DNS over HTTPS and UDP, whois/RDAP, traceroute, port and LAN scanners, Wake-on-LAN, subnet calculator and splitter, HTTP requests, TLS certificates, public DNS, interfaces and Wi-Fi, UPnP/Bonjour, MAC lookup, port reference |
+| Network | speed test, my IP, ping (ICMP/TCP/HTTP), DNS over HTTPS and UDP, whois/RDAP, traceroute, port and LAN scanners, Wake-on-LAN, subnet calculator and splitter, HTTP requests, TLS certificates, public DNS, interfaces and Wi-Fi, UPnP/Bonjour, MAC lookup, port reference, data size and transfer time |
 | Electronics | Ohm's law, resistor color code, LED resistor, voltage divider, battery life, wire gauge |
-| 3D printing | print and resin cost, filament length and weight, time estimate, layer and nozzle, E-steps and flow, temperature tower, shrinkage, G-code cheat sheet |
+| 3D printing | print and resin cost, filament picker and table of 52 plastics, filament length and weight, time estimate, layer and nozzle, E-steps and flow, temperature tower, shrinkage, G-code cheat sheet |
 
 Texts come in Russian and English and switch instantly. The card content is data rather than code:
 `profile.json` and `resume.json` ship inside the app and are refreshed from the network at startup,

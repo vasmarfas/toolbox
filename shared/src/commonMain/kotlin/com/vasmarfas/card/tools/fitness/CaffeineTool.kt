@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Coffee
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,7 +22,10 @@ import com.vasmarfas.card.tools.network.SimpleTable
 import com.vasmarfas.card.ui.components.AnswerCard
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.NumberField
+import com.vasmarfas.card.ui.components.ToolSection
+import org.jetbrains.compose.resources.StringResource
 
 val caffeineTool = Tool(
     id = "caffeine-decay",
@@ -38,7 +39,21 @@ val caffeineTool = Tool(
     ),
 ) { CaffeineScreen() }
 
-private val servings = listOf(80, 150, 200, 320)
+private class CaffeineDrink(val name: StringResource, val mg: Int)
+
+// typical amounts: USDA for coffee and tea, the labels of the common energy drinks and colas
+private val drinks = listOf(
+    CaffeineDrink(Res.string.drink_espresso, 65),
+    CaffeineDrink(Res.string.drink_americano, 125),
+    CaffeineDrink(Res.string.drink_cappuccino, 65),
+    CaffeineDrink(Res.string.drink_instant, 60),
+    CaffeineDrink(Res.string.drink_black_tea, 45),
+    CaffeineDrink(Res.string.drink_green_tea, 30),
+    CaffeineDrink(Res.string.drink_energy_small, 80),
+    CaffeineDrink(Res.string.drink_energy_large, 160),
+    CaffeineDrink(Res.string.drink_cola, 32),
+    CaffeineDrink(Res.string.drink_dark_chocolate, 40),
+)
 
 @Composable
 private fun CaffeineScreen() {
@@ -64,12 +79,14 @@ private fun CaffeineScreen() {
             isError = halfLifeText.toDoubleLenient().let { it == null || it <= 0 },
         )
     }
-    ChoiceChips(
-        options = servings,
-        selected = doseText.trim().toIntOrNull(),
-        onSelect = { doseText = it.toString() },
-        label = { "$it ${Res.string.unit_mg.str()}" },
-    )
+    ToolSection(Res.string.what_you_drank.str()) {
+        ChoiceChips(
+            options = drinks,
+            selected = drinks.firstOrNull { it.mg == doseText.trim().toIntOrNull() },
+            onSelect = { doseText = it.mg.toString() },
+            label = { "${it.name.str()} · ${it.mg} ${Res.string.unit_mg.str()}" },
+        )
+    }
     NumberField(
         value = thresholdText,
         onValueChange = { thresholdText = it },
@@ -78,6 +95,7 @@ private fun CaffeineScreen() {
         modifier = Modifier.fillMaxWidth(),
         isError = thresholdText.toDoubleLenient().let { it == null || it <= 0 },
     )
+    Hint(Res.string.sleep_threshold_hint.str())
 
     val dose = doseText.toDoubleLenient()
     val halfLife = halfLifeText.toDoubleLenient()
@@ -98,9 +116,5 @@ private fun CaffeineScreen() {
             listOf("$hour", "${Caffeine.remainingMg(dose, hour.toDouble(), halfLife).fmt(0)} ${Res.string.unit_mg.str()}")
         },
     )
-    Text(
-        Res.string.caffeine_note.str(),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    Hint(Res.string.caffeine_note.str())
 }

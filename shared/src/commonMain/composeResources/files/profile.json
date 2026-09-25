@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-09-24",
+  "updated": "2026-09-25",
   "person": {
     "name": {
       "en": "Vasilii",
@@ -71,8 +71,8 @@
       "type": "channel",
       "url": "https://t.me/vasmarfas_channel",
       "label": {
-        "en": "Telegram channel",
-        "ru": "Telegram-канал"
+        "en": "TG channel",
+        "ru": "TG-канал"
       }
     },
     {

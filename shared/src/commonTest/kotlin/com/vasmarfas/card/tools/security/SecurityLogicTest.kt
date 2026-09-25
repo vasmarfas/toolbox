@@ -168,6 +168,7 @@ class DiceTest {
     fun parsesNotation() {
         val roll = assertNotNull(Dice.roll("3d6+2"))
         assertEquals(3, roll.rolls.size)
+        assertEquals(6, roll.sides)
         assertEquals(2, roll.modifier)
         assertTrue(roll.rolls.all { it in 1..6 })
         assertTrue(roll.total in 5..20)

@@ -17,7 +17,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
 import com.vasmarfas.card.resources.*
@@ -31,6 +30,7 @@ import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.SwitchRow
 import com.vasmarfas.card.ui.components.ToolInputField
+import com.vasmarfas.card.ui.components.monoFamily
 import kotlin.math.roundToInt
 
 private enum class GenMode { PASSWORD, PASSPHRASE }
@@ -96,7 +96,7 @@ private fun PasswordGeneratorScreen() {
             results.forEach { result ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     SelectionContainer(Modifier.weight(1f)) {
-                        Text(result, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace))
+                        Text(result, style = MaterialTheme.typography.titleMedium.copy(fontFamily = monoFamily()))
                     }
                     CopyIconButton(result)
                 }

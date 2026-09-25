@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -15,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,9 +26,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vasmarfas.card.core.Prefs
 import com.vasmarfas.card.core.currentEpochMillis
 import com.vasmarfas.card.core.formatDurationMs
 import com.vasmarfas.card.core.playTone
@@ -38,11 +40,14 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.DropdownChoice
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.LocalOpenTool
 import com.vasmarfas.card.ui.components.NumberField
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import com.vasmarfas.card.ui.components.expandedTextStyle
+import com.vasmarfas.card.ui.components.monoFamily
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
@@ -62,7 +67,8 @@ val workoutTimerTool = Tool(
 @Composable
 private fun WorkoutTimerScreen() {
     val plans = remember { WorkoutPlans.load() }
-    var source by rememberSaveable { mutableStateOf(if (plans.isEmpty()) TimerSource.INTERVAL else TimerSource.PLAN) }
+    val openTool = LocalOpenTool.current
+    var source by rememberSaveable { mutableStateOf(TimerSource.PLAN) }
     var planId by rememberSaveable { mutableStateOf(plans.firstOrNull()?.id ?: "") }
     var prepareText by rememberSaveable { mutableStateOf("10") }
     var workText by rememberSaveable { mutableStateOf("20") }
@@ -80,6 +86,17 @@ private fun WorkoutTimerScreen() {
     var transitions by remember { mutableStateOf(0) }
     var finished by rememberSaveable { mutableStateOf(false) }
     var now by remember { mutableStateOf(currentEpochMillis()) }
+    LaunchedEffect(Unit) {
+        val sent = Prefs.store.get(WorkoutPlans.START_KEY) ?: return@LaunchedEffect
+        Prefs.store.remove(WorkoutPlans.START_KEY)
+        if (!running && plans.any { it.id == sent }) {
+            source = TimerSource.PLAN
+            planId = sent
+            started = false
+            finished = false
+            stepIndex = 0
+        }
+    }
 
     SegmentedChoice(
         options = TimerSource.entries,
@@ -98,8 +115,11 @@ private fun WorkoutTimerScreen() {
     val plan = plans.firstOrNull { it.id == planId } ?: plans.firstOrNull()
     if (source == TimerSource.PLAN) {
         if (plan == null) {
-            ErrorText(
-                Res.string.workout_timer_no_saved_plans.str(),
+            Hint(Res.string.workout_timer_no_saved_plans.str())
+            ActionButton(
+                text = Res.string.create_a_plan.str(),
+                onClick = { openTool("workout-builder") },
+                icon = Icons.Filled.Add,
             )
             return
         }
@@ -117,6 +137,7 @@ private fun WorkoutTimerScreen() {
             label = Res.string.plan.str(),
             text = { it.name.ifBlank { Res.string.untitled.str() } },
         )
+        TextButton(onClick = { openTool("workout-builder") }) { Text(Res.string.edit_plans.str()) }
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             NumberField(prepareText, { prepareText = it }, Res.string.prepare.str(), Modifier.weight(1f), suffix = Res.string.unit_s.str(), isError = prepareText.toIntOrZero() < 0)
@@ -206,7 +227,7 @@ private fun WorkoutTimerScreen() {
         )
         Text(
             text = formatClock(remaining),
-            style = expandedTextStyle(MaterialTheme.typography.displayLarge.copy(fontFamily = FontFamily.Monospace)),
+            style = expandedTextStyle(MaterialTheme.typography.displayLarge.copy(fontFamily = monoFamily())),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
