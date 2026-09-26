@@ -170,6 +170,7 @@
 		};
 		B4E1F0A0C2D3E4F506172806 /* Upload Crashlytics symbols */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);

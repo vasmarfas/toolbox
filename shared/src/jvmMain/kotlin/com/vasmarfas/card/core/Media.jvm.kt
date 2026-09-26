@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import org.bytedeco.ffmpeg.ffmpeg
 import org.bytedeco.ffmpeg.ffprobe
 import org.bytedeco.javacpp.Loader
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.math.abs
@@ -20,7 +21,9 @@ import kotlin.math.roundToInt
 private const val PEAK_RATE = 8_000
 
 actual object MediaEngine {
-    private val programs by lazy { runCatching { Loader.load(ffmpeg::class.java) to Loader.load(ffprobe::class.java) } }
+    private val programs by lazy {
+        runCatching { program("ffmpeg") { Loader.load(ffmpeg::class.java) } to program("ffprobe") { Loader.load(ffprobe::class.java) } }
+    }
     internal val ffmpegPath: String get() = programs.getOrElse { throw loadFailure(it) }.first
     private val ffprobePath: String get() = programs.getOrElse { throw loadFailure(it) }.second
 
@@ -201,6 +204,10 @@ actual object MediaEngine {
         return true
     }
 }
+
+// the Mac App Store build ships signed programs next to their libraries, a sandbox cannot run ones unpacked from a jar
+private fun program(name: String, unpacked: () -> String): String =
+    System.getProperty("mobitool.ffmpeg.dir")?.let { File(it, name) }?.takeIf { it.canExecute() }?.path ?: unpacked()
 
 private fun loadFailure(e: Throwable): Throwable {
     if (e !is UnsatisfiedLinkError) return e

@@ -9,7 +9,7 @@ on:
         required: true
         default: '1.0.0'
       version_code:
-        description: 'versionCode (empty = github.run_number)'
+        description: 'versionCode (empty = from the version, 1.4.12 is 10412)'
         required: false
         default: ''
       publish_google_play:
@@ -117,9 +117,12 @@ jobs:
               *) name="0.0.0-dev" ;;
             esac
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
+          code="${INPUT_CODE:-$derived}"
+          [ "$code" != 0 ] || code="$RUN_NUMBER"
           {
             echo "name=$name"
-            echo "code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "code=$code"
           } >> "$GITHUB_OUTPUT"
 
       - name: Decode keystore

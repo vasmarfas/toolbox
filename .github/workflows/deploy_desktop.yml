@@ -9,7 +9,7 @@ on:
         required: true
         default: '1.0.0'
       version_code:
-        description: 'Build number (empty = github.run_number)'
+        description: 'Build number (empty = from the version, 1.4.12 is 10412)'
         required: false
         default: ''
       build_windows:
@@ -87,7 +87,6 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version_name }}
           INPUT_CODE: ${{ inputs.version_code }}
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -eu
           name="$INPUT_VERSION"
@@ -97,10 +96,11 @@ jobs:
               *) name="1.0.0" ;;
             esac
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
           {
             echo "name=$name"
             echo "package=${name%%-*}"
-            echo "code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "code=${INPUT_CODE:-$derived}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Package
@@ -170,7 +170,6 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version_name }}
           INPUT_CODE: ${{ inputs.version_code }}
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -eu
           name="$INPUT_VERSION"
@@ -180,10 +179,11 @@ jobs:
               *) name="1.0.0" ;;
             esac
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
           {
             echo "name=$name"
             echo "package=${name%%-*}"
-            echo "code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "code=${INPUT_CODE:-$derived}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Make gradlew executable
@@ -239,7 +239,6 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version_name }}
           INPUT_CODE: ${{ inputs.version_code }}
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -eu
           name="$INPUT_VERSION"
@@ -249,10 +248,11 @@ jobs:
               *) name="1.0.0" ;;
             esac
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
           {
             echo "name=$name"
             echo "package=${name%%-*}"
-            echo "code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "code=${INPUT_CODE:-$derived}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Import signing certificate
@@ -345,17 +345,35 @@ jobs:
           APP_VERSION_CODE: ${{ steps.version.outputs.code }}
           METRICA_DESKTOP_COUNTER: ${{ secrets.METRICA_DESKTOP_COUNTER }}
           METRICA_DESKTOP_TOKEN: ${{ secrets.METRICA_DESKTOP_TOKEN }}
-          APPLE_DEVELOPER_ID_IDENTITY: ${{ secrets.MAC_APP_STORE_IDENTITY }}
+          MAC_APP_STORE_IDENTITY: ${{ secrets.MAC_APP_STORE_IDENTITY }}
+          MAC_APP_STORE_P12_BASE64: ${{ secrets.MAC_APP_STORE_P12_BASE64 }}
+          MAC_APP_STORE_P12_PASSWORD: ${{ secrets.MAC_APP_STORE_P12_PASSWORD }}
+          MAC_APP_STORE_PROFILE_BASE64: ${{ secrets.MAC_APP_STORE_PROFILE_BASE64 }}
+          MAC_APP_STORE_RUNTIME_PROFILE_BASE64: ${{ secrets.MAC_APP_STORE_RUNTIME_PROFILE_BASE64 }}
         run: |
           set -eu
-          if [ -z "${APPLE_DEVELOPER_ID_IDENTITY:-}" ] || [ -z "${ASC_KEY_ID:-}" ] || [ -z "${ASC_ISSUER_ID:-}" ] || [ -z "${ASC_KEY_P8:-}" ]; then
-            echo "::notice::MAC_APP_STORE_IDENTITY or the ASC_* secrets are not set, skipping the Mac App Store"
-            echo 'Mac App Store: skipped, secrets are not set.' >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          echo "::warning::the PKG is accepted by the Mac App Store only when desktopApp/build.gradle.kts sets macOS { appStore = true } together with the sandbox entitlements"
-          ./gradlew :desktopApp:packagePkg
+          for name in MAC_APP_STORE_IDENTITY MAC_APP_STORE_P12_BASE64 MAC_APP_STORE_PROFILE_BASE64 MAC_APP_STORE_RUNTIME_PROFILE_BASE64 ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "$(printenv "$name" || true)" ]; then
+              echo "::notice::$name is not set, skipping the Mac App Store"
+              echo "Mac App Store: skipped, $name is not set." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          done
           umask 077
+          keychain="$RUNNER_TEMP/mas.keychain-db"
+          password=$(openssl rand -hex 24)
+          echo "::add-mask::$password"
+          printf '%s' "$MAC_APP_STORE_P12_BASE64" | tr -d '\n\r ' | openssl base64 -d -A > "$RUNNER_TEMP/mas.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/mas.p12" -k "$keychain" -P "$MAC_APP_STORE_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          rm -f "$RUNNER_TEMP/mas.p12"
+          printf '%s' "$MAC_APP_STORE_PROFILE_BASE64" | tr -d '\n\r ' | openssl base64 -d -A > desktopApp/macos/embedded.provisionprofile
+          printf '%s' "$MAC_APP_STORE_RUNTIME_PROFILE_BASE64" | tr -d '\n\r ' | openssl base64 -d -A > desktopApp/macos/runtime.provisionprofile
+          ./gradlew :desktopApp:packagePkg -PmacAppStore -PmacAppStoreIdentity="$MAC_APP_STORE_IDENTITY"
           key="$RUNNER_TEMP/asc_key.p8"
           if printf '%s' "$ASC_KEY_P8" | grep -q 'BEGIN'; then
             printf '%s\n' "$ASC_KEY_P8" > "$key"

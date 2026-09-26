@@ -9,7 +9,7 @@ on:
         required: true
         default: '1.0.0'
       version_code:
-        description: 'CURRENT_PROJECT_VERSION (empty = github.run_number)'
+        description: 'CURRENT_PROJECT_VERSION (empty = from the version, 1.4.12 is 10412)'
         required: false
         default: ''
       upload_app_store:
@@ -67,7 +67,6 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version_name }}
           INPUT_CODE: ${{ inputs.version_code }}
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -eu
           name="$INPUT_VERSION"
@@ -77,9 +76,10 @@ jobs:
               *) name="1.0.0" ;;
             esac
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
           {
             echo "name=${name%%-*}"
-            echo "code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "code=${INPUT_CODE:-$derived}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check prerequisites

@@ -11,7 +11,7 @@ on:
         required: true
         default: '1.0.0'
       version_code:
-        description: 'Android versionCode and iOS build number (empty = github.run_number)'
+        description: 'Android versionCode and iOS build number (empty = from the version, 1.4.12 is 10412)'
         required: false
         default: ''
       publish_google_play:
@@ -74,7 +74,6 @@ jobs:
           INPUT_IOS: ${{ inputs.publish_ios_app_store }}
           INPUT_MS: ${{ inputs.publish_microsoft_store }}
           INPUT_DRAFT: ${{ inputs.draft }}
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -eu
           name="$INPUT_VERSION"
@@ -102,9 +101,10 @@ jobs:
             microsoft="$INPUT_MS"
             draft="$INPUT_DRAFT"
           fi
+          derived=$(printf '%s' "${name%%-*}" | awk -F. '{ print ($1 * 100 + $2) * 100 + $3 }')
           {
             echo "version_name=$name"
-            echo "version_code=${INPUT_CODE:-$RUN_NUMBER}"
+            echo "version_code=${INPUT_CODE:-$derived}"
             echo "publish_google_play=$play"
             echo "publish_rustore=$rustore"
             echo "publish_ios_app_store=$ios"

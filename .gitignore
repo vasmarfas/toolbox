@@ -25,6 +25,7 @@ google-services.json
 GoogleService-Info.plist
 iosApp/Configuration/Local.xcconfig
 androidApp/release/
+*.provisionprofile
 
 # JVM crash dumps from a Gradle daemon that died
 hs_err_pid*.log
