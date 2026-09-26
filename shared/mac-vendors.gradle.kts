@@ -12,6 +12,7 @@ tasks.register("updateMacVendors") {
     val target = layout.projectDirectory.file("src/commonMain/composeResources/files/mac-vendors.tsv").asFile
     doLast {
         val countries = Locale.getISOCountries().toSet()
+        val space = Regex("[\\s\\u00A0]+")
 
         fun csvRows(text: String): List<List<String>> {
             val rows = mutableListOf<List<String>>()
@@ -47,9 +48,14 @@ tasks.register("updateMacVendors") {
             return rows
         }
 
-        // the address ends with the country and the postcode, "San Diego CA US 92130", and a British postcode has a space
-        fun country(address: String): String =
-            address.trim().split(Regex("\\s+")).takeLast(3).reversed().firstOrNull { it.length == 2 && it in countries }.orEmpty()
+        // the address ends with the country and the postcode, "San Diego CA US 92130", "Eindhoven NL 5656 AE",
+        // or with "HK NA" when there is no postcode
+        fun country(address: String): String {
+            val tail = address.trim().split(space).takeLast(4)
+            val iso = tail.indices.filter { tail[it].length == 2 && tail[it] in countries }
+            val hit = iso.lastOrNull { tail.getOrNull(it + 1)?.any(Char::isDigit) == true } ?: iso.lastOrNull { tail[it] != "NA" }
+            return hit?.let { tail[it] }.orEmpty()
+        }
 
         fun download(path: String): String {
             val connection = URI("https://standards-oui.ieee.org/$path").toURL().openConnection() as HttpURLConnection
@@ -59,7 +65,9 @@ tasks.register("updateMacVendors") {
             connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
             connection.connectTimeout = 30_000
             connection.readTimeout = 600_000
-            return connection.inputStream.use { it.readBytes().decodeToString() }
+            val text = connection.inputStream.use { it.readBytes().decodeToString() }
+            check(text.startsWith("Registry,Assignment")) { "$path is not a registry CSV, the site answered with something else" }
+            return text
         }
 
         val blocks = sortedMapOf<String, String>()
@@ -67,7 +75,7 @@ tasks.register("updateMacVendors") {
             for (row in csvRows(download(path)).drop(1)) {
                 val prefix = row.getOrNull(1)?.trim()?.uppercase() ?: continue
                 if (!prefix.matches(Regex("[0-9A-F]{6}|[0-9A-F]{7}|[0-9A-F]{9}"))) continue
-                val name = row.getOrNull(2).orEmpty().replace(Regex("\\s+"), " ").trim().ifEmpty { "Private" }
+                val name = row.getOrNull(2).orEmpty().replace(space, " ").trim().ifEmpty { "Private" }
                 blocks[prefix] = name + "\t" + country(row.getOrNull(3).orEmpty())
             }
         }

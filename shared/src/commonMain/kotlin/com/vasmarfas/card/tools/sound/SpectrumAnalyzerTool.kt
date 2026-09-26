@@ -36,6 +36,7 @@ import com.vasmarfas.card.ui.components.ChartSeries
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.InteractiveChart
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import kotlin.math.pow
@@ -113,6 +114,7 @@ private fun SpectrumAnalyzerScreen() {
     var fftSize by rememberSaveable { mutableStateOf(2048) }
     var running by remember { mutableStateOf(false) }
     var frozen by remember { mutableStateOf(false) }
+    var refused by remember { mutableStateOf(false) }
     var view by remember { mutableStateOf<SpectrumView?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -168,7 +170,7 @@ private fun SpectrumAnalyzerScreen() {
                     running = false
                     frozen = false
                 } else {
-                    scope.launch { if (ensurePermission(AppPermission.MICROPHONE)) running = true }
+                    scope.launch { if (ensurePermission(AppPermission.MICROPHONE)) running = true else refused = true }
                 }
             },
             modifier = Modifier.weight(1f),
@@ -180,6 +182,12 @@ private fun SpectrumAnalyzerScreen() {
                 icon = if (frozen) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                 modifier = Modifier.weight(1f),
             )
+        }
+    }
+    if (refused) {
+        PermissionPrompt(AppPermission.MICROPHONE, Res.string.mic_access_needed.str()) {
+            refused = false
+            running = true
         }
     }
     error?.let { ErrorText(micErrorLabel(it).str()) }

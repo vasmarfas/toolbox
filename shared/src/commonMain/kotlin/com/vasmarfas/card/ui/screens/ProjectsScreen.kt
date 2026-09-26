@@ -22,9 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +34,7 @@ import com.vasmarfas.card.data.ProfileRepository
 import com.vasmarfas.card.data.Project
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ContentColumn
+import com.vasmarfas.card.ui.components.FindableText
 import com.vasmarfas.card.ui.components.LinkChips
 import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SegmentedChoice
@@ -44,22 +42,21 @@ import com.vasmarfas.card.ui.components.TagChips
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 
-private enum class ProjectsTab(val title: StringResource) {
+enum class ProjectsTab(val title: StringResource) {
     PROJECTS(Res.string.projects),
     ARTICLES(Res.string.articles),
 }
 
 @Composable
-fun ProjectsScreen() {
+fun ProjectsScreen(tab: ProjectsTab, onTabChange: (ProjectsTab) -> Unit) {
     val state by ProfileRepository.state.collectAsState()
     val profile = state.value
-    var tab by remember { mutableStateOf(ProjectsTab.PROJECTS) }
     ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 16.dp) {
-        Text(Res.string.projects.str(), style = MaterialTheme.typography.headlineSmall)
+        FindableText(Res.string.projects.str(), style = MaterialTheme.typography.headlineSmall)
         SegmentedChoice(
             options = ProjectsTab.entries,
             selected = tab,
-            onSelect = { tab = it },
+            onSelect = onTabChange,
             label = { it.title.str() },
             modifier = Modifier.widthIn(max = 420.dp),
         )
@@ -75,8 +72,8 @@ fun ProjectsScreen() {
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                         ) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(Res.string.projects_support_title.str(), style = MaterialTheme.typography.titleLarge)
-                                Text(
+                                FindableText(Res.string.projects_support_title.str(), style = MaterialTheme.typography.titleLarge)
+                                FindableText(
                                     Res.string.projects_support_body.str(),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -106,14 +103,14 @@ fun ProjectCard(project: Project, modifier: Modifier = Modifier, condensed: Bool
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(project.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                FindableText(project.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                 if (stars != null && stars > 0) {
                     Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(4.dp))
                     Text(stars.toString(), style = MaterialTheme.typography.labelLarge)
                 }
             }
-            Text(
+            FindableText(
                 project.tagline.str(),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -121,17 +118,17 @@ fun ProjectCard(project: Project, modifier: Modifier = Modifier, condensed: Bool
                 overflow = TextOverflow.Ellipsis,
             )
             if (!condensed) {
-                Text(project.description.str(), style = MaterialTheme.typography.bodyMedium)
+                FindableText(project.description.str(), style = MaterialTheme.typography.bodyMedium)
             }
             val meta = listOf(project.year, project.platforms.joinToString(" · ")).filter { it.isNotBlank() }.joinToString("  ·  ")
             if (meta.isNotBlank()) {
-                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FindableText(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             project.downloads?.let { downloads ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(4.dp))
-                    Text(
+                    FindableText(
                         pluralStringResource(Res.plurals.installs_count, parseCount(downloads) ?: 0, downloads),
                         style = MaterialTheme.typography.labelLarge,
                     )

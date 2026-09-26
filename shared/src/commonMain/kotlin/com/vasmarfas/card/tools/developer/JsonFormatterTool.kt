@@ -60,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.pluralStringResource
 
 private enum class JsonMode { FORMAT, TREE, MINIFY, ESCAPE, UNESCAPE }
 
@@ -97,7 +98,7 @@ private fun JsonFormatterScreen() {
     var sortKeys by rememberSaveable { mutableStateOf(false) }
     var outcome by remember { mutableStateOf<JsonOutcome?>(null) }
     var busy by remember { mutableStateOf(false) }
-    var fileError by remember { mutableStateOf<String?>(null) }
+    var fileError by remember(input) { mutableStateOf<String?>(null) }
     val lang = LocalLang.current
     LaunchedEffect(input, mode, indent, sortKeys, lang) {
         val text = input
@@ -210,7 +211,7 @@ private fun LoadedDocument(text: String, onClear: () -> Unit) {
     ResultCard {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                Tr("Document of ${text.length.fmtGrouped()} characters", "Документ на ${text.length.fmtGrouped()} символов").str(),
+                pluralStringResource(Res.plurals.document_characters, text.length, text.length.fmtGrouped()),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )

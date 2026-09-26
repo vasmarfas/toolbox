@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.vasmarfas.card.core.AppPermission
 import com.vasmarfas.card.core.ensurePermission
 import com.vasmarfas.card.core.fmt
-import com.vasmarfas.card.core.hasPermission
 import com.vasmarfas.card.core.microphoneLevelFlow
 import com.vasmarfas.card.core.microphoneSupported
 import com.vasmarfas.card.core.str
@@ -31,6 +30,7 @@ import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChartKind
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -48,7 +48,7 @@ val soundMeterTool = Tool(
 
 @Composable
 private fun SoundMeterScreen() {
-    var permission by remember { mutableStateOf(hasPermission(AppPermission.MICROPHONE)) }
+    var refused by remember { mutableStateOf(false) }
     var running by remember { mutableStateOf(false) }
     var level by remember { mutableStateOf<Double?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -72,13 +72,16 @@ private fun SoundMeterScreen() {
             text = if (running) Res.string.stop.str() else Res.string.start.str(),
             onClick = {
                 if (running) running = false
-                else scope.launch {
-                    permission = ensurePermission(AppPermission.MICROPHONE)
-                    if (permission) running = true
-                }
+                else scope.launch { if (ensurePermission(AppPermission.MICROPHONE)) running = true else refused = true }
             },
         )
         TextButton(onClick = { history.clear() }) { Text(Res.string.reset.str()) }
+    }
+    if (refused) {
+        PermissionPrompt(AppPermission.MICROPHONE, Res.string.mic_access_needed.str()) {
+            refused = false
+            running = true
+        }
     }
     error?.let { ErrorText(it) }
     level?.let { db ->

@@ -33,6 +33,7 @@ import com.vasmarfas.card.ui.components.DateField
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import kotlin.math.roundToInt
 import kotlinx.coroutines.TimeoutCancellationException
@@ -81,8 +82,8 @@ private fun SunriseSunsetScreen() {
     var offsetText by rememberSaveable { mutableStateOf(systemOffsetHours.fmt(2)) }
     var locating by remember { mutableStateOf(false) }
     var locateError by remember { mutableStateOf<String?>(null) }
+    var refused by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val noAccess = Res.string.gps_location_access_is_needed.str()
     val noFix = Res.string.location_no_fix.str()
 
     fun locate() {
@@ -90,7 +91,7 @@ private fun SunriseSunsetScreen() {
             locating = true
             locateError = null
             if (!ensurePermission(AppPermission.LOCATION)) {
-                locateError = noAccess
+                refused = true
             } else {
                 runCatching { withTimeout(LOCATE_TIMEOUT_MS) { locationFlow().first() } }
                     .onSuccess {
@@ -122,6 +123,12 @@ private fun SunriseSunsetScreen() {
         )
     }
     locateError?.let { ErrorText(it) }
+    if (refused) {
+        PermissionPrompt(AppPermission.LOCATION, Res.string.gps_location_access_is_needed.str()) {
+            refused = false
+            locate()
+        }
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         NumberField(latText, { latText = it }, Res.string.latitude.str(), Modifier.weight(1f), suffix = "°")
         NumberField(lonText, { lonText = it }, Res.string.longitude.str(), Modifier.weight(1f), suffix = "°")

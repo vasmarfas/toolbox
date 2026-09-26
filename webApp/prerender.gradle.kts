@@ -81,10 +81,15 @@ fun page(lang: String): String {
             """<p class="pre-muted">${esc(tr(project["description"], lang))}</p><p class="pre-muted">${esc(meta)}</p>$installs""" +
             """<p class="pre-chips">$projectLinks</p></article>"""
     }
-    val articles = (profile["articles"] as List<Map<String, Any?>>).sortedByDescending { it["date"].toString() }.joinToString("") { article ->
+    val support = links.firstOrNull { it["type"] == "support" }?.let { """<p class="pre-muted">${s.getValue("support_projects")} ${anchor(it)}</p>""" }.orEmpty()
+    val articles = (profile["articles"] as List<Map<String, Any?>>).sortedByDescending { it["date"].toString() }.take(3).joinToString("") { article ->
         val views = article["views"]?.let { " · ${esc(it.toString())} ${s.getValue("views")}" }.orEmpty()
         """<li><a href="${esc(article["url"].toString())}">${esc(tr(article["title"], lang))}</a><br><span class="pre-muted">${esc(article["date"].toString())}$views</span></li>"""
     }
+    val services = (profile["services"] as List<Map<String, Any?>>? ?: emptyList()).filter { it["active"] != false }.joinToString("") { service ->
+        """<article class="pre-card"><h3>${esc(tr(service["title"], lang))}</h3><p class="pre-muted">${esc(tr(service["text"], lang))}</p></article>"""
+    }
+    val servicesSection = if (services.isEmpty()) "" else """<section><h2>${s.getValue("services_title")}</h2><div class="pre-grid">$services</div></section>"""
     val about = (listOf(person["bio"]) + (person["about"] as List<Any?>? ?: emptyList())).joinToString("") { "<p>${esc(tr(it, lang))}</p>" }
     val pdf = resume["pdf"]?.let { """ · <a href="${esc(it.toString())}">PDF</a>""" }.orEmpty()
     val resumeSection = """<section><h2>${s.getValue("resume_page")}</h2><p><a href="#resume">${s.getValue("experience_education_skills")}</a>$pdf</p></section>"""
@@ -97,8 +102,9 @@ fun page(lang: String): String {
         """<p class="pre-muted">${esc(tr(person["location"], lang))}</p></header>""" +
         """<div class="pre-blocks"><section class="pre-block"><h2>${s.getValue("contact_me")}</h2><ul class="pre-rows">$contacts</ul></section>""" +
         """<section class="pre-block"><h2>${s.getValue("my_resources")}</h2><ul class="pre-rows pre-links">$resources</ul></section></div>""" +
-        """<section><h2>${s.getValue("featured_projects")}</h2><div class="pre-grid">$projects</div></section>""" +
+        """<section><h2>${s.getValue("featured_projects")}</h2><div class="pre-grid">$projects</div>$support</section>""" +
         """<section><h2>${s.getValue("latest_articles")}</h2><ul class="pre-rows">$articles</ul></section>""" +
+        servicesSection +
         """<section><h2>${s.getValue("contact_title")}</h2><p>${s.getValue("contact_body")}</p><ul class="pre-rows">$contacts</ul></section>""" +
         resumeSection +
         """<section><h2>${s.getValue("about_me")}</h2>$about</section>""" +

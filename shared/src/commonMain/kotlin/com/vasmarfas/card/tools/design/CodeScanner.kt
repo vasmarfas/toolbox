@@ -45,6 +45,7 @@ import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LoadingRow
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.SegmentedChoice
 import io.github.vinceglb.filekit.readBytes
@@ -99,7 +100,7 @@ private fun CameraSource(codes: List<ScannedCode>?, onCodes: (List<ScannedCode>?
     LaunchedEffect(Unit) { allowed = ensurePermission(AppPermission.CAMERA) }
     when (allowed) {
         null -> LoadingRow()
-        false -> ErrorText(Res.string.scan_camera_denied.str())
+        false -> PermissionPrompt(AppPermission.CAMERA, Res.string.scan_camera_denied.str()) { allowed = true }
         true -> {
             CameraScanner(
                 onFound = { onCodes(listOf(it)) },

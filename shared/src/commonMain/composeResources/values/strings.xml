@@ -52,6 +52,13 @@
     <string name="languages">Languages</string>
     <string name="featured_projects">Featured projects</string>
     <string name="latest_articles">Latest articles</string>
+    <string name="services_title">What I can help with</string>
+    <string name="find_on_page">Find on page</string>
+    <string name="find_nothing">No matches</string>
+    <string name="find_count">%1$d of %2$d</string>
+    <string name="find_previous">Previous match</string>
+    <string name="find_next">Next match</string>
+    <string name="close_find">Close search</string>
     <string name="see_all">See all</string>
     <string name="present">present</string>
     <string name="views">views</string>
@@ -74,6 +81,8 @@
     <string name="options">Options</string>
     <string name="history">History</string>
     <string name="grant_permission">Grant permission</string>
+    <string name="open_settings">Open settings</string>
+    <string name="mic_access_needed">Measuring needs access to the microphone.</string>
     <string name="fullscreen">Fullscreen</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="wide_tables">Wide tables</string>
@@ -894,6 +903,10 @@
     <string name="objects_arrays">Objects / arrays</string>
     <string name="strings_numbers_booleans_nulls">Strings / numbers / booleans / nulls</string>
     <string name="size_input_output">Size: input → output</string>
+    <plurals name="document_characters">
+        <item quantity="one">Document of %1$s character</item>
+        <item quantity="other">Document of %1$s characters</item>
+    </plurals>
     <string name="json_input_field_is_hidden">Only the start of the document is shown: the field cannot keep up with editing text this large. The result below is computed from the whole document. Clear it to paste another one.</string>
     <string name="filter_by_key_or_value">Filter by key or value</string>
     <string name="expand_all">Expand all</string>
@@ -1536,7 +1549,7 @@
     <string name="height_px">Height, px</string>
     <string name="diagonal_inches">Diagonal, inches</string>
     <string name="apply">Apply</string>
-    <string name="drag_across_the_ruler">Drag across the ruler</string>
+    <string name="drag_across_the_ruler">Drag along the ruler</string>
     <string name="measured">Measured</string>
     <string name="scale">Scale</string>
     <string name="detected_by_the_system">Detected by the system</string>
@@ -1670,7 +1683,6 @@
     <string name="mac_address_lookup">MAC address lookup</string>
     <string name="mac_lookup_description">Vendor by MAC address from the IEEE registry, which works without internet, and in the apps also from two online databases. Address formats, unicast/multicast and local/universal bits, random MAC generator.</string>
     <string name="mac_not_found_unregistered">not found (unregistered or randomized)</string>
-    <string name="find_vendor">Find vendor</string>
     <string name="random_mac">Random MAC</string>
     <string name="locally_administered">locally administered</string>
     <string name="universally_administered">universally administered</string>
@@ -1679,7 +1691,6 @@
     <string name="count">Count</string>
     <string name="net_running">Running…</string>
     <string name="no_results">No results</string>
-    <string name="net_query">Query</string>
     <string name="lookup">Lookup</string>
     <string name="raw_response">Raw response</string>
     <string name="sent">Sent</string>
@@ -1689,7 +1700,6 @@
     <string name="avg">Avg</string>
     <string name="max">Max</string>
     <string name="net_open">open</string>
-    <string name="closed">closed</string>
     <string name="service">Service</string>
     <string name="scanning">Scanning…</string>
     <string name="stop_short">Stop</string>
@@ -2130,7 +2140,6 @@
     <string name="draw_order">Draw order</string>
     <string name="sorted">Sorted</string>
     <string name="random_notation_like_3d6_2">Notation like 3d6+2: 1–100 dice with 2–1000 sides.</string>
-    <string name="random_total">Total</string>
     <string name="rolls">Rolls</string>
     <string name="random_dice">Dice</string>
     <string name="add_at_least_one_option">Add at least one option.</string>
@@ -2561,7 +2570,7 @@
     <string name="wave_noise">Noise</string>
     <string name="sample_rate">Sample rate</string>
     <string name="tone_nyquist_note">The ceiling is %1$d Hz: half the sample rate the audio output opened at. Nothing above that can be reproduced, and a speaker or headphone will roll off long before it.</string>
-    <string name="mat_pla_ht">PLA HT (annealed)</string>
+    <string name="mat_pla_ht">PLA HT (annealable)</string>
     <string name="mat_pctg">PCTG</string>
     <string name="mat_pet">PET</string>
     <string name="mat_hips">HIPS</string>
@@ -4122,7 +4131,6 @@
     <string name="scan_wifi_security">Security</string>
     <string name="mac_vendor">Vendor</string>
     <string name="mac_block">Block</string>
-    <string name="mac_updated">Updated</string>
     <string name="mac_web_no_vendor">In the browser the vendor comes from the IEEE registry built into the site. The online databases do not accept requests from web pages, the apps check against them as well.</string>
     <string name="divider_not_above">E24 without going over Vout</string>
     <string name="mac_check_online">Check online</string>
@@ -4131,6 +4139,11 @@
     <string name="mac_no_answer">no answer</string>
     <string name="mac_not_found_short">not found</string>
     <string name="mac_same">same</string>
+    <string name="mac_broadcast">broadcast, for every device in the segment</string>
+    <string name="mac_ipv6_multicast">IPv6 multicast, the last 32 bits are the group</string>
+    <string name="mac_sub_block_missing">a sub-block of an IEEE block, missing from the built-in registry</string>
+    <string name="mac_registry_failed">The built-in registry failed to load</string>
+    <string name="try_again">Try again</string>
     <string name="filament_view_simple">Simple</string>
     <string name="filament_view_detailed">Detailed</string>
     <string name="filament_printer_heated">Heated chamber up to 65 °C</string>

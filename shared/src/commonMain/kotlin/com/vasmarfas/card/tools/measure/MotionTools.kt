@@ -13,14 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.AppPermission
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.SensorReading
 import com.vasmarfas.card.core.SensorType
-import com.vasmarfas.card.core.ensurePermission
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.hasPermission
 import com.vasmarfas.card.core.str
@@ -31,12 +29,12 @@ import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChartKind
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.NumberField
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.theme.LocalStatusColors
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 
 val accelerometerTool = Tool(
@@ -219,9 +217,7 @@ private fun PedometerScreen() {
     var stride by rememberSaveable { mutableStateOf("75") }
     var weight by rememberSaveable { mutableStateOf("75") }
     if (!permission) {
-        Text(Res.string.motion_step_counting_needs.str())
-        val scope = rememberCoroutineScope()
-        ActionButton(text = Res.string.grant_permission.str(), onClick = { scope.launch { permission = ensurePermission(AppPermission.ACTIVITY_RECOGNITION) } })
+        PermissionPrompt(AppPermission.ACTIVITY_RECOGNITION, Res.string.motion_step_counting_needs.str()) { permission = true }
         return
     }
     val session = rememberSensor(SensorType.STEP_COUNTER)

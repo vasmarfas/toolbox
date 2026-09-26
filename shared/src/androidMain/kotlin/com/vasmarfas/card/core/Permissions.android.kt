@@ -1,14 +1,18 @@
 package com.vasmarfas.card.core
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CompletableDeferred
 
 object PermissionBridge {
     private var launcher: ((Array<String>) -> Unit)? = null
     private var pending: CompletableDeferred<Map<String, Boolean>>? = null
+    val requested = mutableSetOf<String>()
 
     fun attach(launch: (Array<String>) -> Unit) {
         launcher = launch
@@ -28,6 +32,7 @@ object PermissionBridge {
         pending?.cancel()
         val deferred = CompletableDeferred<Map<String, Boolean>>()
         pending = deferred
+        requested += permissions
         launch(permissions)
         return deferred.await()
     }
@@ -58,4 +63,19 @@ actual suspend fun ensurePermission(permission: AppPermission): Boolean {
     if (required.isEmpty()) return true
     val result = PermissionBridge.request(required)
     return result.values.any { it }
+}
+
+actual fun permissionBlocked(permission: AppPermission): Boolean {
+    val activity = ActivityHolder.activity ?: return false
+    val required = manifestPermissions(permission)
+    return !hasPermission(permission) && required.any { it in PermissionBridge.requested } &&
+        required.none { activity.shouldShowRequestPermissionRationale(it) }
+}
+
+actual fun openAppSettings() {
+    val context = AppContextHolder.context
+    context.startActivity(
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+    )
 }

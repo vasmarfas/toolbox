@@ -5,9 +5,11 @@ import com.vasmarfas.card.resources.*
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 
@@ -45,12 +47,13 @@ class MacAnswer(val source: String, val vendor: String?, val failed: Boolean = f
 object MacVendors {
     private var registry: MacRegistry? = null
 
-    suspend fun registry(): MacRegistry =
-        registry ?: MacRegistry.parse(Res.readBytes("files/mac-vendors.tsv").decodeToString()).also { registry = it }
+    suspend fun registry(): MacRegistry = registry ?: withContext(Dispatchers.Default) {
+        MacRegistry.parse(Res.readBytes("files/mac-vendors.tsv").decodeToString())
+    }.also { registry = it }
 
-    suspend fun online(hex: String): List<MacAnswer> = coroutineScope {
+    fun online(hex: String): Flow<MacAnswer> {
         val prefix = hex.take(9)
-        listOf(async { macLookup(prefix) }, async { macVendors(prefix) }).awaitAll()
+        return merge(flow { emit(macLookup(prefix)) }, flow { emit(macVendors(prefix)) })
     }
 
     private suspend fun macLookup(prefix: String): MacAnswer = runCatching {
@@ -76,10 +79,10 @@ object MacVendors {
     )
 
     fun sameVendor(a: String, b: String): Boolean {
-        fun key(name: String) = name.lowercase().map { if (it.isLetterOrDigit()) it else ' ' }.joinToString("")
-            .split(' ').filter { it.isNotEmpty() && it !in legalWords }.joinToString(" ")
-        val x = key(a)
-        val y = key(b)
-        return x.isNotEmpty() && y.isNotEmpty() && (x.startsWith(y) || y.startsWith(x))
+        fun words(name: String) = name.lowercase().map { if (it.isLetterOrDigit()) it else ' ' }.joinToString("")
+            .split(' ').filter { it.isNotEmpty() && it !in legalWords }
+        val x = words(a)
+        val y = words(b)
+        return x.isNotEmpty() && y.isNotEmpty() && (x.take(y.size) == y || y.take(x.size) == x)
     }
 }

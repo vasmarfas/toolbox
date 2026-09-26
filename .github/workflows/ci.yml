@@ -78,5 +78,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Compile and link
-        run: ./gradlew :shared:compileKotlinIosArm64 :shared:linkDebugFrameworkIosSimulatorArm64
+      - name: Build the app for the simulator
+        run: >-
+          xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build/xcode
+          CODE_SIGNING_ALLOWED=NO build

@@ -35,7 +35,7 @@ kotlin {
 }
 
 // Browser media, PDF and barcode libraries are loaded on demand from vendor/, so they stay out of the app bundle.
-val vendorScripts by tasks.registering(Sync::class) {
+val vendorScripts = tasks.register<Sync>("vendorScripts") {
     dependsOn(":kotlinWasmNpmInstall")
     val modules = rootProject.layout.buildDirectory.dir("wasm/node_modules")
     from(modules.map { it.dir("mediabunny/dist/bundles") }) { include("mediabunny.min.mjs") }

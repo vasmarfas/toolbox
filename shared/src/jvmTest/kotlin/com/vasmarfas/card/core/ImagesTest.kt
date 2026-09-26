@@ -1,12 +1,19 @@
 package com.vasmarfas.card.core
 
+import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.ui.platform.registerSkikoComposeImplementation
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+@OptIn(InternalComposeUiApi::class)
 class ImagesTest {
+    init {
+        registerSkikoComposeImplementation()
+    }
+
     private fun fixture(name: String): ByteArray = assertNotNull(javaClass.getResourceAsStream("/$name")).readBytes()
 
     // stored 200x100 with a blue left half, Orientation = 6

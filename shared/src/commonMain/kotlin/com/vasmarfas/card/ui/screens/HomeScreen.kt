@@ -91,6 +91,7 @@ import com.vasmarfas.card.data.ProfileRepository
 import com.vasmarfas.card.data.ThemeMode
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ContentColumn
+import com.vasmarfas.card.ui.components.FindableText
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.PageMaxWidth
@@ -116,7 +117,7 @@ fun currentYear(): Int = Clock.System.now().toLocalDateTime(TimeZone.currentSyst
 
 @Composable
 fun HomeScreen(
-    onOpenProjects: () -> Unit,
+    onOpenProjects: (ProjectsTab) -> Unit,
     onOpenResume: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
@@ -130,9 +131,10 @@ fun HomeScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                     Hero(profile)
                     StatsStrip(profile)
-                    FeaturedProjects(profile, onOpenProjects)
+                    FeaturedProjects(profile) { onOpenProjects(ProjectsTab.PROJECTS) }
                     SupportLine(profile)
-                    LatestArticles(profile, onOpenProjects)
+                    LatestArticles(profile) { onOpenProjects(ProjectsTab.ARTICLES) }
+                    Services(profile)
                     ContactCard(profile, Res.string.contact_title.str(), Res.string.contact_body.str(), "contact")
                     ResumeTeaser(onOpenResume)
                     AboutSection(profile)
@@ -148,7 +150,7 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
     val settings = LocalSettings.current
     val lang = LocalLang.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(
+        FindableText(
             Res.string.app_name.str(),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
@@ -198,7 +200,7 @@ private fun Hero(profile: Profile) {
                     person.name.str(),
                     if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
                 )
-                Text(person.title.str(), style = MaterialTheme.typography.titleMedium)
+                FindableText(person.title.str(), style = MaterialTheme.typography.titleMedium)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Filled.Place,
@@ -207,7 +209,7 @@ private fun Hero(profile: Profile) {
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    FindableText(person.location.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -223,16 +225,17 @@ private val HeroTilesMinWidth = 760.dp
 private fun HeroBlocks(profile: Profile) {
     val contacts = profile.links.filter { it.active && it.type in ContactTypes }
     val resources = profile.links.filter { it.active && it.type !in ContactTypes && it.type != "support" }
+    if (contacts.isEmpty() && resources.isEmpty()) return
     BoxWithConstraints {
         if (maxWidth < HeroTilesMinWidth) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                HeroBlock(Res.string.contact_me.str(), Modifier.fillMaxWidth()) { contacts.forEach { LinkRow(it, "hero") } }
-                HeroBlock(Res.string.my_resources.str(), Modifier.fillMaxWidth()) { resources.forEach { LinkRow(it, "resources") } }
+                if (contacts.isNotEmpty()) HeroBlock(Res.string.contact_me.str(), Modifier.fillMaxWidth()) { contacts.forEach { LinkRow(it, "hero") } }
+                if (resources.isNotEmpty()) HeroBlock(Res.string.my_resources.str(), Modifier.fillMaxWidth()) { resources.forEach { LinkRow(it, "resources") } }
             }
         } else {
             Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                HeroBlock(Res.string.contact_me.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(contacts, 1, "hero") }
-                HeroBlock(Res.string.my_resources.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(resources, 2, "resources") }
+                if (contacts.isNotEmpty()) HeroBlock(Res.string.contact_me.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(contacts, 1, "hero") }
+                if (resources.isNotEmpty()) HeroBlock(Res.string.my_resources.str(), Modifier.weight(1f).fillMaxHeight()) { LinkTiles(resources, 2, "resources") }
             }
         }
     }
@@ -264,7 +267,7 @@ private fun HeroBlock(title: String, modifier: Modifier, content: @Composable ()
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
+            FindableText(
                 title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
@@ -308,9 +311,9 @@ private fun LinkRow(link: Link, source: String, modifier: Modifier = Modifier, i
         Icon(linkIcon(link.type), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(inset))
         Column(Modifier.weight(1f)) {
-            Text(if (email) address else link.label?.str() ?: linkDefaultLabel(link.type), style = MaterialTheme.typography.bodyLarge)
+            FindableText(if (email) address else link.label?.str() ?: linkDefaultLabel(link.type), style = MaterialTheme.typography.bodyLarge)
             val hint = if (email && copied) Res.string.copied.str() else linkHint(link.url)
-            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            hint?.let { FindableText(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         if (email) {
             Icon(
@@ -354,7 +357,7 @@ private fun PromptLine(text: String, style: TextStyle) {
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(width = glyph * 170 / 295, height = glyph),
         )
-        Text(text, style = style)
+        FindableText(text, style = style)
         Box(
             Modifier
                 .size(width = 4.dp, height = glyph)
@@ -393,7 +396,7 @@ private fun AboutSection(profile: Profile) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(Res.string.about_me.str())
         (listOf(person.bio) + person.about).forEach { paragraph ->
-            Text(paragraph.str(), style = MaterialTheme.typography.bodyLarge)
+            FindableText(paragraph.str(), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
@@ -441,8 +444,8 @@ private fun StatsStrip(profile: Profile) {
 @Composable
 private fun StatCell(stat: Stat, modifier: Modifier) {
     Column(modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(stat.value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-        Text(pluralStringResource(stat.label, parseCount(stat.value) ?: 0), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FindableText(stat.value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        FindableText(pluralStringResource(stat.label, parseCount(stat.value) ?: 0), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -475,7 +478,7 @@ private fun SupportLine(profile: Profile) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(Res.string.support_projects.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FindableText(Res.string.support_projects.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SupportButton(support, "projects")
     }
 }
@@ -506,6 +509,35 @@ private fun SeeAllButton(onClick: () -> Unit) {
 }
 
 @Composable
+private fun Services(profile: Profile) {
+    val services = profile.services.filter { it.active }
+    if (services.isEmpty()) return
+    val columns = if (LocalLayoutSize.current == LayoutSize.COMPACT) 1 else 2
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionTitle(Res.string.services_title.str())
+        services.chunked(columns).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                row.forEach { service ->
+                    Card(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FindableText(service.title.str(), style = MaterialTheme.typography.titleMedium)
+                            FindableText(service.text.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
 private fun LatestArticles(profile: Profile, onOpenAll: () -> Unit) {
     if (profile.articles.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -526,15 +558,15 @@ fun ArticleRow(article: Article, modifier: Modifier = Modifier) {
             Icon(linkIcon(article.source), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(article.title.str(), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                FindableText(article.title.str(), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 article.summary?.let {
-                    Text(it.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    FindableText(it.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 val meta = buildString {
                     append(article.date)
                     HabrStats.viewsOf(article, live)?.let { append(" · ").append(formatCount(it)).append(' ').append(Res.string.views.str()) }
                 }
-                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FindableText(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -549,8 +581,8 @@ private fun ResumeTeaser(onOpenResume: () -> Unit) {
     ) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(Res.string.resume_page.str(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                Text(
+                FindableText(Res.string.resume_page.str(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                FindableText(
                     Res.string.experience_education_skills.str(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -571,8 +603,8 @@ internal fun ContactCard(profile: Profile, title: String, body: String, source: 
     ) {
         Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(title, style = MaterialTheme.typography.titleLarge)
-                Text(body, style = MaterialTheme.typography.bodyMedium)
+                FindableText(title, style = MaterialTheme.typography.titleLarge)
+                FindableText(body, style = MaterialTheme.typography.bodyMedium)
             }
             contacts.forEach { LinkRow(it, source) }
         }
@@ -594,7 +626,7 @@ private fun Footer(profile: Profile) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
+        FindableText(
             Res.string.built_with.str(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -621,7 +653,7 @@ private fun Footer(profile: Profile) {
             }
             FooterButton(linkIcon("github"), Res.string.source_code.str()) { openUrl(AppConfig.REPO_URL) }
         }
-        Text("© ${currentYear()} vasmarfas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FindableText("© ${currentYear()} vasmarfas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

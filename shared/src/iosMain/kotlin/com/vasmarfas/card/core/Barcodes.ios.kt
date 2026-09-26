@@ -57,11 +57,10 @@ import platform.UIKit.UIView
 import platform.Vision.VNBarcodeObservation
 import platform.Vision.VNDetectBarcodesRequest
 import platform.Vision.VNImageRequestHandler
-import platform.darwin.DISPATCH_QUEUE_PRIORITY_DEFAULT
 import platform.darwin.NSObject
 import platform.darwin.dispatch_async
-import platform.darwin.dispatch_get_global_queue
 import platform.darwin.dispatch_get_main_queue
+import platform.darwin.dispatch_queue_create
 
 actual val cameraScanning: Boolean get() = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo) != null
 
@@ -85,6 +84,8 @@ private val cameraFormats = mapOf(
     AVMetadataObjectTypeGS1DataBarExpandedCode to "GS1 DataBar Expanded",
 )
 
+private val sessionQueue = dispatch_queue_create("com.vasmarfas.toolbox.scanner", null)
+
 @Composable
 actual fun CameraScanner(onFound: (ScannedCode) -> Unit, modifier: Modifier) {
     val found by rememberUpdatedState(onFound)
@@ -107,19 +108,21 @@ actual fun CameraScanner(onFound: (ScannedCode) -> Unit, modifier: Modifier) {
             // the list of types fills in only once the output sits in a session with a camera
             output.metadataObjectTypes = cameraFormats.keys.filter { it in output.availableMetadataObjectTypes }
         }
-        // starting waits for the camera to come up, Apple asks to keep it off the main thread
-        dispatch_async(background()) { session.startRunning() }
-        onDispose { dispatch_async(background()) { session.stopRunning() } }
+        // without it an iPad in Split View or Stage Manager shows a black preview
+        session.multitaskingCameraAccessEnabled = session.multitaskingCameraAccessSupported
+        dispatch_async(sessionQueue) { session.startRunning() }
+        onDispose { dispatch_async(sessionQueue) { session.stopRunning() } }
     }
 }
 
-private fun background() = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT.toLong(), 0uL)
+private fun ScannedCode.upcA(): ScannedCode =
+    if (format == "EAN-13" && text.length == 13 && text[0] == '0') ScannedCode(text.drop(1), "UPC-A") else this
 
 private class CodeReader(private val onCode: (ScannedCode) -> Unit) : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
     override fun captureOutput(output: AVCaptureOutput, didOutputMetadataObjects: List<*>, fromConnection: AVCaptureConnection) {
         val code = didOutputMetadataObjects.firstNotNullOfOrNull { it as? AVMetadataMachineReadableCodeObject } ?: return
         val text = code.stringValue ?: return
-        onCode(ScannedCode(text, cameraFormats[code.type] ?: code.type.orEmpty()))
+        onCode(ScannedCode(text, cameraFormats[code.type] ?: code.type.orEmpty()).upcA())
     }
 }
 
@@ -157,7 +160,7 @@ internal actual fun scanPixels(pixels: IntArray, width: Int, height: Int): List<
     CGImageRelease(image)
     return request.results.orEmpty()
         .mapNotNull { it as? VNBarcodeObservation }
-        .mapNotNull { observation -> observation.payloadStringValue?.let { ScannedCode(it, label(observation.symbology)) } }
+        .mapNotNull { observation -> observation.payloadStringValue?.let { ScannedCode(it, label(observation.symbology)).upcA() } }
         .distinctBy { it.text }
 }
 

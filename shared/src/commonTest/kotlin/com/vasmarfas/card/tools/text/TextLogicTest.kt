@@ -183,6 +183,7 @@ class MorseTest {
         assertEquals("... --- ...", Morse.encode("SOS"))
         assertEquals(".- -... / -.-. -..", Morse.encode("ab cd"))
         assertEquals("....- ..---", Morse.encode("42"))
+        assertEquals(".... .. / -.-.--", Morse.encode("hi \uD83D\uDE00 !"))
     }
 
     @Test
@@ -195,6 +196,7 @@ class MorseTest {
         assertEquals("sos", Morse.decode("... --- ...", MorseAlphabet.LATIN))
         assertEquals("мир", Morse.decode("-- .. .-.", MorseAlphabet.CYRILLIC))
         assertEquals("ab cd", Morse.decode(".- -... / -.-. -..", MorseAlphabet.LATIN))
+        assertEquals("sos e", Morse.decode("•••\n———  ··· | .", MorseAlphabet.LATIN))
     }
 
     @Test
@@ -203,6 +205,14 @@ class MorseTest {
         assertEquals(Morse.UNIT_MS, steps[0].ms)
         assertTrue(steps[0].tone)
         assertEquals(Morse.UNIT_MS * 3, steps[2].ms)
+    }
+
+    @Test
+    fun gapsFollowTheStandardUnits() {
+        val steps = Morse.schedule(Morse.normalize(".. . / •"))
+        val tones = steps.indices.filter { steps[it].tone }
+        val gaps = tones.zipWithNext { a, b -> steps.subList(a + 1, b).sumOf { it.ms } / Morse.UNIT_MS }
+        assertEquals(listOf(1, 3, 7), gaps)
     }
 
     @Test

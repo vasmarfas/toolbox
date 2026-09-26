@@ -131,6 +131,8 @@ data class ShapeMark(
     override fun translated(dx: Double, dy: Double) = copy(x0 = x0 + dx, y0 = y0 + dy, x1 = x1 + dx, y1 = y1 + dy)
 }
 
+data class StyleSpan(val start: Int, val end: Int, val bold: Boolean, val italic: Boolean, val color: Int)
+
 data class TextMark(
     override val id: Long,
     val box: PdfRect,
@@ -145,6 +147,7 @@ data class TextMark(
     val fill: Int? = null,
     val border: Boolean = false,
     val spacing: Float = LINE_SPACING,
+    val spans: List<StyleSpan> = emptyList(),
 ) : Mark {
     override val bounds: PdfRect get() = box
 

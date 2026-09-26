@@ -8,8 +8,10 @@ data class PdfBoolean(val value: Boolean) : PdfObject {
     override fun toString() = value.toString()
 
     companion object {
-        val TRUE = PdfBoolean(true)
-        val FALSE = PdfBoolean(false)
+        private val yes = PdfBoolean(true)
+        private val no = PdfBoolean(false)
+
+        fun of(value: Boolean): PdfBoolean = if (value) yes else no
     }
 }
 

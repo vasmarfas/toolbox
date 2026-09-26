@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,12 +57,15 @@ val urlToolsTool = Tool(
 private fun UrlToolsScreen() {
     var mode by rememberSaveable { mutableStateOf(UrlMode.PARSE) }
     ChoiceChips(options = UrlMode.entries, selected = mode, onSelect = { mode = it }, label = { it.title.str() })
-    when (mode) {
-        UrlMode.ENCODE -> EncodeSection()
-        UrlMode.DECODE -> DecodeSection()
-        UrlMode.PARSE -> ParseSection()
-        UrlMode.QUERY -> QuerySection()
-        UrlMode.IDN -> IdnSection()
+    val saved = rememberSaveableStateHolder()
+    saved.SaveableStateProvider(mode) {
+        when (mode) {
+            UrlMode.ENCODE -> EncodeSection()
+            UrlMode.DECODE -> DecodeSection()
+            UrlMode.PARSE -> ParseSection()
+            UrlMode.QUERY -> QuerySection()
+            UrlMode.IDN -> IdnSection()
+        }
     }
 }
 

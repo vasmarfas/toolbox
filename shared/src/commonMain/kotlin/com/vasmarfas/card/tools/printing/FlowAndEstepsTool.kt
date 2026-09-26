@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -51,10 +52,13 @@ private fun FlowAndEstepsScreen() {
             }
         },
     )
-    when (tab) {
-        FlowTab.ESTEPS -> EstepsSection()
-        FlowTab.FLOW -> FlowSection()
-        FlowTab.VOLUMETRIC -> VolumetricSection()
+    val saved = rememberSaveableStateHolder()
+    saved.SaveableStateProvider(tab) {
+        when (tab) {
+            FlowTab.ESTEPS -> EstepsSection()
+            FlowTab.FLOW -> FlowSection()
+            FlowTab.VOLUMETRIC -> VolumetricSection()
+        }
     }
 }
 

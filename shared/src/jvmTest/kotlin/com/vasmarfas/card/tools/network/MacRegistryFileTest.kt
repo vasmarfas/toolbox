@@ -14,6 +14,8 @@ class MacRegistryFileTest {
         assertEquals("Routerboard.com", registry.find("4C5E0C")?.vendor)
         assertEquals("LV", registry.find("4C5E0C")?.country)
         assertEquals("TELEPLATFORMS", registry.find("70B3D5F2F")?.vendor)
+        assertEquals("NL", registry.find("001788")?.country)
+        assertEquals("HK", registry.find("3CCF5B")?.country)
         assertTrue(registry.date.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
     }
 }

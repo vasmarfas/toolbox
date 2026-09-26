@@ -41,6 +41,7 @@ import com.vasmarfas.card.data.ResumeRepository
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.ui.components.ContentColumn
 import com.vasmarfas.card.ui.components.EmptyState
+import com.vasmarfas.card.ui.components.FindableText
 import com.vasmarfas.card.ui.components.PageMaxWidth
 import com.vasmarfas.card.ui.components.SectionTitle
 import com.vasmarfas.card.ui.components.TagChips
@@ -54,7 +55,7 @@ fun ResumeScreen() {
     val resume = state.value
     ContentColumn(maxWidth = PageMaxWidth, verticalSpacing = 20.dp) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            FindableText(Res.string.resume_page.str(), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             resume?.pdf?.let { url ->
                 OutlinedButton(
                     onClick = {
@@ -80,7 +81,7 @@ fun ResumeScreen() {
         }
         SelectionContainer {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                resume.summary?.let { Text(it.str(), style = MaterialTheme.typography.bodyLarge) }
+                resume.summary?.let { FindableText(it.str(), style = MaterialTheme.typography.bodyLarge) }
                 if (resume.experience.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionTitle(Res.string.experience.str())
@@ -103,7 +104,7 @@ fun ResumeScreen() {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionTitle(Res.string.skills.str())
                         resume.skills.forEach { group ->
-                            Text(group.title.str(), style = MaterialTheme.typography.titleMedium)
+                            FindableText(group.title.str(), style = MaterialTheme.typography.titleMedium)
                             TagChips(group.items)
                         }
                     }
@@ -138,9 +139,9 @@ private fun ExperienceCard(item: Experience) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(item.role.str(), style = MaterialTheme.typography.titleLarge)
+            FindableText(item.role.str(), style = MaterialTheme.typography.titleLarge)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(item.company.str(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                FindableText(item.company.str(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 item.url?.let { url ->
                     IconButton(onClick = { openUrl(url) }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
                         Icon(
@@ -154,12 +155,12 @@ private fun ExperienceCard(item: Experience) {
             }
             val period = "${formatMonth(item.from, lang)} — ${item.to?.let { formatMonth(it, lang) } ?: Res.string.present.str()}" +
                 (item.location?.let { " · ${it.str()}" } ?: "")
-            Text(period, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            item.summary?.let { Text(it.str(), style = MaterialTheme.typography.bodyMedium) }
+            FindableText(period, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            item.summary?.let { FindableText(it.str(), style = MaterialTheme.typography.bodyMedium) }
             item.bullets.forEach { bullet ->
                 Row {
                     Text("•  ", style = MaterialTheme.typography.bodyMedium)
-                    Text(bullet.str(), style = MaterialTheme.typography.bodyMedium)
+                    FindableText(bullet.str(), style = MaterialTheme.typography.bodyMedium)
                 }
             }
             if (item.tags.isNotEmpty()) TagChips(item.tags)
@@ -174,10 +175,10 @@ private fun EducationCard(item: Education) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(item.degree.str(), style = MaterialTheme.typography.titleMedium)
-            Text(item.institution.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            FindableText(item.degree.str(), style = MaterialTheme.typography.titleMedium)
+            FindableText(item.institution.str(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             val meta = listOfNotNull(item.year, item.note?.str()).joinToString(" · ")
-            Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FindableText(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

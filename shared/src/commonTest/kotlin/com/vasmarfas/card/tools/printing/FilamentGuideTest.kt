@@ -57,6 +57,27 @@ class FilamentGuideTest {
     }
 
     @Test
+    fun chemicalsDropPlasticsThatSolventsAttack() {
+        val picked = Filaments.pick(FilamentNeeds(chemicals = true, load = PartLoad.HEAVY))
+        assertTrue(picked.isNotEmpty() && picked.all { it.traits.chemical >= 3 })
+        assertTrue(picked.none { it.material == FilamentMaterial.PVB || it.material == FilamentMaterial.PLA })
+    }
+
+    @Test
+    fun nylonIsOfferedForRigidLoadedParts() {
+        val gears = Filaments.pick(FilamentNeeds(load = PartLoad.HEAVY, printer = PrinterKind.ENCLOSED))
+        assertTrue(gears.any { it.material == FilamentMaterial.NYLON })
+    }
+
+    @Test
+    fun printerLimitsAgreeWithTheChamberEachPlasticNeeds() {
+        val nozzle = PrinterKind.entries.associate { it.chamber to it.maxNozzleC }
+        Filaments.traits.forEach { (material, t) ->
+            assertTrue(material.nozzleC.first <= nozzle.getValue(t.chamber), "${material.name} needs ${t.chamber} but its nozzle starts at ${material.nozzleC.first}")
+        }
+    }
+
+    @Test
     fun knocksPushBrittlePlasticsDown() {
         val heavy = Filaments.pick(FilamentNeeds(load = PartLoad.HEAVY))
         assertTrue(heavy.first().material != FilamentMaterial.PLA)

@@ -45,6 +45,8 @@ class MacVendorsTest {
         assertTrue(MacVendors.sameVendor("HUAWEI TECHNOLOGIES CO.,LTD", "Huawei Technologies Co., Ltd."))
         assertFalse(MacVendors.sameVendor("Cisco Systems, Inc", "Apple, Inc."))
         assertFalse(MacVendors.sameVendor("Inc.", "Ltd"))
+        assertFalse(MacVendors.sameVendor("Intel Corporate", "Intelbras"))
+        assertTrue(MacVendors.sameVendor("TP-LINK TECHNOLOGIES CO.,LTD.", "TP-Link Corporation Limited"))
     }
 
     @Test
@@ -52,5 +54,19 @@ class MacVendorsTest {
         assertEquals("4C5E0C", MacAddress.prefix("4c-5e-0c"))
         assertEquals("4C5E0C123456", MacAddress.prefix("4C:5E:0C:12:34:56"))
         assertNull(MacAddress.prefix("4C:5E"))
+    }
+
+    @Test
+    fun groupsWithoutLeadingZerosArePadded() {
+        assertEquals("3C0754123456", MacAddress.normalize("3c:7:54:12:34:56"))
+        assertEquals("001A2B3", MacAddress.prefix("00:1a:2b:3"))
+        assertEquals("001A2B", MacAddress.prefix("00:1A:2B:"))
+        assertNull(MacAddress.prefix("4C:5E:0C:12:34:5G"))
+    }
+
+    @Test
+    fun aGroupAddressBelongsToTheOwnerOfItsOui() {
+        assertEquals("00005E000001", MacAddress.individual("01005E000001"))
+        assertEquals("ICANN", MacRegistry.parse("#2026-09-25\n00005E\tICANN\tUS").find(MacAddress.individual("01005E"))?.vendor)
     }
 }

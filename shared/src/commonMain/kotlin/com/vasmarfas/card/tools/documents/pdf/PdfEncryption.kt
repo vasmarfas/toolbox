@@ -63,7 +63,7 @@ internal class PdfEncryptor private constructor(private val key: ByteArray, val 
                 "OE" to PdfString(oe, hex = true),
                 "UE" to PdfString(ue, hex = true),
                 "Perms" to PdfString(perms, hex = true),
-                "EncryptMetadata" to PdfBoolean.TRUE,
+                "EncryptMetadata" to PdfBoolean.of(true),
                 "CF" to PdfDict(
                     "StdCF" to PdfDict(
                         "Type" to PdfName("CryptFilter"),

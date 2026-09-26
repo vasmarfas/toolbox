@@ -7,11 +7,12 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
@@ -25,12 +26,12 @@ import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.Tool
 import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
+import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.Hint
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LoadingRow
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.components.ToolInputField
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 val macLookupTool = Tool(
@@ -43,18 +44,24 @@ val macLookupTool = Tool(
 ) { MacLookupScreen() }
 
 object MacAddress {
-    fun normalize(input: String): String? {
-        val hex = input.trim().replace(Regex("[^0-9A-Fa-f]"), "").uppercase()
-        return if (hex.length == 12) hex else null
+    private fun digits(input: String): String? {
+        val groups = input.trim().split(Regex("[\\s:.-]+")).filter { it.isNotEmpty() }
+        if (groups.any { g -> g.any { it.digitToIntOrNull(16) == null } }) return null
+        val width = if (groups.any { it.length > 2 }) 4 else 2
+        return groups.mapIndexed { i, g -> if (i < groups.lastIndex || groups.size * width == 12) g.padStart(width, '0') else g }
+            .joinToString("").uppercase()
     }
 
-    fun prefix(input: String): String? = input.trim().replace(Regex("[^0-9A-Fa-f]"), "").uppercase().takeIf { it.length in 6..12 }
+    fun normalize(input: String): String? = digits(input)?.takeIf { it.length == 12 }
+    fun prefix(input: String): String? = digits(input)?.takeIf { it.length in 6..12 }
 
     fun colon(hex: String) = hex.chunked(2).joinToString(":")
     fun hyphen(hex: String) = hex.chunked(2).joinToString("-")
     fun dotted(hex: String) = hex.lowercase().chunked(4).joinToString(".")
     fun isMulticast(hex: String) = (hex.substring(0, 2).toInt(16) and 1) == 1
     fun isLocal(hex: String) = (hex.substring(0, 2).toInt(16) and 2) == 2
+
+    fun individual(hex: String) = (hex.substring(0, 2).toInt(16) and 0xFE).toString(16).padStart(2, '0').uppercase() + hex.substring(2)
     fun random(): String {
         val bytes = secureRandomBytes(6)
         bytes[0] = ((bytes[0].toInt() and 0xFC) or 0x02).toByte()
@@ -66,12 +73,20 @@ object MacAddress {
 private fun MacLookupScreen() {
     val lang = LocalLang.current
     var input by rememberSaveable { mutableStateOf("4C:5E:0C:12:34:56") }
-    val registry by produceState<MacRegistry?>(null) { value = runCatching { MacVendors.registry() }.getOrNull() }
+    var attempt by remember { mutableStateOf(0) }
+    val loaded by produceState<Result<MacRegistry>?>(null, attempt) { value = runCatching { MacVendors.registry() } }
+    val registry = loaded?.getOrNull()
     val hex = MacAddress.normalize(input)
     val prefix = MacAddress.prefix(input)
-    var answers by remember(prefix) { mutableStateOf<List<MacAnswer>?>(null) }
+    val answers = remember(prefix) { mutableStateListOf<MacAnswer>() }
     var checking by remember(prefix) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    if (checking && prefix != null) {
+        LaunchedEffect(prefix) {
+            answers.clear()
+            MacVendors.online(prefix).collect { answers += it }
+            checking = false
+        }
+    }
 
     ToolInputField(
         value = input,
@@ -86,14 +101,7 @@ private fun MacLookupScreen() {
         if (online) {
             ActionButton(
                 text = Res.string.mac_check_online.str(),
-                onClick = {
-                    val mac = prefix ?: return@ActionButton
-                    checking = true
-                    scope.launch {
-                        answers = MacVendors.online(mac)
-                        checking = false
-                    }
-                },
+                onClick = { checking = true },
                 enabled = prefix != null && !checking,
             )
         }
@@ -101,21 +109,30 @@ private fun MacLookupScreen() {
     }
     if (!online) Hint(Res.string.mac_web_no_vendor.str())
     if (prefix != null) {
-        val block = registry?.find(prefix)
+        val block = registry?.find(MacAddress.individual(prefix))
         ResultCard {
             when {
+                prefix == "FFFFFFFFFFFF" -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_broadcast.str(), mono = false, copyable = false)
+                prefix.startsWith("3333") -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_ipv6_multicast.str(), mono = false, copyable = false)
                 block != null -> {
-                    KeyValueRow(Res.string.mac_vendor.str(), block.vendor, mono = false)
-                    block.country?.let { KeyValueRow(Res.string.country.str(), regionName(it, lang) ?: it, mono = false, copyable = false) }
+                    if (block.vendor == "IEEE Registration Authority" && prefix.length >= 9) {
+                        KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_sub_block_missing.str(), mono = false, copyable = false)
+                    } else {
+                        KeyValueRow(Res.string.mac_vendor.str(), block.vendor, mono = false)
+                        block.country?.let { KeyValueRow(Res.string.country.str(), regionName(it, lang) ?: it, mono = false, copyable = false) }
+                    }
                     KeyValueRow(Res.string.mac_block.str(), "${block.type} · ${MacAddress.colon(block.first)} – ${MacAddress.colon(block.last)}", copyable = false)
                 }
-                registry == null -> LoadingRow()
+                loaded == null -> LoadingRow()
+                registry == null -> {
+                    ErrorText(Res.string.mac_registry_failed.str())
+                    TextButton(onClick = { attempt++ }) { Text(Res.string.try_again.str()) }
+                }
                 MacAddress.isLocal(prefix) -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_local_no_vendor.str(), mono = false, copyable = false)
                 else -> KeyValueRow(Res.string.mac_vendor.str(), Res.string.mac_not_found_unregistered.str(), mono = false, copyable = false)
             }
             registry?.let { KeyValueRow(Res.string.source.str(), stringResource(Res.string.mac_ieee_registry, it.date), mono = false, copyable = false) }
-            if (checking) LoadingRow()
-            answers?.forEach { answer ->
+            answers.forEach { answer ->
                 val vendor = answer.vendor
                 val text = when {
                     answer.failed -> Res.string.mac_no_answer.str()
@@ -125,6 +142,7 @@ private fun MacLookupScreen() {
                 }
                 KeyValueRow(answer.source, text, mono = false, copyable = text == vendor)
             }
+            if (checking) LoadingRow()
         }
     }
     if (hex != null) {
@@ -142,7 +160,7 @@ private fun MacLookupScreen() {
             )
             KeyValueRow("EUI-64", hex.substring(0, 6) + "FFFE" + hex.substring(6), mono = true)
             val modified = ((hex.substring(0, 2).toInt(16) xor 0x02).toString(16).padStart(2, '0').uppercase()) + hex.substring(2, 6) + "FFFE" + hex.substring(6)
-            KeyValueRow("IPv6 link-local", "fe80::" + modified.lowercase().chunked(4).joinToString(":").replace(Regex("(^|:)0+(?=[0-9a-f])"), "$1"))
+            KeyValueRow("IPv6 link-local", "fe80::" + modified.lowercase().chunked(4).joinToString(":").replace(Regex("(^|:)0+(?=[0-9a-f])"), "$1").removePrefix("0:"))
         }
     }
 }

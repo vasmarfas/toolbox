@@ -11,17 +11,17 @@ import com.vasmarfas.card.core.hideWebSplash
 import com.vasmarfas.card.ui.navigation.ToolRoute
 import com.vasmarfas.card.ui.navigation.TopDestination
 import com.vasmarfas.card.ui.navigation.UrlRoutes
-import kotlinx.browser.document
 import kotlinx.browser.window
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalBrowserHistoryApi::class)
 fun main() {
-    val body = document.body ?: return
-    ComposeViewport(body) {
+    var current: NavController? = null
+    window.addEventListener("hashchange", { current?.let { navigateToFragment(it, window.location.hash) } })
+    ComposeViewport("app") {
         App(onNavHostReady = { navController ->
+            current = navController
             hideWebSplash()
             navigateToFragment(navController, window.location.hash)
-            window.addEventListener("hashchange", { navigateToFragment(navController, window.location.hash) })
             navController.bindToBrowserNavigation { entry ->
                 val destination = entry.destination
                 when {

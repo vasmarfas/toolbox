@@ -48,6 +48,8 @@ expect val pullToReload: Boolean
 
 expect fun reloadPage()
 
+expect fun listenForFindShortcut(open: () -> Boolean)
+
 @Composable
 expect fun platformDynamicColorScheme(dark: Boolean): ColorScheme?
 

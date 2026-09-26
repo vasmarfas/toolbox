@@ -10,7 +10,7 @@ private fun jsRandomBytes(count: Int): JsAny? = js("crypto.getRandomValues(new U
 
 private fun jsByteAt(array: JsAny?, index: Int): Int = js("array[index]")
 
-private fun jsHideSplash(): Unit = js("{ var s = document.getElementById('splash'); if (s) { s.classList.add('hidden'); setTimeout(function(){ s.remove(); }, 400); } }")
+private fun jsHideSplash(): Unit = js("{ var s = document.getElementById('splash'); if (s) { s.classList.add('hidden'); setTimeout(function(){ s.style.display = 'none'; }, 400); } }")
 
 private fun jsDateNow(): Double = js("Date.now()")
 
@@ -113,3 +113,19 @@ private class LocalStorageStore : KeyValueStore {
 actual fun createKeyValueStore(): KeyValueStore = LocalStorageStore()
 
 actual fun siteHost(): String? = window.location.hostname.ifBlank { null }
+
+private fun jsListenFind(open: () -> Boolean): Unit = js("""{
+    window.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && e.code === 'KeyF' && open()) e.preventDefault();
+    });
+}""")
+
+private var findShortcut: () -> Boolean = { false }
+private var findListening = false
+
+actual fun listenForFindShortcut(open: () -> Boolean) {
+    findShortcut = open
+    if (findListening) return
+    findListening = true
+    jsListenFind { findShortcut() }
+}

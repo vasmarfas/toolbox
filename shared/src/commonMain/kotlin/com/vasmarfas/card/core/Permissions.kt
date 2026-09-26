@@ -5,3 +5,7 @@ enum class AppPermission { LOCATION, ACTIVITY_RECOGNITION, MICROPHONE, BLUETOOTH
 expect suspend fun ensurePermission(permission: AppPermission): Boolean
 
 expect fun hasPermission(permission: AppPermission): Boolean
+
+expect fun permissionBlocked(permission: AppPermission): Boolean
+
+expect fun openAppSettings()

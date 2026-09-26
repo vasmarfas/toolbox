@@ -52,6 +52,13 @@
     <string name="languages">Языки</string>
     <string name="featured_projects">Избранные проекты</string>
     <string name="latest_articles">Последние статьи</string>
+    <string name="services_title">Чем могу помочь</string>
+    <string name="find_on_page">Найти на странице</string>
+    <string name="find_nothing">Нет совпадений</string>
+    <string name="find_count">%1$d из %2$d</string>
+    <string name="find_previous">Предыдущее совпадение</string>
+    <string name="find_next">Следующее совпадение</string>
+    <string name="close_find">Закрыть поиск</string>
     <string name="see_all">Все</string>
     <string name="present">настоящее время</string>
     <string name="views">просмотров</string>
@@ -74,6 +81,8 @@
     <string name="options">Параметры</string>
     <string name="history">История</string>
     <string name="grant_permission">Дать разрешение</string>
+    <string name="open_settings">Открыть настройки</string>
+    <string name="mic_access_needed">Для измерения нужен доступ к микрофону.</string>
     <string name="fullscreen">На весь экран</string>
     <string name="exit_fullscreen">Выйти из полноэкранного режима</string>
     <string name="wide_tables">Широкие таблицы</string>
@@ -894,6 +903,12 @@
     <string name="objects_arrays">Объектов / массивов</string>
     <string name="strings_numbers_booleans_nulls">Строк / чисел / булевых / null</string>
     <string name="size_input_output">Размер: вход → выход</string>
+    <plurals name="document_characters">
+        <item quantity="one">Документ на %1$s символ</item>
+        <item quantity="few">Документ на %1$s символа</item>
+        <item quantity="many">Документ на %1$s символов</item>
+        <item quantity="other">Документ на %1$s символа</item>
+    </plurals>
     <string name="json_input_field_is_hidden">Показано начало документа: редактировать такой объём в поле интерфейс не успевает. Результат ниже считается по всему тексту. Очистите, чтобы вставить другой.</string>
     <string name="filter_by_key_or_value">Фильтр по ключу или значению</string>
     <string name="expand_all">Развернуть всё</string>
@@ -1670,7 +1685,6 @@
     <string name="mac_address_lookup">Поиск по MAC-адресу</string>
     <string name="mac_lookup_description">Производитель по MAC-адресу из реестра IEEE, который работает без интернета, а в приложениях ещё и по двум онлайн-базам. Форматы адреса, биты unicast/multicast и local/universal, генератор случайного MAC.</string>
     <string name="mac_not_found_unregistered">не найден (не зарегистрирован или случайный)</string>
-    <string name="find_vendor">Найти производителя</string>
     <string name="random_mac">Случайный MAC</string>
     <string name="locally_administered">локально администрируемый</string>
     <string name="universally_administered">глобально уникальный</string>
@@ -1679,7 +1693,6 @@
     <string name="count">Количество</string>
     <string name="net_running">Выполняется…</string>
     <string name="no_results">Нет результатов</string>
-    <string name="net_query">Запрос</string>
     <string name="lookup">Найти</string>
     <string name="raw_response">Сырой ответ</string>
     <string name="sent">Отправлено</string>
@@ -1689,7 +1702,6 @@
     <string name="avg">Средн</string>
     <string name="max">Макс</string>
     <string name="net_open">открыт</string>
-    <string name="closed">закрыт</string>
     <string name="service">Сервис</string>
     <string name="scanning">Сканирование…</string>
     <string name="stop_short">Стоп</string>
@@ -2130,7 +2142,6 @@
     <string name="draw_order">В порядке выпадения</string>
     <string name="sorted">По возрастанию</string>
     <string name="random_notation_like_3d6_2">Запись вида 3d6+2: 1–100 кубиков с 2–1000 гранями.</string>
-    <string name="random_total">Сумма</string>
     <string name="rolls">Броски</string>
     <string name="random_dice">Кубиков</string>
     <string name="add_at_least_one_option">Добавьте хотя бы один вариант.</string>
@@ -4180,7 +4191,6 @@
     <string name="scan_wifi_security">Защита</string>
     <string name="mac_vendor">Производитель</string>
     <string name="mac_block">Блок</string>
-    <string name="mac_updated">Обновлено</string>
     <string name="mac_web_no_vendor">В браузере производитель берётся из реестра IEEE, встроенного в сайт. Онлайн-базы не принимают запросы со страниц сайтов, сверка с ними есть в приложениях.</string>
     <string name="divider_not_above">E24, чтобы не превысить Vout</string>
     <string name="mac_check_online">Сверить онлайн</string>
@@ -4189,6 +4199,11 @@
     <string name="mac_no_answer">не ответил</string>
     <string name="mac_not_found_short">не найден</string>
     <string name="mac_same">совпадает</string>
+    <string name="mac_broadcast">широковещательный, для всех устройств сегмента</string>
+    <string name="mac_ipv6_multicast">групповой IPv6, последние 32 бита задают группу</string>
+    <string name="mac_sub_block_missing">часть блока IEEE, которой нет во встроенном реестре</string>
+    <string name="mac_registry_failed">Встроенный реестр не загрузился</string>
+    <string name="try_again">Повторить</string>
     <string name="filament_view_simple">Простой</string>
     <string name="filament_view_detailed">Расширенный</string>
     <string name="filament_printer_heated">Камера с подогревом до 65 °C</string>

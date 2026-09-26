@@ -35,6 +35,7 @@ import com.vasmarfas.card.tools.ToolCategory
 import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ChoiceChips
 import com.vasmarfas.card.ui.components.ErrorText
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import com.vasmarfas.card.ui.theme.LocalStatusColors
 import kotlin.math.abs
@@ -73,6 +74,7 @@ private fun TunerScreen() {
     var a4 by rememberSaveable { mutableStateOf(440.0) }
     var locked by rememberSaveable { mutableStateOf<String?>(null) }
     var running by remember { mutableStateOf(false) }
+    var refused by remember { mutableStateOf(false) }
     var frequency by remember { mutableStateOf<Double?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -127,9 +129,15 @@ private fun TunerScreen() {
         text = if (running) Res.string.stop.str() else Res.string.start.str(),
         onClick = {
             if (running) running = false
-            else scope.launch { if (ensurePermission(AppPermission.MICROPHONE)) running = true }
+            else scope.launch { if (ensurePermission(AppPermission.MICROPHONE)) running = true else refused = true }
         },
     )
+    if (refused) {
+        PermissionPrompt(AppPermission.MICROPHONE, Res.string.mic_access_needed.str()) {
+            refused = false
+            running = true
+        }
+    }
     error?.let { ErrorText(micErrorLabel(it).str()) }
 
     val heard = frequency

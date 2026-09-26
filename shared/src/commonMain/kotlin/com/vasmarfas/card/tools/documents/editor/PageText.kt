@@ -183,3 +183,67 @@ internal fun gap(a: PageGlyph, b: PageGlyph): Boolean {
     val along = (b.x0 - a.x1) * a.dx + (b.y0 - a.y1) * a.dy
     return along > max(a.size, b.size) * 0.18
 }
+
+private const val NO_GLYPH = " \t\n\r\u200B\u2028\u2029\u00AD\uFEFF"
+
+internal fun markMatches(layout: TextLayout, mark: TextMark, query: String): List<TextMatch> {
+    val needle = query.trim().replace(Regex("\\s+"), " ")
+    if (needle.isEmpty()) return emptyList()
+    val slotLine = ArrayList<Int>()
+    val slotStart = ArrayList<Double>()
+    val slotEnd = ArrayList<Double>()
+    for ((l, line) in layout.lines.withIndex()) {
+        for (k in line.boxes.indices) {
+            val box = line.boxes[k]
+            val scale = box.style.size.toDouble() / box.face.font.unitsPerEm
+            var x = layout.inset + line.xs[k].toDouble()
+            for (g in box.glyphs.indices) {
+                val advance = box.face.font.advanceWidth(box.glyphs[g]) * scale - box.kerns[g] * box.style.size / 1000.0
+                slotLine += l
+                slotStart += x
+                slotEnd += x + advance
+                x += advance
+            }
+        }
+    }
+    val text = mark.text
+    val slotOf = IntArray(text.length) { -1 }
+    var slot = 0
+    var i = 0
+    while (i < text.length) {
+        val pair = text[i].isHighSurrogate() && i + 1 < text.length && text[i + 1].isLowSurrogate()
+        if (text[i] !in NO_GLYPH) {
+            slotOf[i] = slot
+            if (pair) slotOf[i + 1] = slot
+            slot++
+        }
+        i += if (pair) 2 else 1
+    }
+    val (_, height) = Affine.frameSize(mark.box, mark.angle)
+    val frame = Affine.frameOf(mark.box, mark.angle)
+    val tops = DoubleArray(layout.lines.size)
+    var top = height - layout.inset
+    for ((l, line) in layout.lines.withIndex()) {
+        tops[l] = top
+        top -= line.height
+    }
+    val haystack = text.replace('\n', ' ')
+    val out = ArrayList<TextMatch>()
+    var from = 0
+    while (true) {
+        val at = haystack.indexOf(needle, from, ignoreCase = true)
+        if (at < 0) break
+        from = at + needle.length
+        val slots = (at until at + needle.length).map { slotOf[it] }.filter { it in slotLine.indices }.distinct()
+        if (slots.isEmpty()) continue
+        val quads = slots.groupBy { slotLine[it] }.map { (l, inLine) ->
+            val x0 = inLine.minOf { slotStart[it] }
+            val x1 = inLine.maxOf { slotEnd[it] }
+            val y1 = tops[l]
+            val y0 = y1 - layout.lines[l].height
+            Quad(doubleArrayOf(frame.x(x0, y1), frame.y(x0, y1), frame.x(x1, y1), frame.y(x1, y1), frame.x(x0, y0), frame.y(x0, y0), frame.x(x1, y0), frame.y(x1, y0)))
+        }
+        out += TextMatch(quads, haystack.substring(at, at + needle.length))
+    }
+    return out
+}

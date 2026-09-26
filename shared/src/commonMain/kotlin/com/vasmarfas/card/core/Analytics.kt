@@ -5,7 +5,7 @@ object AnalyticsConfig {
     const val WEBMASTER_VERIFICATION = ""
 }
 
-// docs/analytics.md lists the parameters of each event and how to read them in Firebase
+// privacy-policy.md lists every event for users, a new event or parameter goes there too
 enum class AnalyticsEvent(val eventName: String) {
     APP_OPEN("app_open"),
     SCREEN_VIEW("screen_view"),

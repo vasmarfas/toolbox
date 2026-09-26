@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-3.2.0.tgz#3e61e21b7b2b8a6be746df1335cf91d70db2a273"
   integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
 
-"@mediabunny/mp3-encoder@1.59.0":
-  version "1.59.0"
-  resolved "https://registry.yarnpkg.com/@mediabunny/mp3-encoder/-/mp3-encoder-1.59.0.tgz#dffc023db7d69b08d476bed23e0e6473eed5bd3a"
-  integrity sha512-r37dKBjn902UmHTrdHXApIJepOeODFlPCpUT1tcxSXQ7QI+VMvfRDrr0rDEpOohzZ+ZOKDzB+gg+uiWmg2uOiQ==
+"@mediabunny/mp3-encoder@1.60.0":
+  version "1.60.0"
+  resolved "https://registry.yarnpkg.com/@mediabunny/mp3-encoder/-/mp3-encoder-1.60.0.tgz#f57007bb0e2308a121c6780686fab7350507586c"
+  integrity sha512-dcDS+hh0g6JBJissiTUkbRCjUFLM348qZQBGgsVawmr61CzJK9ZgN9f/9BzkVzTlhmxxriRx8jYCK+Anqx8mMQ==
 
 "@napi-rs/canvas-android-arm64@1.0.9":
   version "1.0.9"
@@ -106,10 +106,10 @@
   resolved "https://registry.yarnpkg.com/@types/emscripten/-/emscripten-1.41.6.tgz#0d852a4c29fc2c035ed9232f00135717f1a920f1"
   integrity sha512-uN+9i8bFT5CUcZfyIEYDrSueACEyKGbUs5kC/72DGlZZoinh84sJfVV0i8UOJD1asdzkvLPBRrKs41kZ8MdEXg==
 
-mediabunny@1.59.0:
-  version "1.59.0"
-  resolved "https://registry.yarnpkg.com/mediabunny/-/mediabunny-1.59.0.tgz#30dc2000e2a238dd3b778e1ad7b6163e5ab1db21"
-  integrity sha512-m+nhRFI9gRQaDP22GCZwwL1nTtoAJtzHB7XzZmlff4P17+F/i5wZnDu4cc09a4ae5x41Px/C/GWdiROQHVM4eQ==
+mediabunny@1.60.0:
+  version "1.60.0"
+  resolved "https://registry.yarnpkg.com/mediabunny/-/mediabunny-1.60.0.tgz#4c815176d10f15e915e1fb0aa5b7e2cd9dcbfe22"
+  integrity sha512-CRQ/2D+qUF9w2IyjbjTxxSLEG+PeWeD4whb43UpUBpeNomWb/ffn+ngKgqJSPZ+bmO66MX2yBJQITZ6ijfRjug==
   dependencies:
     "@types/dom-mediacapture-transform" "^0.1.11"
     "@types/dom-webcodecs" "0.1.13"

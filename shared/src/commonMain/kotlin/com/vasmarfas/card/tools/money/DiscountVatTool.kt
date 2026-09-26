@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.Tr
 import com.vasmarfas.card.core.fmt
@@ -45,9 +46,12 @@ private fun DiscountVatScreen() {
         onSelect = { mode = it },
         label = { if (it == PriceMode.DISCOUNT) Res.string.discount.str() else Res.string.vat.str() },
     )
-    when (mode) {
-        PriceMode.DISCOUNT -> DiscountSection()
-        PriceMode.VAT -> VatSection()
+    val saved = rememberSaveableStateHolder()
+    saved.SaveableStateProvider(mode) {
+        when (mode) {
+            PriceMode.DISCOUNT -> DiscountSection()
+            PriceMode.VAT -> VatSection()
+        }
     }
 }
 

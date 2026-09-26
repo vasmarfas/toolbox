@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date:** 2026-09-25
+**Effective Date:** 2026-09-26
 
 **vasmarfas** ("we," "our," or "us") is a personal website and a free multitool published as a
 web app at vasmarfas.com and vasmarfas.ru and as native applications for Android, iOS, Windows,
@@ -53,20 +53,24 @@ ranges such as `11-20`, the interface language and the theme.
 
 The statistics are collected and processed by their operators, not by us:
 
-- **Google, Firebase Analytics** (Android) and **Firebase Analytics for the web** (vasmarfas.com only,
+- **Google, Firebase Analytics** (Android, iOS) and **Firebase Analytics for the web** (vasmarfas.com only,
   vasmarfas.ru does not load it). Collects an app instance identifier, device model, OS and application
-  version, the country derived from the IP address, and session data. https://policies.google.com/privacy
-- **Google, Firebase Crashlytics** (Android). On a crash it sends the stack trace, the device model,
+  version, the country derived from the IP address, and session data. On iOS the build carries no
+  advertising identifier support: the IDFA is not read, the identifier for vendor is not collected and
+  no App Tracking Transparency prompt is shown. https://policies.google.com/privacy
+- **Google, Firebase Crashlytics** (Android, iOS). On a crash it sends the stack trace, the device model,
   the OS and application version and an installation identifier.
 - **Google, Firebase Performance Monitoring** (Android). Measures startup time, screen rendering, memory
   and CPU use. For every HTTP request the App makes it records the address without the query string, the
   response code, the size and the duration. The network tools make such requests too, so a domain or an
   IP address you look up with them can reach these reports as part of the request address.
-- **Yandex, Yandex.Metrica** (website, both domains). Sets its own cookie and collects the IP address,
-  user agent, the pages and screens visited, the referrer and the events listed above. Session
-  replay (Webvisor) and the click map are turned off. https://yandex.com/legal/metrica_termsofuse/
-
-The desktop and iOS builds contain no analytics code: there `logEvent` does nothing.
+- **Yandex, Yandex.Metrica** (website, both domains, and the Windows, macOS and Linux apps). On the
+  website it sets its own cookie and collects the IP address, user agent, the pages and screens visited,
+  the referrer and the events listed above. Session replay (Webvisor) and the click map are turned off.
+  The desktop apps send the same screens and events to `mc.yandex.ru` over the Metrica Measurement
+  Protocol. Instead of a cookie they send a random number created on the first start and kept with the
+  App's settings, the user agent names the App version and the operating system, and Metrica sees the IP
+  address the request comes from. https://yandex.com/legal/metrica_termsofuse/
 
 ## 2. Data stored on your device
 
@@ -84,7 +88,8 @@ The App keeps a small amount of data locally so that it works the way you left i
 
 On Android this lives in the App's private storage, on iOS in the App's user defaults, on desktop in
 the user's preferences store, and in the browser in `localStorage` of the site's origin. None of it
-is synced or sent anywhere. Uninstalling the App, or clearing the site's data in the browser, removes
+is synced or sent anywhere, except the random number the desktop apps send to Yandex.Metrica as
+described in section 1. Uninstalling the App, or clearing the site's data in the browser, removes
 it.
 
 Photo, video, audio and document tools read only the files you pick and process them on the device.

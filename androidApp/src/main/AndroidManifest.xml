@@ -53,8 +53,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="vasmarfas.com" />
-                <data android:scheme="https" android:host="vasmarfas.ru" />
+                <data android:scheme="https" />
+                <data android:host="vasmarfas.com" />
+                <data android:host="vasmarfas.ru" />
             </intent-filter>
         </activity>
     </application>

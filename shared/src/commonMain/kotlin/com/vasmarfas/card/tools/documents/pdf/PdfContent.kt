@@ -223,8 +223,8 @@ internal class ContentInterpreter(private val doc: PdfDocument, private val sink
                 continue
             }
             when (val op = lexer.readRegular()) {
-                "true" -> operands.add(PdfBoolean.TRUE)
-                "false" -> operands.add(PdfBoolean.FALSE)
+                "true" -> operands.add(PdfBoolean.of(true))
+                "false" -> operands.add(PdfBoolean.of(false))
                 "null" -> operands.add(PdfNull)
                 "BI" -> {
                     skipInlineImage(parser, doc)
@@ -556,7 +556,7 @@ private fun inlineImageEnd(lexer: PdfLexer, dict: PdfDict, doc: PdfDocument): In
 private fun rawImageLength(dict: PdfDict): Long {
     val width = (dict["W"] ?: dict["Width"]).asInt() ?: return -1
     val height = (dict["H"] ?: dict["Height"]).asInt() ?: return -1
-    val mask = (dict["IM"] ?: dict["ImageMask"]) == PdfBoolean.TRUE
+    val mask = (dict["IM"] ?: dict["ImageMask"]) == PdfBoolean.of(true)
     val bits = if (mask) 1 else (dict["BPC"] ?: dict["BitsPerComponent"]).asInt() ?: 8
     val components = if (mask) {
         1

@@ -424,7 +424,7 @@ private fun Editor(session: EditorSession, onClose: () -> Unit) {
     )
     when (panel) {
         Panel.PAGES -> PagesPanel(session, picked) { picked = it }
-        Panel.SEARCH -> SearchPanel(session)
+        Panel.SEARCH -> SearchPanel(session, renderer)
         Panel.FORM -> FormPanel(session)
         Panel.OUTLINE -> OutlinePanel(session)
         Panel.DOCUMENT -> DocumentPanel(session, options) { options = it }

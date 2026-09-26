@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,10 +39,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -58,6 +62,7 @@ import com.vasmarfas.card.core.LocalLang
 import com.vasmarfas.card.core.PlatformKind
 import com.vasmarfas.card.core.currentPlatform
 import com.vasmarfas.card.core.initAnalytics
+import com.vasmarfas.card.core.listenForFindShortcut
 import com.vasmarfas.card.core.pullToReload
 import com.vasmarfas.card.core.reloadPage
 import com.vasmarfas.card.core.setWindowTitle
@@ -71,8 +76,11 @@ import com.vasmarfas.card.data.ResumeRepository
 import com.vasmarfas.card.resources.*
 import com.vasmarfas.card.tools.ToolRegistry
 import com.vasmarfas.card.ui.components.ChromeState
+import com.vasmarfas.card.ui.components.FindBar
+import com.vasmarfas.card.ui.components.FindState
 import com.vasmarfas.card.ui.components.LayoutSize
 import com.vasmarfas.card.ui.components.LocalChrome
+import com.vasmarfas.card.ui.components.LocalFind
 import com.vasmarfas.card.ui.components.LocalLayoutSize
 import com.vasmarfas.card.ui.components.LocalOpenTool
 import com.vasmarfas.card.ui.components.layoutSizeFor
@@ -90,6 +98,7 @@ import com.vasmarfas.card.ui.screens.MyToolsScreen
 import com.vasmarfas.card.ui.screens.OnboardingFirstRun
 import com.vasmarfas.card.ui.screens.OnboardingScreen
 import com.vasmarfas.card.ui.screens.ProjectsScreen
+import com.vasmarfas.card.ui.screens.ProjectsTab
 import com.vasmarfas.card.ui.screens.ResumeScreen
 import com.vasmarfas.card.ui.screens.SettingsScreen
 import com.vasmarfas.card.ui.screens.ToolScreen
@@ -104,6 +113,7 @@ fun App(
     link: String? = null,
     onLinkHandled: () -> Unit = {},
     onNavHostReady: suspend (NavController) -> Unit = {},
+    find: FindState = remember { FindState() },
 ) {
     val settings = remember { AppSettings() }
     val chrome = remember { ChromeState() }
@@ -130,6 +140,7 @@ fun App(
         LocalSettings provides settings,
         LocalLang provides settings.lang,
         LocalChrome provides chrome,
+        LocalFind provides find,
     ) {
         key(settings.lang) {
             VasmarfasTheme(settings) {
@@ -167,8 +178,11 @@ private fun AppShell(
     val toolId = backStackEntry?.takeIf { destination?.hasRoute(ToolRoute::class) == true }?.toRoute<ToolRoute>()?.id
     val lang = LocalLang.current
     val chrome = LocalChrome.current
+    val find = LocalFind.current
 
     LaunchedEffect(toolId) { chrome.immersive = false }
+    LaunchedEffect(find) { listenForFindShortcut { find.show() } }
+    LaunchedEffect(topDestination, toolId) { find.close() }
 
     // The site's page view carries the window title, so both come from one effect.
     var viewed by remember { mutableStateOf<String?>(null) }
@@ -199,7 +213,7 @@ private fun AppShell(
         }
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).onPreviewKeyEvent(find::shortcut)) {
         val layout = layoutSizeFor(maxWidth)
         CompositionLocalProvider(LocalLayoutSize provides layout) {
             val compact = layout == LayoutSize.COMPACT
@@ -257,11 +271,12 @@ private fun AppShell(
                             reloading = true
                             reloadPage()
                         },
-                        modifier = Modifier.padding(padding).fillMaxSize(),
+                        modifier = Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize(),
 //                        enabled = pullToReload,
                         enabled = false,
                     ) {
                         AppNavHost(navController, navigateTop, linkRoute, onLinkHandled, onNavHostReady, onRunOnboarding, Modifier.fillMaxSize())
+                        if (find.open) FindBar(find, Modifier.align(Alignment.TopEnd).padding(12.dp))
                     }
                 }
             }
@@ -304,6 +319,7 @@ private fun AppNavHost(
         val behind = navController.previousBackStackEntry?.takeIf { it.destination.hasRoute(ToolRoute::class) }?.toRoute<ToolRoute>()
         if (behind?.id == id) navController.popBackStack() else openTool(id)
     }
+    var projectsTab by rememberSaveable { mutableStateOf(ProjectsTab.PROJECTS) }
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.background) {
         CompositionLocalProvider(LocalOpenTool provides switchTool) {
             NavHost(
@@ -323,12 +339,15 @@ private fun AppNavHost(
                 }
                 composable<HomeRoute> {
                     HomeScreen(
-                        onOpenProjects = { onNavigateTop(TopDestination.PROJECTS) },
+                        onOpenProjects = { tab ->
+                            projectsTab = tab
+                            onNavigateTop(TopDestination.PROJECTS)
+                        },
                         onOpenResume = { onNavigateTop(TopDestination.RESUME) },
                         onOpenSettings = { onNavigateTop(TopDestination.SETTINGS) },
                     )
                 }
-                composable<ProjectsRoute> { ProjectsScreen() }
+                composable<ProjectsRoute> { ProjectsScreen(projectsTab) { projectsTab = it } }
                 composable<ResumeRoute> { ResumeScreen() }
                 composable<ToolsRoute> { ToolsScreen(onOpenTool = openTool) }
                 // A tool rises out of the card that opened it and sinks back on the way out.

@@ -62,9 +62,6 @@ enum class FilamentMaterial(
     PVA(Res.string.mat_pva, 1.23, 220..225, 35..60),
     BVOH(Res.string.mat_bvoh, 1.14, 200..220, 60..70),
     ;
-
-    val filled: Boolean get() = name.contains("_CF_") || name.contains("_GF_") ||
-        this in setOf(CARBON, PLA_WOOD, PLA_CERAMIC, PLA_COPPER, PLA_BRONZE, PLA_STEEL)
 }
 
 val filamentDiameters = listOf(1.75, 2.85)

@@ -115,7 +115,7 @@ object Filaments {
         FilamentMaterial.TPU_85A to FilamentTraits(FLEXIBLE, 70, 2, 5, 5, 2, 1, 2, 3, 3, NONE, setOf(DRY)),
         FilamentMaterial.TPE to FilamentTraits(FLEXIBLE, 55, 1, 5, 5, 2, 2, 4, 3, 3, NONE),
         FilamentMaterial.PEBA to FilamentTraits(FLEXIBLE, 75, 2, 5, 5, 3, 2, 2, 3, 4, NONE, setOf(DRY)),
-        FilamentMaterial.NYLON to FilamentTraits(ENGINEERING, 112, 4, 4, 3, 2, 3, 2, 3, 3, CLOSED, setOf(DRY)),
+        FilamentMaterial.NYLON to FilamentTraits(ENGINEERING, 112, 4, 4, 2, 2, 3, 2, 3, 3, CLOSED, setOf(DRY)),
         FilamentMaterial.PA12 to FilamentTraits(ENGINEERING, 110, 3, 4, 3, 3, 2, 3, 4, 4, CLOSED, setOf(OUTDOOR, DRY)),
         FilamentMaterial.PC to FilamentTraits(ENGINEERING, 113, 4, 4, 2, 2, 4, 2, 2, 3, CLOSED, setOf(DRY)),
         FilamentMaterial.PC_ABS to FilamentTraits(ENGINEERING, 119, 3, 5, 2, 3, 3, 2, 2, 3, CLOSED, setOf(DRY, FUMES)),
@@ -125,7 +125,7 @@ object Filaments {
         FilamentMaterial.PPSU to FilamentTraits(HIGH_TEMP, 210, 4, 4, 2, 1, 2, 2, 4, 5, HOT, setOf(DRY)),
         FilamentMaterial.PEI_9085 to FilamentTraits(HIGH_TEMP, 168, 4, 3, 2, 2, 2, 4, 3, 5, HOT, setOf(OUTDOOR, DRY)),
         FilamentMaterial.PEI_1010 to FilamentTraits(HIGH_TEMP, 211, 5, 2, 1, 1, 2, 4, 4, 5, HOT, setOf(OUTDOOR, DRY)),
-        FilamentMaterial.PEKK to FilamentTraits(HIGH_TEMP, 154, 5, 2, 1, 2, 1, 3, 4, 5, HEATED, setOf(DRY, ANNEAL)),
+        FilamentMaterial.PEKK to FilamentTraits(HIGH_TEMP, 154, 5, 2, 1, 2, 1, 3, 4, 5, HOT, setOf(DRY, ANNEAL)),
         FilamentMaterial.PEEK to FilamentTraits(HIGH_TEMP, 141, 5, 4, 1, 1, 1, 3, 5, 5, HOT, setOf(DRY, ANNEAL)),
         FilamentMaterial.PCL to FilamentTraits(BASIC, 57, 2, 3, 3, 2, 1, 2, 2, 3, NONE, setOf(LOW_MELT)),
         FilamentMaterial.PLA_CF_15 to FilamentTraits(FILLED, 55, 3, 2, 1, 4, 5, 3, 2, 2, NONE, setOf(ABRASIVE)),
@@ -144,9 +144,9 @@ object Filaments {
         FilamentMaterial.PA6_GF_30 to FilamentTraits(FILLED, 184, 5, 3, 1, 3, 3, 2, 3, 4, CLOSED, setOf(ABRASIVE, DRY)),
         FilamentMaterial.PA12_CF_15 to FilamentTraits(FILLED, 150, 5, 4, 1, 4, 3, 3, 4, 4, CLOSED, setOf(OUTDOOR, ABRASIVE, DRY)),
         FilamentMaterial.PC_CF_20 to FilamentTraits(FILLED, 135, 4, 3, 1, 3, 3, 4, 2, 4, CLOSED, setOf(OUTDOOR, ABRASIVE, DRY)),
-        FilamentMaterial.PPS_CF_20 to FilamentTraits(FILLED, 253, 4, 2, 1, 2, 2, 4, 5, 5, CLOSED, setOf(OUTDOOR, ABRASIVE)),
+        FilamentMaterial.PPS_CF_20 to FilamentTraits(FILLED, 105, 4, 2, 1, 2, 2, 4, 5, 5, HEATED, setOf(OUTDOOR, ABRASIVE, ANNEAL)),
         FilamentMaterial.PEI_CF_20 to FilamentTraits(FILLED, 185, 5, 2, 1, 1, 2, 4, 4, 5, HOT, setOf(OUTDOOR, ABRASIVE, DRY)),
-        FilamentMaterial.PEEK_CF_30 to FilamentTraits(FILLED, 310, 5, 3, 1, 1, 1, 3, 5, 5, HOT, setOf(OUTDOOR, ABRASIVE, DRY, ANNEAL)),
+        FilamentMaterial.PEEK_CF_30 to FilamentTraits(FILLED, 143, 5, 3, 1, 1, 1, 3, 5, 5, HOT, setOf(OUTDOOR, ABRASIVE, DRY, ANNEAL)),
         FilamentMaterial.PVA to FilamentTraits(SUPPORT, 55, 2, 2, 2, 2, 2, 1, 1, 4, NONE, setOf(DRY, WATER_SOLUBLE)),
         FilamentMaterial.BVOH to FilamentTraits(SUPPORT, 60, 2, 2, 2, 3, 2, 1, 1, 5, NONE, setOf(DRY, WATER_SOLUBLE)),
     )
@@ -166,6 +166,7 @@ object Filaments {
             ABRASIVE in t.flags && !needs.hardenedNozzle ||
             WATER_SOLUBLE in t.flags ||
             needs.outdoor && OUTDOOR !in t.flags ||
+            needs.chemicals && t.chemical <= 2 ||
             !fits(needs.stiffness, t.flexibility)
         if (excluded) return@mapNotNull null
         var score = t.ease * (if (needs.priority == PickPriority.EASY) 3 else 1) +
@@ -177,7 +178,8 @@ object Filaments {
         }
         score += sturdiness * (if (needs.priority == PickPriority.PROPERTIES) 2 else 1)
         if (needs.outdoor) score += 2 * t.uv
-        if (needs.chemicals) score += 2 * t.chemical - 4
+        if (needs.chemicals) score += 2 * t.chemical
+        if (needs.heat == PartHeat.VERY_HOT) score += ((t.softeningC - heat) / 20).coerceAtMost(3)
         if (needs.stiffness == PartStiffness.SPRINGY && t.flexibility == 3) score += 4
         if (gap == 1) score -= 8
         if (DRY in t.flags) score -= 1

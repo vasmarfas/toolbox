@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-09-25",
+  "updated": "2026-09-26",
   "person": {
     "name": {
       "en": "Vasilii",
@@ -16,8 +16,8 @@
       "ru": "Удалённо"
     },
     "bio": {
-      "en": "I build Android and Kotlin Multiplatform apps that ship to Google Play, RuStore, App Store, Microsoft Store and the web from one codebase, and I keep my own infrastructure running: MikroTik networks, Ubuntu and Windows Server hosts, Proxmox, Home Assistant, FreePBX and GSM gateways. MSc in Software Engineering (NRNU MEPhI).",
-      "ru": "Делаю Android- и Kotlin Multiplatform-приложения, которые из одной кодовой базы выходят в Google Play, RuStore, App Store, Microsoft Store и в браузер, и держу собственную инфраструктуру: сети на MikroTik, серверы на Ubuntu и Windows Server, Proxmox, Home Assistant, FreePBX и GSM-шлюзы. Магистр программной инженерии (НИЯУ МИФИ)."
+      "en": "I write Android and Kotlin Multiplatform apps and take them all the way to the stores: one codebase ships to Google Play, RuStore, App Store, Microsoft Store and the web. I can join a team or take a project from the first screen to the release. I also keep my own infrastructure running: MikroTik networks, Ubuntu and Windows Server hosts, Proxmox, Home Assistant, FreePBX and GSM gateways. MSc in Software Engineering (NRNU MEPhI).",
+      "ru": "Пишу Android- и Kotlin Multiplatform-приложения и довожу их до магазинов: из одной кодовой базы они выходят в Google Play, RuStore, App Store, Microsoft Store и в браузер. Могу работать в команде или взять проект от первого экрана до релиза. Ещё держу собственную инфраструктуру: сети на MikroTik, серверы на Ubuntu и Windows Server, Proxmox, Home Assistant, FreePBX и GSM-шлюзы. Магистр программной инженерии (НИЯУ МИФИ)."
     },
     "about": [
       {
@@ -110,8 +110,8 @@
         "ru": "Уведомления телефона внутри VR-шлема. Напрямую, приватно, без облака."
       },
       "description": {
-        "en": "One app installed on the phone and on the Quest 3: the phone reads its notifications and hands them over Bluetooth LE or Wi-Fi to the headset, which re-posts them over any running game. Replies, notification actions, calls, one-time codes, screen mirroring, typing with the phone keyboard, AES-256-GCM encryption keyed by a pairing code.",
-        "ru": "Одно приложение на телефоне и на Quest 3: телефон читает свои уведомления и передаёт их по Bluetooth LE или Wi-Fi в шлем, который показывает их поверх любой запущенной игры. Ответы, кнопки уведомлений, звонки, одноразовые коды, трансляция экрана, набор текста с клавиатуры телефона, шифрование AES-256-GCM по коду сопряжения."
+        "en": "In a VR headset you cannot see what arrives on the phone, and taking the headset off for every message means leaving the game. One app goes on the phone and on the Quest 3: the phone hands its notifications over Bluetooth LE or Wi-Fi, and the headset shows them over any running game. You can reply, press notification buttons, take calls, read one-time codes, mirror the screen and type on the phone keyboard. The devices talk directly, without a cloud or an account, encrypted with AES-256-GCM keyed by a pairing code.",
+        "ru": "В VR-шлеме не видно, что пришло на телефон, а снимать шлем ради каждого сообщения значит бросать игру. Одно приложение ставится на телефон и на Quest 3: телефон передаёт уведомления по Bluetooth LE или Wi-Fi, шлем показывает их поверх любой игры. Можно ответить, нажать кнопку уведомления, принять звонок, посмотреть одноразовый код, транслировать экран и печатать с клавиатуры телефона. Устройства связываются напрямую, без облака и аккаунтов, с шифрованием AES-256-GCM по коду сопряжения."
       },
       "tech": [
         "Kotlin",
@@ -148,8 +148,8 @@
         "ru": "Ambilight для Android TV и телефонов: Hyperion, WLED, Adalight."
       },
       "description": {
-        "en": "Captures the screen of an Android TV box or phone and drives LED strips through Hyperion, WLED or an Adalight (Arduino) controller. Runs as a foreground service with a quick-settings tile, has a screen-capture pipeline tuned for TV boxes and an accompanying Arduino sketch.",
-        "ru": "Захватывает экран Android TV-приставки или телефона и управляет светодиодной лентой через Hyperion, WLED или контроллер Adalight (Arduino). Работает как foreground-сервис с плиткой быстрых настроек, конвейер захвата экрана оптимизирован под приставки, в комплекте скетч для Arduino."
+        "en": "Ambilight comes built into a few TV models only, and Android TV boxes have nothing like it. The app captures the screen of a box or a phone and drives LED strips through Hyperion, WLED or an Arduino running Adalight: a foreground service with a quick-settings tile, a capture pipeline tuned for TV boxes and a ready Arduino sketch. It has 10K+ installs on Google Play and 90 stars on GitHub.",
+        "ru": "Фоновая подсветка Ambilight встроена только в отдельные телевизоры, у Android TV-приставок её нет. Приложение захватывает экран приставки или телефона и управляет светодиодной лентой через Hyperion, WLED или Arduino с Adalight: foreground-сервис с плиткой быстрых настроек, конвейер захвата под приставки и готовый скетч для Arduino. В Google Play больше 10 тысяч установок, на GitHub 90 звёзд."
       },
       "tech": [
         "Kotlin",
@@ -191,8 +191,8 @@
         "ru": "Свои SMS через GSM-шлюзы: сервер на Python и KMP-клиент."
       },
       "description": {
-        "en": "A server for GoIP and Skyline GSM gateways (UDP, HTTP and even SMTP inbound paths, a queue with throttling and retries, REST API, Telegram bot, roles per SIM) plus a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser. Started as a master's thesis, now in daily use.",
-        "ru": "Сервер для GSM-шлюзов GoIP и Skyline (входящие по UDP, HTTP и даже SMTP, очередь с троттлингом и автоповторами, REST API, Telegram-бот, роли по SIM) и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера. Начиналось как магистерская, теперь в ежедневной работе."
+        "en": "Sending and receiving SMS through your own SIM cards usually means paying a cloud service. SMSNode is a server for GoIP and Skyline GSM gateways: it takes inbound messages over UDP, HTTP and even SMTP, queues outbound ones with throttling and retries, and offers a REST API, a Telegram bot and roles per SIM. A Kotlin Multiplatform client runs on Android, iOS, Windows, macOS, Linux and in the browser. It started as a master's thesis and now works every day.",
+        "ru": "Отправлять и принимать SMS через свои SIM-карты обычно приходится через платный облачный сервис. SMSNode — сервер для GSM-шлюзов GoIP и Skyline: принимает входящие по UDP, HTTP и даже SMTP, ставит исходящие в очередь с троттлингом и автоповторами, отдаёт REST API, Telegram-бота и роли по SIM. Kotlin Multiplatform-клиент работает на Android, iOS, Windows, macOS, Linux и в браузере. Начиналось как магистерская, теперь работает каждый день."
       },
       "tech": [
         "Python",
@@ -245,8 +245,8 @@
         "ru": "Внутренние номера FreePBX звонят обычными голосовыми звонками Telegram."
       },
       "description": {
-        "en": "A self-hosted gateway between Asterisk/FreePBX and Telegram: one gateway account serves every user, calls go both ways with audio transcoding, and nothing leaves the owner's server.",
-        "ru": "Self-hosted шлюз между Asterisk/FreePBX и Telegram: один аккаунт-шлюз обслуживает всех пользователей, звонки идут в обе стороны с транскодированием звука, и ничего не уходит с сервера владельца."
+        "en": "Office extensions should ring wherever people are, without installing and setting up a SIP softphone. SIPgram is a self-hosted gateway between Asterisk/FreePBX and Telegram: one gateway account serves every user, calls go both ways with audio transcoding, and an extension rings as an ordinary Telegram voice call. Nothing leaves the owner's server.",
+        "ru": "Внутренние номера офиса должны звонить там, где сейчас человек, без установки и настройки SIP-софтфона. SIPgram — self-hosted шлюз между Asterisk/FreePBX и Telegram: один аккаунт-шлюз обслуживает всех, звонки идут в обе стороны с транскодированием звука, а внутренний номер звонит обычным голосовым звонком Telegram. Ничего не уходит с сервера владельца."
       },
       "tech": [
         "Python",
@@ -281,8 +281,8 @@
         "ru": "Автояркость по камере и пробуждение при приближении для планшетов без датчика света."
       },
       "description": {
-        "en": "Turns an old tablet into a proper wall panel for Home Assistant: the front camera measures ambient light and detects a person approaching, the app adjusts brightness and wakes the screen. I wrote it up on Habr.",
-        "ru": "Превращает старый планшет в нормальную настенную панель для Home Assistant: фронтальная камера измеряет освещённость и замечает приближение человека, приложение подстраивает яркость и будит экран. Про него писал на Хабре."
+        "en": "An old tablet makes a good Home Assistant wall panel, but without a light sensor it glares at night and keeps the screen on for nobody. ScreenVigil uses the front camera to measure ambient light and notice a person approaching: it sets the brightness and wakes the screen only when someone is near. The Habr write-up about it got 71K views.",
+        "ru": "Старый планшет годится в настенную панель Home Assistant, но без датчика света ночью он слепит, а экран горит впустую. ScreenVigil измеряет освещённость фронтальной камерой и замечает приближение человека: подстраивает яркость и будит экран, только когда кто-то рядом. Статья о нём на Хабре набрала 71 тысячу просмотров."
       },
       "tech": [
         "Kotlin",
@@ -320,8 +320,8 @@
         "ru": "Этот сайт и приложение: визитка и мультитул из одной кодовой базы на Kotlin."
       },
       "description": {
-        "en": "Compose Multiplatform with Material 3 Expressive, compiled to Wasm for the web and to native apps for Android, iOS, Windows, macOS and Linux. Profile data is a JSON file that the app refreshes from the repository, so the site updates without a release.",
-        "ru": "Compose Multiplatform на Material 3 Expressive, собирается в Wasm для веба и в нативные приложения для Android, iOS, Windows, macOS и Linux. Данные профиля лежат в JSON-файле, который приложение подтягивает из репозитория, поэтому сайт обновляется без релиза."
+        "en": "A business card, a portfolio and a set of everyday tools had to live on the web and in the stores without several codebases. The site and the apps are one Compose Multiplatform project on Material 3 Expressive, compiled to Wasm for the web and to native apps for Android, iOS, Windows, macOS and Linux. Profile data is a JSON file refreshed from the repository, so the site changes without a release.",
+        "ru": "Визитка, портфолио и набор повседневных инструментов должны были жить и в вебе, и в магазинах без нескольких кодовых баз. Сайт и приложения — один проект на Compose Multiplatform с Material 3 Expressive, который собирается в Wasm для веба и в нативные приложения для Android, iOS, Windows, macOS и Linux. Данные профиля лежат в JSON-файле из репозитория, поэтому сайт меняется без релиза."
       },
       "tech": [
         "Kotlin Multiplatform",
@@ -359,8 +359,8 @@
         "ru": "Аналитика драфтов Dota 2: KMP-приложение, Telegram-бот и бэкенд."
       },
       "description": {
-        "en": "It started as a Telegram bot; now it is a Python backend (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, and a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser published to Google Play, App Store and Microsoft Store.",
-        "ru": "Начиналось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с парсингом live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера, опубликованный в Google Play, App Store и Microsoft Store."
+        "en": "Dota 2 players want to know how a draft plays out before the match starts. It began as a Telegram bot and is now a Python backend (aiogram, FastAPI, PostgreSQL) with live match parsing and ML predictions, plus a Kotlin Multiplatform client for Android, iOS, Windows, macOS, Linux and the browser. The app is published to Google Play, App Store and Microsoft Store and has 1K+ installs on Google Play.",
+        "ru": "Игрокам Dota 2 важно понять расклад драфта ещё до начала матча. Всё началось с Telegram-бота, сейчас это бэкенд на Python (aiogram, FastAPI, PostgreSQL) с разбором live-матчей и ML-прогнозами и Kotlin Multiplatform-клиент для Android, iOS, Windows, macOS, Linux и браузера. Приложение опубликовано в Google Play, App Store и Microsoft Store, в Google Play у него больше тысячи установок."
       },
       "tech": [
         "Kotlin Multiplatform",
@@ -401,6 +401,48 @@
       "year": "2023–2026",
       "featured": true,
       "downloads": "1K+"
+    }
+  ],
+  "services": [
+    {
+      "title": {
+        "en": "Mobile apps",
+        "ru": "Мобильные приложения"
+      },
+      "text": {
+        "en": "Android and Kotlin Multiplatform apps from the first screen to signed builds in Google Play, RuStore, App Store and Microsoft Store.",
+        "ru": "Android и Kotlin Multiplatform от первого экрана до подписанных сборок в Google Play, RuStore, App Store и Microsoft Store."
+      }
+    },
+    {
+      "title": {
+        "en": "Existing apps",
+        "ru": "Доработка приложений"
+      },
+      "text": {
+        "en": "New features, a move to Compose or Kotlin Multiplatform, faster builds, CI/CD for store releases.",
+        "ru": "Новые функции, переход на Compose или Kotlin Multiplatform, ускорение сборки, CI/CD для выкладки в магазины."
+      }
+    },
+    {
+      "title": {
+        "en": "Backends and bots",
+        "ru": "Бэкенд и боты"
+      },
+      "text": {
+        "en": "Python and FastAPI services with PostgreSQL, Telegram bots, integrations with third-party APIs.",
+        "ru": "Сервисы на Python и FastAPI с PostgreSQL, Telegram-боты, интеграции со сторонними API."
+      }
+    },
+    {
+      "title": {
+        "en": "Networks and servers",
+        "ru": "Сети и серверы"
+      },
+      "text": {
+        "en": "MikroTik networks and VPN, Linux and Proxmox servers, telephony on FreePBX and GSM gateways.",
+        "ru": "Сети и VPN на MikroTik, серверы на Linux и Proxmox, телефония на FreePBX и GSM-шлюзах."
+      }
     }
   ],
   "articles": [

@@ -4,9 +4,14 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Timeline
@@ -301,7 +306,7 @@ private fun RulerScreen() {
     }
 
     val height = when {
-        chrome.immersive -> expandedHeight(normal = 420.dp, reserved = 0.dp)
+        chrome.immersive -> expandedHeight(normal = 0.dp, reserved = 0.dp)
         vertical -> 420.dp
         else -> 200.dp
     }
@@ -325,7 +330,10 @@ private fun RulerScreen() {
         Surface(
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.End))
+                .padding(12.dp),
         ) {
             val mm = measured?.div(pxPerMm)
             Text(

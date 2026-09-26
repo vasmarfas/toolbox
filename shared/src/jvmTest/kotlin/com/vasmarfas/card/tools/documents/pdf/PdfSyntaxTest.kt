@@ -38,7 +38,7 @@ class PdfSyntaxTest {
         val hex = parse("<48 65 6c6C 6>") as PdfString
         assertTrue(hex.hex)
         assertContentEquals(byteArrayOf(0x48, 0x65, 0x6C, 0x6C, 0x60), hex.bytes)
-        assertEquals(PdfBoolean.TRUE, parse("true"))
+        assertEquals(PdfBoolean.of(true), parse("true"))
         assertEquals(PdfNull, parse("null"))
     }
 
@@ -94,7 +94,7 @@ class PdfSyntaxTest {
             "Type" to PdfName("Page"),
             "Box" to PdfArray(PdfInt(0), PdfReal(0.5), PdfInt(-3), PdfRef(4, 0)),
             "N" to PdfInt(1),
-            "Flag" to PdfBoolean.TRUE,
+            "Flag" to PdfBoolean.of(true),
             "Sub" to PdfDict("X" to PdfNull),
         )
         assertEquals("<</Type/Page/Box[0 0.5 -3 4 0 R]/N 1/Flag true/Sub<</X null>>>>", write(dict))

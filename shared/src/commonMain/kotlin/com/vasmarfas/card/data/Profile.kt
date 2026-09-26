@@ -12,6 +12,7 @@ data class Profile(
     val links: List<Link> = emptyList(),
     val milestones: Milestones = Milestones(),
     val projects: List<Project> = emptyList(),
+    val services: List<Service> = emptyList(),
     val articles: List<Article> = emptyList(),
     val downloads: List<Link> = emptyList(),
 )
@@ -64,6 +65,13 @@ data class Project(
     // as the store prints them, e.g. 10K+. Google Play has no public API for it, the number is copied by hand
     val downloads: String? = null,
     val status: Tr? = null,
+)
+
+@Serializable
+data class Service(
+    val title: Tr,
+    val text: Tr,
+    val active: Boolean = true,
 )
 
 @Serializable

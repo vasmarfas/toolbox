@@ -57,8 +57,8 @@ internal class PdfParser(
     private fun parseKeyword(): PdfObject {
         val lx = lexer
         return when {
-            lx.readKeyword("true") -> PdfBoolean.TRUE
-            lx.readKeyword("false") -> PdfBoolean.FALSE
+            lx.readKeyword("true") -> PdfBoolean.of(true)
+            lx.readKeyword("false") -> PdfBoolean.of(false)
             lx.readKeyword("null") -> PdfNull
             else -> {
                 lx.readRegular()

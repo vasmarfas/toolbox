@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -9,7 +10,7 @@ plugins {
 dependencies {
     implementation(project(":shared"))
 
-    implementation(compose.desktop.currentOs)
+    implementation(libs.compose.ui)
     implementation(libs.compose.components.resources)
     implementation(libs.kotlinx.coroutinesSwing)
 
@@ -44,6 +45,7 @@ compose.desktop {
             }
             macOS {
                 bundleID = "com.vasmarfas.toolbox"
+                minimumSystemVersion = "12.0"
                 iconFile.set(project.file("icons/logo.icns"))
                 packageBuildVersion = rootProject.extra["appVersionCode"].toString()
                 val identity = System.getenv("APPLE_DEVELOPER_ID_IDENTITY")
@@ -72,5 +74,22 @@ compose.desktop {
         buildTypes.release.proguard {
             isEnabled.set(false)
         }
+    }
+}
+
+val ffmpegDeb = listOf(
+    "libpulse0", "libva2", "libva-drm2", "libva-x11-2", "libvdpau1", "libdrm2",
+    "libxcb1", "libxcb-shm0", "libxcb-shape0", "libxcb-xfixes0", "libasound2t64 | libasound2",
+)
+val ffmpegRpm = listOf(
+    "libpulse.so.0", "libva.so.2", "libva-drm.so.2", "libva-x11.so.2", "libvdpau.so.1", "libdrm.so.2",
+    "libxcb.so.1", "libxcb-shm.so.0", "libxcb-shape.so.0", "libxcb-xfixes.so.0", "libasound.so.2",
+).map { "$it()(64bit)" }
+
+tasks.withType<AbstractJPackageTask>().configureEach {
+    when (targetFormat) {
+        TargetFormat.Deb -> freeArgs.addAll("--linux-package-deps", ffmpegDeb.joinToString(", "))
+        TargetFormat.Rpm -> freeArgs.addAll("--linux-package-deps", ffmpegRpm.joinToString(", "))
+        else -> {}
     }
 }

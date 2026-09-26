@@ -1,7 +1,9 @@
 package com.vasmarfas.card.tools.media
 
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.platform.registerSkikoComposeImplementation
 import com.vasmarfas.card.core.decodeRawImage
 import com.vasmarfas.card.core.imageBitmapOf
 import com.vasmarfas.card.core.pixels
@@ -15,7 +17,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+@OptIn(InternalComposeUiApi::class)
 class PhotoRenderTest {
+    init {
+        registerSkikoComposeImplementation()
+    }
+
     private fun flat(w: Int, h: Int, grey: Int) = imageBitmapOf(IntArray(w * h) { (255 shl 24) or (grey shl 16) or (grey shl 8) or grey }, w, h)
 
     private fun marked(w: Int, h: Int) = imageBitmapOf(

@@ -107,6 +107,8 @@ jobs:
         env:
           APP_VERSION_NAME: ${{ steps.version.outputs.package }}
           APP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          METRICA_DESKTOP_COUNTER: ${{ secrets.METRICA_DESKTOP_COUNTER }}
+          METRICA_DESKTOP_TOKEN: ${{ secrets.METRICA_DESKTOP_TOKEN }}
         run: ./gradlew :desktopApp:packageMsi :desktopApp:packageExe
 
       - name: Collect artifacts
@@ -191,7 +193,14 @@ jobs:
         env:
           APP_VERSION_NAME: ${{ steps.version.outputs.package }}
           APP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          METRICA_DESKTOP_COUNTER: ${{ secrets.METRICA_DESKTOP_COUNTER }}
+          METRICA_DESKTOP_TOKEN: ${{ secrets.METRICA_DESKTOP_TOKEN }}
         run: ./gradlew :desktopApp:packageDeb :desktopApp:packageRpm
+
+      - name: Package dependencies
+        run: |
+          dpkg-deb -f desktopApp/build/compose/binaries/main/deb/*.deb Depends
+          rpm -qp --requires desktopApp/build/compose/binaries/main/rpm/*.rpm
 
       - name: Collect artifacts
         env:
@@ -280,6 +289,8 @@ jobs:
         env:
           APP_VERSION_NAME: ${{ steps.version.outputs.package }}
           APP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          METRICA_DESKTOP_COUNTER: ${{ secrets.METRICA_DESKTOP_COUNTER }}
+          METRICA_DESKTOP_TOKEN: ${{ secrets.METRICA_DESKTOP_TOKEN }}
           APPLE_DEVELOPER_ID_IDENTITY: ${{ steps.certificate.outputs.imported == 'true' && secrets.APPLE_DEVELOPER_ID_IDENTITY || '' }}
         run: ./gradlew :desktopApp:packageDmg
 
@@ -332,6 +343,8 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           APP_VERSION_NAME: ${{ steps.version.outputs.package }}
           APP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          METRICA_DESKTOP_COUNTER: ${{ secrets.METRICA_DESKTOP_COUNTER }}
+          METRICA_DESKTOP_TOKEN: ${{ secrets.METRICA_DESKTOP_TOKEN }}
           APPLE_DEVELOPER_ID_IDENTITY: ${{ secrets.MAC_APP_STORE_IDENTITY }}
         run: |
           set -eu

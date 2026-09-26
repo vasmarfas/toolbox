@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,9 +55,12 @@ private fun CookingConverterScreen() {
         onSelect = { mode = it },
         label = { if (it == CookingMode.INGREDIENTS) Res.string.ingredients.str() else Res.string.oven.str() },
     )
-    when (mode) {
-        CookingMode.INGREDIENTS -> IngredientsSection()
-        CookingMode.OVEN -> OvenSection()
+    val saved = rememberSaveableStateHolder()
+    saved.SaveableStateProvider(mode) {
+        when (mode) {
+            CookingMode.INGREDIENTS -> IngredientsSection()
+            CookingMode.OVEN -> OvenSection()
+        }
     }
 }
 

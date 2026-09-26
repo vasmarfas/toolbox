@@ -244,7 +244,7 @@ private fun copyPage(session: EditorSession, page: EditPage): EditPage = page.co
 )
 
 @Composable
-internal fun SearchPanel(session: EditorSession) {
+internal fun SearchPanel(session: EditorSession, renderer: MarkRenderer) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var searched by remember { mutableStateOf(false) }
@@ -254,8 +254,11 @@ internal fun SearchPanel(session: EditorSession) {
         scope.launch {
             val hits = ArrayList<SearchHit>()
             for (page in session.edit.pages) {
-                val source = page.source as? SourcePage ?: continue
-                for (match in session.text(source, page.objects).search(query)) hits += SearchHit(page.id, match)
+                val source = page.source as? SourcePage
+                if (source != null) for (match in session.text(source, page.objects).search(query)) hits += SearchHit(page.id, match)
+                for (mark in page.marks) {
+                    if (mark is TextMark) for (match in markMatches(renderer.layout(mark), mark, query)) hits += SearchHit(page.id, match)
+                }
             }
             session.results = hits
             session.hit = 0

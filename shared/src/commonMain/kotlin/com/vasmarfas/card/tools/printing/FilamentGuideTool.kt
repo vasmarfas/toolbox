@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.str
@@ -60,9 +61,12 @@ private fun FilamentGuideScreen() {
         onSelect = { view = it },
         label = { if (it == GuideView.SIMPLE) Res.string.filament_view_simple.str() else Res.string.filament_view_detailed.str() },
     )
-    when (tab) {
-        GuideTab.PICK -> FilamentPicker(view)
-        GuideTab.TABLE -> FilamentTable(view)
+    val saved = rememberSaveableStateHolder()
+    saved.SaveableStateProvider(tab) {
+        when (tab) {
+            GuideTab.PICK -> FilamentPicker(view)
+            GuideTab.TABLE -> FilamentTable(view)
+        }
     }
 }
 
@@ -199,7 +203,7 @@ private fun Double?.shown(fraction: Int): String = this?.fmt(fraction) ?: "—"
 
 private fun Int?.shown(): String = this?.toString() ?: "—"
 
-private fun Int?.gigapascals(): String = this?.let { (it / 1000.0).fmt(2) } ?: "—"
+private fun Int?.gigapascals(): String = this?.let { (it / 1000.0).fmt(if (it < 100) 3 else 2) } ?: "—"
 
 private fun Double?.impact(noBreak: String): String = when (this) {
     null -> "—"
@@ -212,8 +216,8 @@ private fun FilamentTable(view: GuideView) {
     var group by rememberSaveable { mutableStateOf(FilamentGroup.BASIC) }
     var query by rememberSaveable { mutableStateOf("") }
     ToolInputField(value = query, onValueChange = { query = it }, label = Res.string.filament_search.str())
-    ChoiceChips(options = FilamentGroup.entries, selected = group, onSelect = { group = it }, label = { it.title.str() })
-    val q = query.trim()
+    ChoiceChips(options = FilamentGroup.entries, selected = group, onSelect = { group = it; query = "" }, label = { it.title.str() })
+    val q = query.trim().replace('-', ' ').replace('_', ' ')
     val materials = FilamentMaterial.entries.filter { m ->
         if (q.isEmpty()) Filaments.traits.getValue(m).group == group
         else m.title.str().contains(q, ignoreCase = true) || m.name.replace('_', ' ').contains(q, ignoreCase = true)

@@ -78,7 +78,8 @@ private fun MorseCodeScreen() {
     val output = remember(input, mode, alphabet) {
         if (mode == MorseMode.ENCODE) Morse.encode(input) else Morse.decode(input, alphabet)
     }
-    val morse = if (mode == MorseMode.ENCODE) output else input
+    val morse = if (mode == MorseMode.ENCODE) output else Morse.normalize(input)
+    LaunchedEffect(morse) { job?.cancel() }
     LaunchedEffect(input, mode, alphabet) {
         when {
             mode == MorseMode.DECODE -> treeAlphabet = alphabet

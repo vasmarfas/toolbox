@@ -2,6 +2,7 @@ package com.vasmarfas.card.core
 
 import com.vasmarfas.card.resources.*
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import java.util.Locale
 import kotlin.test.Test
@@ -32,8 +33,8 @@ class LocalisationTest {
     fun theSearchIndexMatchesWhatTheResourceLoaderReturns() {
         val all = Res.allStringResources.values.sortedBy { it.key }
         assertTrue(all.size > 2000, "expected the whole table, got ${all.size}")
-        listOf("en" to { r: org.jetbrains.compose.resources.StringResource -> r.english() },
-            "ru" to { r: org.jetbrains.compose.resources.StringResource -> r.russian() }).forEach { (tag, stored) ->
+        listOf("en" to { r: StringResource -> r.english() },
+            "ru" to { r: StringResource -> r.russian() }).forEach { (tag, stored) ->
             withLocale(tag) {
                 runBlocking {
                     all.forEach { resource ->

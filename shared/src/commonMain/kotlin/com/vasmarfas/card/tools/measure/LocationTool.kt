@@ -10,12 +10,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.vasmarfas.card.core.AppPermission
 import com.vasmarfas.card.core.LocationFix
 import com.vasmarfas.card.core.PlatformKind
-import com.vasmarfas.card.core.ensurePermission
 import com.vasmarfas.card.core.fmt
 import com.vasmarfas.card.core.hasPermission
 import com.vasmarfas.card.core.locationFlow
@@ -29,6 +27,7 @@ import com.vasmarfas.card.ui.components.ActionButton
 import com.vasmarfas.card.ui.components.ErrorText
 import com.vasmarfas.card.ui.components.KeyValueRow
 import com.vasmarfas.card.ui.components.LoadingRow
+import com.vasmarfas.card.ui.components.PermissionPrompt
 import com.vasmarfas.card.ui.components.ResultCard
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -36,7 +35,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.launch
 
 val locationTool = Tool(
     id = "gps-location",
@@ -75,15 +73,13 @@ private fun LocationScreen() {
     var maxSpeed by remember { mutableStateOf(0.0) }
     var distance by remember { mutableStateOf(0.0) }
     var last by remember { mutableStateOf<LocationFix?>(null) }
-    val scope = rememberCoroutineScope()
 
     if (!locationSupported()) {
         Text(Res.string.not_available_on_this_platform.str())
         return
     }
     if (!permission) {
-        Text(Res.string.gps_location_access_is_needed.str())
-        ActionButton(text = Res.string.grant_permission.str(), onClick = { scope.launch { permission = ensurePermission(AppPermission.LOCATION) } })
+        PermissionPrompt(AppPermission.LOCATION, Res.string.gps_location_access_is_needed.str()) { permission = true }
         return
     }
     LaunchedEffect(permission) {

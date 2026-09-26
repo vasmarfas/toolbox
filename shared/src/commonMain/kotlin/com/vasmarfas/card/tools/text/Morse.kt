@@ -38,20 +38,26 @@ object Morse {
 
     fun codes(morse: String): List<String> = Regex("[.-]+").findAll(morse).map { it.value }.toList()
 
-    fun encode(text: String): String {
-        val words = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-        return words.joinToString(" / ") { word ->
+    fun encode(text: String): String =
+        text.trim().split(Regex("\\s+")).map { word ->
             word.mapNotNull { c ->
                 val lower = c.lowercaseChar()
                 latin[lower] ?: cyrillic[lower] ?: common[lower]
             }.joinToString(" ")
+        }.filter { it.isNotEmpty() }.joinToString(" / ")
+
+    fun normalize(morse: String): String = morse.map {
+        when (it) {
+            '•', '·' -> '.'
+            '—', '–', '_' -> '-'
+            '|' -> '/'
+            else -> if (it.isWhitespace()) ' ' else it
         }
-    }
+    }.joinToString("")
 
     fun decode(morse: String, alphabet: MorseAlphabet): String {
         val table = if (alphabet == MorseAlphabet.LATIN) latinDecode else cyrillicDecode
-        val normalized = morse.replace('•', '.').replace('·', '.').replace('—', '-').replace('–', '-').replace('_', '-')
-        return normalized.split('/', '|').joinToString(" ") { word ->
+        return normalize(morse).split('/').joinToString(" ") { word ->
             word.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.joinToString("") { code ->
                 table[code]?.toString() ?: "�"
             }
@@ -75,11 +81,11 @@ object Morse {
                     steps += MorseStep(false, UNIT_MS, letter, symbol)
                     symbol++
                 }
-                '/' -> steps += MorseStep(false, UNIT_MS * 7)
+                '/' -> steps += MorseStep(false, UNIT_MS * 6)
                 ' ' -> {
                     var j = i
                     while (j < morse.length && morse[j] == ' ') j++
-                    if (j < morse.length && morse[j] != '/') steps += MorseStep(false, UNIT_MS * 2)
+                    if (i > 0 && morse[i - 1] != '/' && j < morse.length && morse[j] != '/') steps += MorseStep(false, UNIT_MS * 2)
                     i = j
                     continue
                 }
