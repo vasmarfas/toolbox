@@ -380,6 +380,19 @@ class EditWriterTest {
     }
 
     @Test
+    fun styledRunsAreWrittenWithTheirWeightAndColour() {
+        val black = 0xFF000000.toInt()
+        val red = 0xFFFF0000.toInt()
+        val spans = listOf(StyleSpan(0, 5, true, false, black), StyleSpan(11, 14, false, false, red))
+        val mark = TextMark(id(), PdfRect(100.0, 500.0, 400.0, 540.0), "Bold plain red", 14f, black, spans = spans)
+        val page = EditPage(id(), BlankPage(595.0, 842.0), marks = listOf(mark))
+        val glyphs = PdfText.glyphs(PdfDocument.parse(write(null, DocumentEdit(listOf(page)))), 0)
+        assertEquals("Boldplainred", glyphs.joinToString("") { it.text })
+        val looks = List(4) { Look(true, false, black) } + List(5) { Look(false, false, black) } + List(3) { Look(false, false, red) }
+        assertEquals(looks, glyphs.map { Look(it.style.bold, it.style.italic, it.color) })
+    }
+
+    @Test
     fun glyphOutlinesStayInsideTheBox() {
         val sans = font("MobitoolSans-Regular")
         for (ch in "AЖ€") {

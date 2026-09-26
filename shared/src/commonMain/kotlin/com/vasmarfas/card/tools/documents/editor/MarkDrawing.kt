@@ -51,40 +51,37 @@ internal val Affine.scale: Float get() = hypot(a, b).toFloat()
 internal class MarkRenderer(private val fonts: MarkFonts) {
     val faces = Faces(PdfWriter(), fonts.fallbacks)
     private val glyphs = HashMap<TrueTypeFont, HashMap<Int, Path>>()
-    private val texts = LinkedHashMap<Any, Pair<Path, TextLayout?>>()
+    private val texts = LinkedHashMap<Any, Map<Int?, Path>>()
 
     fun layout(mark: TextMark): TextLayout = layoutText(faces, fonts, mark)
 
     private fun glyph(font: TrueTypeFont, id: Int): Path = glyphs.getOrPut(font) { HashMap() }.getOrPut(id) { outlinePath(font.outline(id)) }
 
-    private fun textPath(mark: TextMark): Pair<Path, TextLayout?> = cached(mark) {
+    private fun textPaths(mark: TextMark): Map<Int?, Path> = cached(mark) { paths ->
         val layout = layout(mark)
-        val path = Path()
         var top = Affine.frameSize(mark.box, mark.angle).second - layout.inset
         for (line in layout.lines) {
-            addLine(path, line, layout.inset.toDouble(), top - line.baseline)
+            addLine(paths, line, layout.inset.toDouble(), top - line.baseline)
             top -= line.height
         }
-        path to layout
     }
 
-    private fun linePath(text: String, size: Float): Path = cached(text to size) {
-        val path = Path()
-        singleLine(faces, fonts, text, size)?.let { addLine(path, it, 0.0, 0.0) }
-        path to null
-    }.first
+    private fun linePaths(text: String, size: Float): Map<Int?, Path> = cached(text to size) { paths ->
+        singleLine(faces, fonts, text, size)?.let { addLine(paths, it, 0.0, 0.0) }
+    }
 
-    private fun cached(key: Any, build: () -> Pair<Path, TextLayout?>): Pair<Path, TextLayout?> {
+    private fun cached(key: Any, build: (MutableMap<Int?, Path>) -> Unit): Map<Int?, Path> {
         texts[key]?.let { return it }
-        val value = build()
+        val value = LinkedHashMap<Int?, Path>().also(build)
         texts[key] = value
         if (texts.size > 400) texts.remove(texts.keys.first())
         return value
     }
 
-    private fun addLine(path: Path, line: Line, x: Double, baseline: Double) {
+    private fun addLine(paths: MutableMap<Int?, Path>, line: Line, x: Double, baseline: Double) {
         for (k in line.boxes.indices) {
             val box = line.boxes[k]
+            val path = paths.getOrPut(box.style.color) { Path() }
             val font = box.face.font
             val scale = box.style.size.toDouble() / font.unitsPerEm
             var gx = x + line.xs[k]
@@ -125,7 +122,9 @@ internal class MarkRenderer(private val fonts: MarkFonts) {
                 val corners = listOf(frame.point(0.0, 0.0), frame.point(w, 0.0), frame.point(w, h), frame.point(0.0, h))
                 mark.fill?.let { drawPath(polygon(corners), Color(it)) }
                 if (mark.border) drawPath(polygon(corners), Color(mark.color), style = Stroke(max(1f, mark.size / 12f * scale)))
-                withTransform({ transform(frame.toMatrix()) }) { drawPath(textPath(mark).first, Color(mark.color)) }
+                withTransform({ transform(frame.toMatrix()) }) {
+                    for ((color, path) in textPaths(mark)) drawPath(path, Color(color ?: mark.color))
+                }
             }
             is ImageMark -> {
                 val bitmap = bitmaps[mark.image] ?: return
@@ -283,7 +282,7 @@ internal class MarkRenderer(private val fonts: MarkFonts) {
     fun DrawScope.line(text: String, size: Float, at: LinePlacement, toScreen: Affine, color: Color) {
         val rad = at.angle * PI / 180
         val m = Affine(cos(rad), sin(rad), -sin(rad), cos(rad), at.x, at.y).then(toScreen)
-        withTransform({ transform(m.toMatrix()) }) { drawPath(linePath(text, size), color) }
+        withTransform({ transform(m.toMatrix()) }) { for (path in linePaths(text, size).values) drawPath(path, color) }
     }
 }
 

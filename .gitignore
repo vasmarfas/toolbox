@@ -24,6 +24,7 @@ node_modules/
 google-services.json
 GoogleService-Info.plist
 iosApp/Configuration/Local.xcconfig
+androidApp/release/
 
 # JVM crash dumps from a Gradle daemon that died
 hs_err_pid*.log

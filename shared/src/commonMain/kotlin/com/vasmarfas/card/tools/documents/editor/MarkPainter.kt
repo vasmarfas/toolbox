@@ -51,10 +51,22 @@ internal fun layoutText(
     align: MarkAlign,
     width: Float,
     spacing: Float = LINE_SPACING,
+    spans: List<StyleSpan> = emptyList(),
 ): TextLayout {
     val inset = size * 0.2f
-    val style = RunStyle(fonts.family(font), size, bold, italic)
-    val pieces = PieceBuilder(faces).apply { text(text, style) }.finish()
+    val family = fonts.family(font)
+    val style = RunStyle(family, size, bold, italic)
+    val builder = PieceBuilder(faces)
+    var at = 0
+    for (span in spans) {
+        val start = span.start.coerceIn(at, text.length)
+        val end = span.end.coerceIn(start, text.length)
+        builder.text(text.substring(at, start), style)
+        builder.text(text.substring(start, end), RunStyle(family, size, span.bold, span.italic, color = span.color))
+        at = end
+    }
+    builder.text(text.substring(at), style)
+    val pieces = builder.finish()
     val alignment = when (align) {
         MarkAlign.START -> Align.START
         MarkAlign.CENTER -> Align.CENTER
@@ -66,7 +78,7 @@ internal fun layoutText(
 
 internal fun layoutText(faces: Faces, fonts: MarkFonts, mark: TextMark): TextLayout {
     val (width, _) = Affine.frameSize(mark.box, mark.angle)
-    return layoutText(faces, fonts, mark.text, mark.size, mark.font, mark.bold, mark.italic, mark.align, width.toFloat(), mark.spacing)
+    return layoutText(faces, fonts, mark.text, mark.size, mark.font, mark.bold, mark.italic, mark.align, width.toFloat(), mark.spacing, mark.spans)
 }
 
 internal fun singleLine(faces: Faces, fonts: MarkFonts, text: String, size: Float): Line? =
@@ -172,7 +184,7 @@ internal class PaintCanvas(private val painter: MarkPainter) {
         if (opacity < 1f) ops.append('/').append(state(opacity, opacity, multiply = false)).append(" gs ")
         ops.append(n(cos)).append(' ').append(n(sin)).append(' ').append(n(-sin)).append(' ').append(n(cos)).append(' ').append(n(at.x)).append(' ').append(n(at.y)).append(" cm\n")
         fillColor(color)
-        drawLine(line, 0.0, 0.0)
+        drawLine(line, 0.0, 0.0, color)
         ops.append("Q\n")
     }
 
@@ -260,15 +272,21 @@ internal class PaintCanvas(private val painter: MarkPainter) {
         fillColor(mark.color)
         var top = height - layout.inset
         for (line in layout.lines) {
-            drawLine(line, layout.inset.toDouble(), top - line.baseline)
+            drawLine(line, layout.inset.toDouble(), top - line.baseline, mark.color)
             top -= line.height
         }
         ops.append("Q\n")
     }
 
-    private fun drawLine(line: Line, x: Double, baseline: Double) {
+    private fun drawLine(line: Line, x: Double, baseline: Double, color: Int) {
+        var fill = color
         for (k in line.boxes.indices) {
             val box = line.boxes[k]
+            val wanted = box.style.color ?: color
+            if (wanted != fill) {
+                fillColor(wanted)
+                fill = wanted
+            }
             val bx = x + line.xs[k]
             val by = baseline + box.style.rise
             fonts[box.face.resource] = box.face.ref
@@ -287,6 +305,7 @@ internal class PaintCanvas(private val painter: MarkPainter) {
                     .append(n(box.width * 0.62)).append(' ').append(n(stem)).append(" re f\n")
             }
         }
+        if (fill != color) fillColor(color)
     }
 
     private fun image(mark: ImageMark) {

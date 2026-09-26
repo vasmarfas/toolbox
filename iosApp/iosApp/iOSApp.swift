@@ -13,6 +13,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         #if canImport(FirebaseCore)
+        guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else { return true }
         FirebaseApp.configure()
         #endif
         #if canImport(FirebaseAnalytics)

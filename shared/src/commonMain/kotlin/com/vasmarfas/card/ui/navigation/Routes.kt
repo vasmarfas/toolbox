@@ -74,7 +74,7 @@ enum class TopDestination(
     val screenName: String get() = if (asAboutPage) "about" else urlFragment
 
     companion object {
-        // the site keeps the personal pages in their old order. Store builds ship as a mobitool: the person's
+        // the site keeps the personal pages in their old order. Store builds ship as a toolbox: the person's
         // own tools first, projects and the resume reachable by link but off the bar
         val visible: List<TopDestination>
             get() = if (currentPlatform == PlatformKind.WEB) entries - MY_TOOLS else listOf(MY_TOOLS, TOOLS, HOME, SETTINGS)

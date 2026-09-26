@@ -24,6 +24,14 @@ internal fun TextMark.looks(): List<Look> {
     return looks
 }
 
+internal fun TextMark.restyled(next: TextLook): TextMark {
+    val looks = looks().map {
+        Look(if (next.bold != bold) next.bold else it.bold, if (next.italic != italic) next.italic else it.italic, if (next.color != color) next.color else it.color)
+    }
+    val spans = spansOf(looks, Look(next.bold, next.italic, next.color))
+    return copy(color = next.color, size = next.size, font = next.font, bold = next.bold, italic = next.italic, align = next.align, spans = spans)
+}
+
 internal fun TextMark.withText(next: String): TextMark {
     if (spans.isEmpty() || next == text) return copy(text = next)
     var prefix = 0

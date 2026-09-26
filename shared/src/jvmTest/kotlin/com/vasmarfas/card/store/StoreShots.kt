@@ -1,12 +1,17 @@
 package com.vasmarfas.card.store
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.DesktopComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SkikoComposeUiTest
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -16,14 +21,26 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.unit.Density
 import com.vasmarfas.card.App
+import com.vasmarfas.card.tools.documents.fixture
+import com.vasmarfas.card.tools.documents.pdf.pdf
 import java.io.File
+import java.lang.reflect.Proxy
+import java.nio.file.Files
 import java.util.prefs.Preferences
 import javax.imageio.ImageIO
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.test.Test
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
+import org.apache.pdfbox.pdmodel.font.PDFont
+import org.apache.pdfbox.pdmodel.font.PDType0Font
 import org.junit.Assume.assumeTrue
 
 // store screenshots of the real app: ./gradlew :shared:jvmTest --tests "*StoreShots*" -PstoreShots=<folder>,
@@ -40,7 +57,7 @@ class StoreShots {
         Device("phone", 1080, 2340, 3f),
         Device("iphone", 1320, 2868, 3f),
         Device("tablet", 2560, 1600, 2f),
-        Device("ipad", 2064, 2752, 2f),
+        Device("ipad", 2752, 2064, 2f, homeRow = 4),
         Device("desktop", 2880, 1800, 2f, homeRow = 4),
     )
 
@@ -49,35 +66,40 @@ class StoreShots {
     private val home = listOf(
         listOf("image-compressor", "photo-editor", "video-converter", "audio-converter"),
         listOf("pdf-editor", "merge-pdf", "document-converter", "images-to-pdf"),
+        listOf("decision-wheel", "dice-roller", "team-splitter", "tally-counter"),
         listOf("qr-generator", "color-converter", "barcode-generator", "image-palette"),
         listOf("password-generator", "totp", "pwned-check", "password-strength"),
         listOf("json-formatter", "base64", "hash-generator", "regex-tester"),
         listOf("speed-test", "subnet-calculator", "ping", "dns-lookup"),
-        listOf("resistor-color-code", "ohms-law", "led-resistor", "voltage-divider"),
         listOf("filament-guide", "print-cost", "filament-length-weight", "print-time-estimate"),
     )
 
     private val shots = listOf(
         Shot("01-home", "#my"),
-        Shot("02-catalog", "#tools"),
-        Shot("03-subnet", "#tools/subnet-calculator"),
-        Shot("04-qr", "#tools/qr-generator") {
+        Shot("02-pdf", "#tools/pdf-editor") { ru ->
+            pick(sampleLease(ru))
+            tap(if (ru) "Выбрать PDF" else "Choose a PDF")
+            bringToTop(if (ru) "Договор аренды квартиры.pdf" else "Apartment lease.pdf", 90f)
+            val page = pageBounds()
+            onRoot().performTouchInput { click(Offset(page.left + page.width * 0.4f, page.top + page.height * 0.318f)) }
+        },
+        Shot("03-currency", "#tools/currency-converter", dark = true) { ru ->
+            waitUntil(timeoutMillis = 15_000) { onAllNodes(hasText(if (ru) "Курсы обновлены" else "Rates updated")).fetchSemanticsNodes().isNotEmpty() }
+        },
+        Shot("04-catalog", "#tools"),
+        Shot("05-qr", "#tools/qr-generator") {
             type("https://vasmarfas.com")
             bringToTop("vasmarfas.com", 90f)
         },
-        Shot("05-filament", "#tools/filament-guide", dark = true) { ru ->
+        Shot("06-passwords", "#tools/password-generator", dark = true),
+        Shot("07-filament", "#tools/filament-guide") { ru ->
             tap(if (ru) "Будет на улице и солнце" else "Outdoors in the sun")
             tap(if (ru) "Закрытый, без подогрева камеры" else "Enclosed, no chamber heating")
             bringToTop(if (ru) "Подходят лучше всего" else "Suits best", 90f)
         },
-        Shot("06-resistor", "#tools/resistor-color-code") { ru -> bringToTop(if (ru) "Допуск" else "Tolerance", 90f) },
-        Shot("07-json", "#tools/json-formatter", dark = true) { ru ->
+        Shot("08-json", "#tools/json-formatter", dark = true) {
             type(SAMPLE_JSON)
             bringToTop("JSON", 70f)
-        },
-        Shot("08-morse", "#tools/morse-code") { ru ->
-            type("SOS")
-            bringToTop(if (ru) "Результат" else "Result", 90f)
         },
         Shot("check-filament-table", "#tools/filament-guide") { ru ->
             tap(if (ru) "Таблица" else "Table")
@@ -125,6 +147,96 @@ class StoreShots {
             onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange)).onFirst()
                 .performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, delta) }
         }
+    }
+
+    // FileKit keeps the desktop picker, an internal interface, in a lazy: a scene puts a proxy there that hands out a
+    // sample file
+    private fun pick(file: File) {
+        val type = Class.forName("io.github.vinceglb.filekit.dialogs.platform.PlatformFilePicker")
+        val picker = Proxy.newProxyInstance(type.classLoader, arrayOf(type)) { proxy, method, args ->
+            when (method.name) {
+                "openFilePicker" -> file
+                "openFilesPicker" -> listOf(file)
+                "hashCode" -> System.identityHashCode(proxy)
+                "equals" -> proxy === args?.firstOrNull()
+                "toString" -> "sample picker"
+                else -> null
+            }
+        }
+        val lazy = Class.forName("${type.name}\$Companion").getDeclaredField("current\$delegate").apply { isAccessible = true }.get(null)
+        lazy.javaClass.getDeclaredField("_value").apply { isAccessible = true }.set(lazy, picker)
+    }
+
+    private fun sampleLease(ru: Boolean): File {
+        val fonts = "src/commonMain/composeResources/files/fonts"
+        val bytes = pdf { doc ->
+            val regular = PDType0Font.load(doc, File("$fonts/MobitoolSerif-Regular.ttf"))
+            val bold = PDType0Font.load(doc, File("$fonts/MobitoolSerif-Bold.ttf"))
+            val page = PDPage(PDRectangle.A4)
+            doc.addPage(page)
+            PDPageContentStream(doc, page).use { cs ->
+                var y = 760f
+                fun text(value: String, font: PDFont, size: Float, x: Float) {
+                    cs.beginText()
+                    cs.setFont(font, size)
+                    cs.newLineAtOffset(x, y)
+                    cs.showText(value)
+                    cs.endText()
+                }
+                for (line in fixture(if (ru) "lease-ru.txt" else "lease-en.txt").decodeToString().trimEnd().lines()) {
+                    when {
+                        line.startsWith("# ") -> {
+                            text(line.drop(2), bold, 17f, 72f)
+                            y -= 30f
+                        }
+                        line.startsWith("## ") -> {
+                            y -= 8f
+                            text(line.drop(3), bold, 12f, 72f)
+                            y -= 18f
+                        }
+                        '|' in line -> {
+                            val (left, right) = line.split('|')
+                            text(left, regular, 11f, 72f)
+                            text(right, regular, 11f, 523f - regular.getStringWidth(right) / 1000 * 11f)
+                            y -= 26f
+                        }
+                        else -> {
+                            text(line, regular, 11f, 72f)
+                            y -= 15.5f
+                        }
+                    }
+                }
+            }
+        }
+        val dir = Files.createTempDirectory("store").toFile()
+        return File(dir, if (ru) "Договор аренды квартиры.pdf" else "Apartment lease.pdf").apply { writeBytes(bytes) }
+    }
+
+    // the page is the only pure white area of the editor
+    private fun SkikoComposeUiTest.pageBounds(): Rect {
+        settle()
+        val pixels = captureToImage().toPixelMap()
+        var left = pixels.width
+        var right = 0
+        var top = pixels.height
+        var bottom = 0
+        for (y in 0 until pixels.height) {
+            var count = 0
+            var first = -1
+            var last = -1
+            for (x in 0 until pixels.width) {
+                if (pixels[x, y] != Color.White) continue
+                count++
+                if (first < 0) first = x
+                last = x
+            }
+            if (count < pixels.width / 5) continue
+            top = min(top, y)
+            bottom = y
+            left = min(left, first)
+            right = max(right, last)
+        }
+        return Rect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
     }
 
     @Test

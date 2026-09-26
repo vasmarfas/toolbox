@@ -23,7 +23,7 @@ By submitting a contribution you agree that it becomes part of this project on t
 
 ## Name, icon and package ID
 
-The names vasmarfas and vasmarfas Mobitool, the app icon and the application ID `com.vasmarfas.mobitool` identify the official builds distributed by the maintainer. The code license does not cover them, and they may not be used to label, describe or identify any other build or distribution, or to suggest endorsement by or affiliation with this project.
+The names vasmarfas, Mobitool and vasmarfas Mobitool, the app icon and the application ID `com.vasmarfas.mobitool` identify the official builds distributed by the maintainer. The code license does not cover them, and they may not be used to label, describe or identify any other build or distribution, or to suggest endorsement by or affiliation with this project.
 
 ## Third-party components
 

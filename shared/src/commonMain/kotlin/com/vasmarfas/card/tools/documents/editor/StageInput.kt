@@ -470,7 +470,7 @@ internal class StageInput(
         }
         val size = block.size.toFloat()
         val width = block.width + size * 0.9
-        val mark = TextMark(session.id(), PdfRect(0.0, 0.0, width, 1e4), block.text, size, block.color, font, style.bold, style.italic, block.align, spacing = block.spacing)
+        val mark = TextMark(session.id(), PdfRect(0.0, 0.0, width, 1e4), block.text, size, block.color, font, style.bold, style.italic, block.align, spacing = block.spacing, spans = block.spans)
         val layout = renderer.layout(mark)
         val baseline = layout.lines.firstOrNull()?.baseline?.toDouble() ?: (size * 0.8)
         val moved = page.objects[block.ops.first()]?.transform
@@ -579,7 +579,7 @@ internal class StageInput(
         session.editing = mark.id
     }
 
-    fun finishText(id: Long, text: String) {
+    fun finishText(id: Long, text: String, spans: List<StyleSpan>) {
         val converted = conversion?.takeIf { it.markId == id }
         if (converted != null) {
             conversion = null
@@ -596,7 +596,7 @@ internal class StageInput(
             session.remove(id)
             return
         }
-        var updated = mark.copy(text = text)
+        var updated = mark.copy(text = text, spans = spans)
         if (mark.angle == page.rotation) {
             val layout = renderer.layout(updated)
             val frame = page.frame

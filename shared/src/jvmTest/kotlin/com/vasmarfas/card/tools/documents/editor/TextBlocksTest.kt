@@ -79,6 +79,26 @@ class TextBlocksTest {
     }
 
     @Test
+    fun aBoldLeadInAndARedWordBecomeSpans() {
+        val blocks = blocks { cs ->
+            cs.beginText()
+            cs.setFont(helveticaBold(), 12f)
+            cs.newLineAtOffset(50f, 700f)
+            cs.showText("Lead: ")
+            cs.setFont(helvetica(), 12f)
+            cs.showText("plain and ")
+            cs.setNonStrokingColor(1f, 0f, 0f)
+            cs.showText("red")
+            cs.setNonStrokingColor(0f, 0f, 0f)
+            cs.showText(" text")
+            cs.endText()
+        }
+        val block = blocks.single()
+        assertEquals("Lead: plain and red text", block.text)
+        assertEquals(listOf(StyleSpan(0, 6, true, false, block.color), StyleSpan(16, 19, false, false, 0xFFFF0000.toInt())), block.spans)
+    }
+
+    @Test
     fun oneOperatorForTwoLinesMakesOneBlock() {
         val blocks = blocks { cs ->
             cs.beginText()

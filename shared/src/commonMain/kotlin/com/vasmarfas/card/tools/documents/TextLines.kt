@@ -13,6 +13,7 @@ internal class RunStyle(
     val rise: Float = 0f,
     val link: String? = null,
     val gray: Float = 0f,
+    val color: Int? = null,
 )
 
 // kerns are thousandths of an em after each glyph, as TJ wants them

@@ -30,10 +30,13 @@ class TextBlock internal constructor(val lines: List<TextLine>, val ops: Set<Int
 
     val bounds: PdfRect = lines.map { it.bounds }.reduce { a, b -> a.union(b) }
 
-    val text: String = lines.fold(StringBuilder()) { out, line ->
-        if (out.isNotEmpty() && out.last() != '-') out.append(' ')
-        out.append(lineText(line))
-    }.toString().trim()
+    val text: String = joined(null)
+
+    internal val spans: List<StyleSpan> by lazy {
+        val looks = ArrayList<Look>()
+        joined(looks)
+        spansOf(looks, Look(style.bold, style.italic, color))
+    }
 
     private val starts = lines.map { line -> along(line.glyphs.first().x0, line.glyphs.first().y0) }
     private val ends = lines.map { line -> along(line.glyphs.last().x1, line.glyphs.last().y1) }
@@ -57,6 +60,25 @@ class TextBlock internal constructor(val lines: List<TextLine>, val ops: Set<Int
 
     val anchorX: Double get() = start * dx - across(lines.first()) * dy
     val anchorY: Double get() = start * dy + across(lines.first()) * dx
+
+    private fun joined(looks: MutableList<Look>?): String {
+        val out = StringBuilder()
+        for (line in lines) {
+            if (out.isNotEmpty() && out.last() != '-') {
+                out.append(' ')
+                looks?.add(looks.last())
+            }
+            out.append(lineText(line, looks))
+        }
+        val raw = out.toString()
+        val lead = raw.length - raw.trimStart().length
+        val trimmed = raw.trim()
+        looks?.run {
+            subList(lead + trimmed.length, size).clear()
+            subList(0, lead).clear()
+        }
+        return trimmed
+    }
 
     private fun along(x: Double, y: Double) = x * dx + y * dy
 
@@ -161,12 +183,19 @@ object TextBlocks {
     }
 }
 
-internal fun lineText(line: TextLine): String {
+internal fun lineText(line: TextLine, looks: MutableList<Look>? = null): String {
     val out = StringBuilder()
     line.glyphs.forEachIndexed { g, glyph ->
         val prev = line.glyphs.getOrNull(g - 1)
-        if (prev != null && gap(prev, glyph) && !glyph.text.first().isWhitespace() && !prev.text.last().isWhitespace()) out.append(' ')
+        if (prev != null && gap(prev, glyph) && !glyph.text.first().isWhitespace() && !prev.text.last().isWhitespace()) {
+            out.append(' ')
+            looks?.add(looks.last())
+        }
         out.append(glyph.text)
+        if (looks != null) {
+            val look = Look(glyph.style.bold, glyph.style.italic, glyph.color)
+            repeat(glyph.text.length) { looks += look }
+        }
     }
     return out.toString()
 }

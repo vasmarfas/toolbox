@@ -287,7 +287,7 @@ private fun MarkOptions(session: EditorSession, mark: Mark) {
     when (mark) {
         is TextMark -> Controls {
             TextOptions(TextLook(mark.color, mark.size, mark.font, mark.bold, mark.italic, mark.align)) { look ->
-                session.replace(mark.copy(color = look.color, size = look.size, font = look.font, bold = look.bold, italic = look.italic, align = look.align))
+                session.replace(mark.restyled(look))
                 session.style = look.applyTo(session.style)
             }
         }
