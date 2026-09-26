@@ -10,7 +10,7 @@ import kotlin.math.sqrt
 private const val GRANULE = 576
 private const val MAX_GRANULE_BITS = 4095
 private const val RING = 64
-private const val ENCODER_NAME = "Toolbox"
+private const val ENCODER_NAME = "Mobitool"
 
 // decoder delay of ISO/IEC 11172-3, the convention behind the LAME delay field
 private const val DECODER_DELAY = 529

@@ -25,7 +25,7 @@ import org.apache.pdfbox.text.PDFTextStripper
 
 enum class SaveMode { CLASSIC, COMPRESSED }
 
-val arialFile = File("src/commonMain/composeResources/files/fonts/ToolboxSans-Regular.ttf")
+val arialFile = File("src/commonMain/composeResources/files/fonts/MobitoolSans-Regular.ttf")
 
 fun helvetica() = PDType1Font(Standard14Fonts.FontName.HELVETICA)
 

@@ -12,7 +12,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9DB502285EFFA40AE15D6532 /* Toolbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Toolbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9DB502285EFFA40AE15D6532 /* Mobitool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mobitool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,7 +57,7 @@
 		1D0CA394499C186D1EE86ECB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9DB502285EFFA40AE15D6532 /* Toolbox.app */,
+				9DB502285EFFA40AE15D6532 /* Mobitool.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,7 +97,7 @@
 				B4E1F0A0C2D3E4F506172803 /* FirebaseCrashlytics */,
 			);
 			productName = iosApp;
-			productReference = 9DB502285EFFA40AE15D6532 /* Toolbox.app */;
+			productReference = 9DB502285EFFA40AE15D6532 /* Mobitool.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

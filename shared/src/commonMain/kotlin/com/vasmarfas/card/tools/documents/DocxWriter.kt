@@ -459,7 +459,7 @@ internal class DocxWriter(private val doc: Doc) {
 
     private fun app(): String = XmlBuilder()
         .start("Properties", "xmlns" to "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties")
-        .leaf("Application", "vasmarfas Toolbox")
+        .leaf("Application", "vasmarfas Mobitool")
         .end()
         .toString()
 }

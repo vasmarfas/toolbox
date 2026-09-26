@@ -93,7 +93,7 @@
     },
     {
       "type": "support",
-      "url": "https://github.com/vasmarfas/toolbox/blob/master/SUPPORT.md",
+      "url": "https://github.com/vasmarfas/mobitool/blob/master/SUPPORT.md",
       "label": {
         "en": "Support",
         "ru": "Поддержать"
@@ -341,7 +341,7 @@
       "links": [
         {
           "type": "github",
-          "url": "https://github.com/vasmarfas/toolbox"
+          "url": "https://github.com/vasmarfas/mobitool"
         },
         {
           "type": "website",
@@ -515,7 +515,7 @@
   "downloads": [
     {
       "type": "github",
-      "url": "https://github.com/vasmarfas/toolbox/releases",
+      "url": "https://github.com/vasmarfas/mobitool/releases",
       "label": {
         "en": "GitHub Releases (Windows, macOS, Linux, Android)",
         "ru": "GitHub Releases (Windows, macOS, Linux, Android)"

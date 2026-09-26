@@ -82,7 +82,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PACKAGE_NAME: com.vasmarfas.toolbox
+  PACKAGE_NAME: com.vasmarfas.mobitool
 
 jobs:
   build:

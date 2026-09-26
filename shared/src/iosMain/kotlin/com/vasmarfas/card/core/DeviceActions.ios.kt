@@ -1,7 +1,7 @@
 package com.vasmarfas.card.core
 
-import platform.AudioToolbox.AudioServicesPlaySystemSound
-import platform.AudioToolbox.kSystemSoundID_Vibrate
+import platform.AudioMobitool.AudioServicesPlaySystemSound
+import platform.AudioMobitool.kSystemSoundID_Vibrate
 import platform.Foundation.NSDate
 import platform.Foundation.NSTimeZone
 import platform.Foundation.dateWithTimeIntervalSince1970

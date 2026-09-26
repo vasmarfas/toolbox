@@ -1,4 +1,4 @@
-rootProject.name = "Vasmarfas"
+rootProject.name = "Mobitool"
 
 pluginManagement {
     repositories {

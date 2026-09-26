@@ -84,7 +84,7 @@ private val cameraFormats = mapOf(
     AVMetadataObjectTypeGS1DataBarExpandedCode to "GS1 DataBar Expanded",
 )
 
-private val sessionQueue = dispatch_queue_create("com.vasmarfas.toolbox.scanner", null)
+private val sessionQueue = dispatch_queue_create("com.vasmarfas.mobitool.scanner", null)
 
 @Composable
 actual fun CameraScanner(onFound: (ScannedCode) -> Unit, modifier: Modifier) {

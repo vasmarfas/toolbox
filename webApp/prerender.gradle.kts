@@ -95,7 +95,7 @@ fun page(lang: String): String {
     val resumeSection = """<section><h2>${s.getValue("resume_page")}</h2><p><a href="#resume">${s.getValue("experience_education_skills")}</a>$pdf</p></section>"""
     val footer = (contactLinks.map { contactAnchor(it) } + listOf(
         """<a href="download.html">${s.getValue("get_the_app")}</a>""",
-        """<a href="https://github.com/vasmarfas/toolbox">${s.getValue("source_code")}</a>""",
+        """<a href="https://github.com/vasmarfas/mobitool">${s.getValue("source_code")}</a>""",
     )).joinToString(" ")
     return """<div class="pre" lang="$lang">""" +
         """<header><h1 class="pre-name">${esc(tr(person["name"], lang))}</h1><p class="pre-title">${esc(tr(person["title"], lang))}</p>""" +

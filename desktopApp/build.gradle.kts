@@ -30,10 +30,10 @@ compose.desktop {
                 TargetFormat.Deb,
                 TargetFormat.Rpm,
             )
-            packageName = "Toolbox"
+            packageName = "Mobitool"
             packageVersion = (rootProject.extra["appVersionName"] as String).substringBefore('-')
             vendor = "vasmarfas"
-            description = "vasmarfas Toolbox: business card, portfolio and a multitool"
+            description = "vasmarfas Mobitool: business card, portfolio and a multitool"
             modules("jdk.unsupported", "java.naming", "java.net.http")
 
             windows {
@@ -44,7 +44,7 @@ compose.desktop {
                 upgradeUuid = "8B2C1A7E-6F3D-4B2A-9C1E-5D7F0A3B9E21"
             }
             macOS {
-                bundleID = "com.vasmarfas.toolbox"
+                bundleID = "com.vasmarfas.mobitool"
                 minimumSystemVersion = "12.0"
                 iconFile.set(project.file("icons/logo.icns"))
                 packageBuildVersion = rootProject.extra["appVersionCode"].toString()

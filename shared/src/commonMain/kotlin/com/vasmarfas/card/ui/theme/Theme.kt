@@ -23,7 +23,7 @@ import com.vasmarfas.card.data.ThemeMode
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun VasmarfasTheme(settings: AppSettings, content: @Composable () -> Unit) {
+fun MobitoolTheme(settings: AppSettings, content: @Composable () -> Unit) {
     val dark = when (settings.themeMode) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false

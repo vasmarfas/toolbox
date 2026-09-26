@@ -92,4 +92,4 @@ Continued use of the App after a change means you accept the updated Terms.
 ## 9. Contact
 
 **Developer:** vasmarfas
-**Contact:** https://github.com/vasmarfas/toolbox/issues
+**Contact:** https://github.com/vasmarfas/mobitool/issues

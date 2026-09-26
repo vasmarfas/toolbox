@@ -440,7 +440,7 @@ internal class OdtWriter(private val doc: Doc) {
 
     private fun meta(): String {
         val xml = XmlBuilder().start("office:document-meta", *ODF_NAMESPACES.toTypedArray(), "office:version" to ODF_VERSION).start("office:meta")
-        xml.leaf("meta:generator", "vasmarfas Toolbox")
+        xml.leaf("meta:generator", "vasmarfas Mobitool")
         doc.title?.takeIf { it.isNotBlank() }?.let { xml.leaf("dc:title", it) }
         doc.author?.takeIf { it.isNotBlank() }?.let {
             xml.leaf("meta:initial-creator", it)

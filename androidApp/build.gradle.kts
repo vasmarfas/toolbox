@@ -36,7 +36,7 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.vasmarfas.toolbox"
+        applicationId = "com.vasmarfas.mobitool"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = rootProject.extra["appVersionCode"] as Int

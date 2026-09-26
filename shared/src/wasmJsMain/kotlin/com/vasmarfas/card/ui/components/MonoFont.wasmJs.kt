@@ -20,9 +20,9 @@ actual fun monoFamily(): FontFamily {
         if (requested) return@LaunchedEffect
         requested = true
         runCatching {
-            val regular = Res.readBytes("files/fonts/ToolboxMono-Regular.ttf")
-            val bold = Res.readBytes("files/fonts/ToolboxMono-Bold.ttf")
-            bundled = FontFamily(Font("ToolboxMono", regular), Font("ToolboxMono-Bold", bold, FontWeight.Bold))
+            val regular = Res.readBytes("files/fonts/MobitoolMono-Regular.ttf")
+            val bold = Res.readBytes("files/fonts/MobitoolMono-Bold.ttf")
+            bundled = FontFamily(Font("MobitoolMono", regular), Font("MobitoolMono-Bold", bold, FontWeight.Bold))
         }
     }
     return FontFamily.Monospace

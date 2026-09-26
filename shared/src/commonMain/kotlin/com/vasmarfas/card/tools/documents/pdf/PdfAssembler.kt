@@ -3,7 +3,7 @@ package com.vasmarfas.card.tools.documents.pdf
 data class PageRef(val document: PdfDocument, val pageIndex: Int, val extraRotation: Int = 0)
 
 object PdfAssembler {
-    const val PRODUCER = "vasmarfas Toolbox"
+    const val PRODUCER = "vasmarfas Mobitool"
 
     // the page tree is flat, so every page gets its inherited resources, boxes and rotation in its own
     // dictionary. Objects shared between pages of one source are copied once

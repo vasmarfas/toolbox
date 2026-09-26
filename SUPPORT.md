@@ -16,10 +16,10 @@ UQCYtzsovMRC1vFrXxxDXFlIetj7N_0KKHEwsJVaxKROYzNS
 
 A review on Google Play helps other people find the app:
 
-https://play.google.com/store/apps/details?id=com.vasmarfas.toolbox
+https://play.google.com/store/apps/details?id=com.vasmarfas.mobitool
 
 ## Contact
 
 Questions and suggestions go to the
-[GitHub issue tracker](https://github.com/vasmarfas/toolbox/issues) or to
+[GitHub issue tracker](https://github.com/vasmarfas/mobitool/issues) or to
 [Telegram](https://t.me/vasmarfas).

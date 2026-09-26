@@ -305,7 +305,7 @@ internal class Fb2Writer(private val doc: Doc) {
         xml.end()
         xml.start("document-info")
         if (authors.isEmpty()) xml.start("author").leaf("nickname", "Unknown").end() else authors.forEach(::author)
-        xml.leaf("program-used", "vasmarfas Toolbox")
+        xml.leaf("program-used", "vasmarfas Mobitool")
         xml.leaf("date", FB2_DATE, "value" to FB2_DATE)
         val digest = Sha256.digest((title + "\u0000" + doc.author.orEmpty() + "\u0000" + blocksText(doc.blocks)).encodeToByteArray()).toHex()
         xml.leaf("id", digest.substring(0, 32))

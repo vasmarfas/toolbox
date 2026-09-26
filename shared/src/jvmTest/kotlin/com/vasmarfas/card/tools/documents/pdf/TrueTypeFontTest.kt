@@ -39,7 +39,7 @@ class TrueTypeFontTest {
         val context = FontRenderContext(null, false, true)
         fonts.forEach { file ->
             val font = TrueTypeFont(file.readBytes())
-            assertTrue(font.postScriptName.startsWith("Toolbox"), "${file.name}: ${font.postScriptName}")
+            assertTrue(font.postScriptName.startsWith("Mobitool"), "${file.name}: ${font.postScriptName}")
             val awt = Font.createFont(Font.TRUETYPE_FONT, file).deriveFont(font.unitsPerEm.toFloat())
             codePoints(sample).forEach { cp ->
                 val glyph = font.glyphId(cp)

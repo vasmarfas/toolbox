@@ -17,13 +17,13 @@ Anything beyond that needs a separate written agreement with the copyright holde
 
 ## Contributing
 
-Pull requests are welcome. Forking [github.com/vasmarfas/toolbox](https://github.com/vasmarfas/toolbox) on GitHub to prepare one is the normal way to contribute, and this notice does not restrict it: keep the fork while you work toward a pull request and sync it with upstream. You may not keep a fork as an independent product, that is publish it, promote it or ship it to anyone.
+Pull requests are welcome. Forking [github.com/vasmarfas/mobitool](https://github.com/vasmarfas/mobitool) on GitHub to prepare one is the normal way to contribute, and this notice does not restrict it: keep the fork while you work toward a pull request and sync it with upstream. You may not keep a fork as an independent product, that is publish it, promote it or ship it to anyone.
 
 By submitting a contribution you agree that it becomes part of this project on the same basis as the rest of the code, and that the maintainer may use it in published builds without the license restricting the maintainer's own use of the combined work.
 
 ## Name, icon and package ID
 
-The names vasmarfas and vasmarfas Toolbox, the app icon and the application ID `com.vasmarfas.toolbox` identify the official builds distributed by the maintainer. The code license does not cover them, and they may not be used to label, describe or identify any other build or distribution, or to suggest endorsement by or affiliation with this project.
+The names vasmarfas and vasmarfas Mobitool, the app icon and the application ID `com.vasmarfas.mobitool` identify the official builds distributed by the maintainer. The code license does not cover them, and they may not be used to label, describe or identify any other build or distribution, or to suggest endorsement by or affiliation with this project.
 
 ## Third-party components
 

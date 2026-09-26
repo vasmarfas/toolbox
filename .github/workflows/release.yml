@@ -124,7 +124,7 @@ jobs:
               found { print }
             ' CHANGELOG.md | sed '/./,$!d' > notes.md
           else
-            printf 'vasmarfas Toolbox %s\n' "$VERSION" > notes.md
+            printf 'vasmarfas Mobitool %s\n' "$VERSION" > notes.md
           fi
           cat notes.md
 

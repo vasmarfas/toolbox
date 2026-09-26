@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "302FD3522A8C9A2D4512095C"
-               BuildableName = "Toolbox.app"
+               BuildableName = "Mobitool.app"
                BlueprintName = "iosApp"
                ReferencedContainer = "container:iosApp.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "302FD3522A8C9A2D4512095C"
-            BuildableName = "Toolbox.app"
+            BuildableName = "Mobitool.app"
             BlueprintName = "iosApp"
             ReferencedContainer = "container:iosApp.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "302FD3522A8C9A2D4512095C"
-            BuildableName = "Toolbox.app"
+            BuildableName = "Mobitool.app"
             BlueprintName = "iosApp"
             ReferencedContainer = "container:iosApp.xcodeproj">
          </BuildableReference>

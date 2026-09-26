@@ -103,8 +103,8 @@ private suspend fun family(name: String, italics: Boolean = true): FontFamily = 
 }.also { families[name] = it }
 
 suspend fun documentFonts(serif: Boolean): DocFonts {
-    val sans = family("ToolboxSans")
-    return DocFonts(body = if (serif) family("ToolboxSerif") else sans, headings = sans, code = family("ToolboxMono", italics = false))
+    val sans = family("MobitoolSans")
+    return DocFonts(body = if (serif) family("MobitoolSerif") else sans, headings = sans, code = family("MobitoolMono", italics = false))
 }
 
 suspend fun preparePictures(blocks: List<Block>, longSide: Int = 1800): Map<Block.Picture, PreparedImage> {

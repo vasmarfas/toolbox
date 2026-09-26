@@ -103,7 +103,7 @@ import com.vasmarfas.card.ui.screens.ResumeScreen
 import com.vasmarfas.card.ui.screens.SettingsScreen
 import com.vasmarfas.card.ui.screens.ToolScreen
 import com.vasmarfas.card.ui.screens.ToolsScreen
-import com.vasmarfas.card.ui.theme.VasmarfasTheme
+import com.vasmarfas.card.ui.theme.MobitoolTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
@@ -143,7 +143,7 @@ fun App(
         LocalFind provides find,
     ) {
         key(settings.lang) {
-            VasmarfasTheme(settings) {
+            MobitoolTheme(settings) {
                 val navController = rememberNavController()
                 val entry = onboarding
                 if (entry != null) {

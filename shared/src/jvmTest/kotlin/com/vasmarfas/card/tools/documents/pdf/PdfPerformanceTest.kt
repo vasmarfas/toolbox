@@ -85,9 +85,9 @@ class PdfPerformanceTest {
         fun font(name: String) = TrueTypeFont(File("src/commonMain/composeResources/files/fonts/$name.ttf").readBytes())
         val fonts = MarkFonts(
             DocFonts(
-                body = FontFamily(font("ToolboxSerif-Regular"), font("ToolboxSerif-Bold"), font("ToolboxSerif-Italic"), font("ToolboxSerif-BoldItalic")),
-                headings = FontFamily(font("ToolboxSans-Regular"), font("ToolboxSans-Bold"), font("ToolboxSans-Italic"), font("ToolboxSans-BoldItalic")),
-                code = FontFamily(font("ToolboxMono-Regular"), font("ToolboxMono-Bold")),
+                body = FontFamily(font("MobitoolSerif-Regular"), font("MobitoolSerif-Bold"), font("MobitoolSerif-Italic"), font("MobitoolSerif-BoldItalic")),
+                headings = FontFamily(font("MobitoolSans-Regular"), font("MobitoolSans-Bold"), font("MobitoolSans-Italic"), font("MobitoolSans-BoldItalic")),
+                code = FontFamily(font("MobitoolMono-Regular"), font("MobitoolMono-Bold")),
             ),
         )
         val doc = PdfDocument.parse(bytes)

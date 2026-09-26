@@ -39,7 +39,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BUNDLE_ID: com.vasmarfas.toolbox
+  BUNDLE_ID: com.vasmarfas.mobitool
 
 jobs:
   build:

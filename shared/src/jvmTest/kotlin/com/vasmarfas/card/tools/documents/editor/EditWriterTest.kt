@@ -51,9 +51,9 @@ class EditWriterTest {
 
     private val fonts = MarkFonts(
         DocFonts(
-            body = FontFamily(font("ToolboxSerif-Regular"), font("ToolboxSerif-Bold"), font("ToolboxSerif-Italic"), font("ToolboxSerif-BoldItalic")),
-            headings = FontFamily(font("ToolboxSans-Regular"), font("ToolboxSans-Bold"), font("ToolboxSans-Italic"), font("ToolboxSans-BoldItalic")),
-            code = FontFamily(font("ToolboxMono-Regular"), font("ToolboxMono-Bold")),
+            body = FontFamily(font("MobitoolSerif-Regular"), font("MobitoolSerif-Bold"), font("MobitoolSerif-Italic"), font("MobitoolSerif-BoldItalic")),
+            headings = FontFamily(font("MobitoolSans-Regular"), font("MobitoolSans-Bold"), font("MobitoolSans-Italic"), font("MobitoolSans-BoldItalic")),
+            code = FontFamily(font("MobitoolMono-Regular"), font("MobitoolMono-Bold")),
         ),
     )
 
@@ -94,7 +94,7 @@ class EditWriterTest {
             assertEquals(400f, doc.getPage(2).cropBox.lowerLeftY)
             assertEquals("Page one", normalize(pdfboxText(doc, 2)))
             assertEquals("Three", doc.documentInformation.title)
-            assertEquals("vasmarfas Toolbox", doc.documentInformation.producer)
+            assertEquals("vasmarfas Mobitool", doc.documentInformation.producer)
         }
     }
 
@@ -381,7 +381,7 @@ class EditWriterTest {
 
     @Test
     fun glyphOutlinesStayInsideTheBox() {
-        val sans = font("ToolboxSans-Regular")
+        val sans = font("MobitoolSans-Regular")
         for (ch in "AЖ€") {
             val contours = sans.outline(sans.glyphId(ch.code))
             assertTrue(contours.isNotEmpty(), "$ch")

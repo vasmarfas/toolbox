@@ -31,7 +31,7 @@ private fun hit(vararg query: Pair<String, String>) {
                 parameter("cid", clientId)
                 parameter("ms", METRICA_DESKTOP_TOKEN)
                 query.forEach { (key, value) -> parameter(key, value) }
-                header(HttpHeaders.UserAgent, "Toolbox/$APP_VERSION (${System.getProperty("os.name")} ${System.getProperty("os.version")})")
+                header(HttpHeaders.UserAgent, "Mobitool/$APP_VERSION (${System.getProperty("os.name")} ${System.getProperty("os.version")})")
             }
         }
     }

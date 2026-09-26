@@ -78,7 +78,7 @@ or later. It runs only on the website, in its own module. Source: <https://lame.
 **Liberation Fonts** 2.1.5 — Digitized data copyright (c) 2010 Google Corporation, with Reserved
 Font Arimo, Tinos and Cousine. Copyright (c) 2012 Red Hat, Inc., with Reserved Font Name Liberation.
 The fonts under `shared/src/commonMain/composeResources/files/fonts` are cut down to Latin, Cyrillic
-and punctuation and renamed Toolbox, as the license requires of modified versions. They are used
+and punctuation and renamed Mobitool, as the license requires of modified versions. They are used
 only to typeset PDF files, which embed subsets of them. The license text sits next to them in
 `OFL.txt`.
 

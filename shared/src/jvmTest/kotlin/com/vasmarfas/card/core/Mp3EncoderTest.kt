@@ -101,7 +101,7 @@ class Mp3EncoderTest {
             assertEquals(frames.size - 1L, Mp3Stream.u32(file, at + 8), "frame count excludes the Info frame")
             assertEquals(file.size.toLong(), Mp3Stream.u32(file, at + 12))
             val lame = at + 120
-            assertEquals("Toolbox", String(file, lame, 7, Charsets.US_ASCII))
+            assertEquals("Mobitool", String(file, lame, 7, Charsets.US_ASCII))
             val delays = Mp3Stream.u32(file, lame + 20) and 0xFFFFFF
             val start = (delays ushr 12).toInt()
             val end = (delays and 0xFFF).toInt()

@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "vasmarfas Toolbox",
-  "short_name": "Toolbox",
+  "name": "vasmarfas Mobitool",
+  "short_name": "Mobitool",
   "description": "Личный сайт и бесплатный мультитул: @TOOLS_RU@ для фото, видео, документов, сети, конвертации, расчётов, текста и разработки. Без рекламы и без регистрации.",
   "start_url": "./",
   "scope": "./",
